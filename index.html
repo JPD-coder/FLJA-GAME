@@ -11,6 +11,7 @@ img { max-width: 100%; }
 </style>
 <script>
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
+window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 </script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <title>Fantasy League Jai Alai</title>
@@ -134,6 +135,7 @@ canvas { display: block; max-width: 100%; background: #000; border-radius: 4px; 
 }
 .seat { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .seat-name { font-weight: 600; }
+.seat-note { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.4; }
 .seat-keys { display: block; font-size: 12px; color: var(--muted); min-height: 17px; }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
 .seg button { background: transparent; border: 0; padding: 7px 12px; font-size: 13px; font-weight: 600; color: var(--muted); }
@@ -153,6 +155,13 @@ canvas { display: block; max-width: 100%; background: #000; border-radius: 4px; 
 .guide .sw.sv { background: var(--team-a, var(--gold)); }
 .guide .sw.s1 { background: #22c55e; } .guide .sw.s2 { background: var(--vice-pink); } .guide .sw.s3 { background: var(--vice-aqua); }
 @media (max-width: 520px) { .guide dl > div { grid-template-columns: 1fr; } }
+.type-row .seg button { padding-inline: 14px; }
+.face { display: flex; align-items: center; gap: 10px 12px; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+.face-prev { flex: none; width: 52px; height: 52px; border-radius: 50%; border: 2px dashed var(--line); background: #1a1c22 center / cover no-repeat; }
+.face-prev.has { border: 2px solid var(--gold); }
+.face-txt { flex: 1 1 180px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.face-txt span { color: var(--muted); font-size: 13px; line-height: 1.35; }
+.face .ghost { color: var(--text); padding: 8px 14px; font-size: 14px; font-weight: 600; cursor: pointer; }
 .opts-toggle:hover { text-decoration-color: var(--text); }
 .opt-label { min-width: 62px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .start {
@@ -285,9 +294,16 @@ canvas { display: block; max-width: 100%; background: #000; border-radius: 4px; 
     </div>
   </header>
 
-  <div class="stage" id="stage"><div class="side" id="sideL"></div><div class="court" id="court"><canvas id="cv" width="1000" height="448" role="img" aria-label="Jai alai court with two teams of two players"></canvas><a class="spot" id="spot1" href="https://silverpalmcapital.com" target="_blank" rel="noopener" aria-label="Silver Palm Capital website" title="Silver Palm Capital website" style="left:7.500%;top:22.346%;width:13.800%;height:16.089%"></a><a class="spot" id="spot2" href="https://casinodaniabeach.com/jai-alai/" target="_blank" rel="noopener" aria-label="The Casino at Dania Beach website" title="The Casino at Dania Beach website" style="left:21.600%;top:22.346%;width:13.100%;height:16.089%"></a><a class="spot" id="spot3" href="https://jpd-coder.github.io/OBAC/" target="_blank" rel="noopener" aria-label="Open Book website" title="Open Book website" style="left:65.400%;top:22.346%;width:14.200%;height:16.089%"></a><button type="button" class="spot" id="spot4" aria-label="Rewyld links" aria-haspopup="dialog" title="Rewyld links" style="left:80.000%;top:22.346%;width:13.300%;height:16.089%"></button></div><div class="side" id="sideR"></div></div>
+  <div class="stage" id="stage"><div class="side" id="sideL"></div><div class="court" id="court"><canvas id="cv" width="1000" height="448" role="img" aria-label="Jai alai court with two teams of two players"></canvas><a class="spot" id="spot1" href="https://silverpalmcapital.com" target="_blank" rel="noopener" aria-label="Silver Palm Capital website" title="Silver Palm Capital website" style="left:7.500%;top:22.346%;width:13.800%;height:16.089%"></a><a class="spot" id="spot2" href="https://casinodaniabeach.com/jai-alai/" target="_blank" rel="noopener" aria-label="The Casino at Dania Beach website" title="The Casino at Dania Beach website" style="left:21.600%;top:22.346%;width:13.100%;height:16.089%"></a><a class="spot" id="spot3" href="https://jpd-coder.github.io/OBAC/" target="_blank" rel="noopener" aria-label="Open Book website" title="Open Book website" style="left:65.400%;top:22.346%;width:14.200%;height:16.089%"></a><button type="button" class="spot" id="spot4" aria-label="Rewyld links" aria-haspopup="dialog" title="Rewyld links" style="left:80.000%;top:22.346%;width:13.300%;height:16.089%"></button><a class="spot" id="spot5" href="https://rocknrolltequila.com" target="_blank" rel="noopener" aria-label="Rock N Roll Tequila website" title="Rock N Roll Tequila website" style="left:44.550%;top:43.799%;width:10.950%;height:19.665%"></a></div><div class="side" id="sideR"></div></div>
 
   <section class="setup" id="setup" aria-label="Match setup">
+    <div class="opt type-row"><span class="opt-label">Match</span><div class="seg" id="optType"></div></div>
+    <div class="face" id="faceBox" hidden>
+      <span class="face-prev" id="facePrev" aria-hidden="true"></span>
+      <div class="face-txt"><b>Play as yourself</b><span>Singles only. Add a photo and your face goes on your player. It stays on this device.</span></div>
+      <label class="ghost face-btn" id="faceLbl">Add your face<input type="file" id="faceFile" accept="image/*" hidden></label>
+      <button type="button" class="ghost" id="faceClear" hidden>Remove</button>
+    </div>
     <div class="comps" id="comps"></div>
     <div class="teams" id="teams" hidden></div>
     <button type="button" class="opts-toggle" id="optsToggle" aria-expanded="false" aria-controls="opts">Play Settings +</button>
@@ -301,9 +317,11 @@ canvas { display: block; max-width: 100%; background: #000; border-radius: 4px; 
     <div class="guide" id="guide" hidden>
       <h3>The basics</h3>
       <ul class="rules">
+      <li><b>Singles or doubles.</b> Pick the match type above the teams. Doubles is two on two, with a front-court and a back-court player on each team. Singles is one on one: you cover the whole court alone, and you can add a photo so your face is on your player.</li>
       <li><b>Run and catch.</b> Use the arrow buttons, or hold a finger on the court to run there. Get under the ball and your cesta catches it, on the fly or after one bounce.</li>
       <li><b>Shots.</b> Saque (the serve) starts the point. In play, Pelotazo (white path) is the normal throw and there are three power moves, each with its own colored path: Rebota (green) carries to the back wall, Cortada (pink) cuts off the side wall and drops sharply by the front wall, Costado (aqua) is a backhand off the side wall that comes back deep and low. A red path is a fault.</li>
       <li><b>Score.</b> Every throw must hit the front wall between the lines, and a ball that reaches the back wall above its top line is out. Serves must land between lines 4 and 7.</li>
+      <li><b>Rebote clock.</b> When the pelota comes off the back wall and one of your players catches it, front court or back court, it must go back to the front wall in one motion. You have three seconds on Amateur pace, two on Standard and one on Pro to press a shot button. Hold it longer and the ball drops to the floor: point to the other team.</li>
       </ul>
       <h3>Your five buttons</h3>
       <dl>
@@ -315,7 +333,7 @@ canvas { display: block; max-width: 100%; background: #000; border-radius: 4px; 
       </dl>
       <h3>Calls you will see on court</h3>
       <dl>
-        <div><dt>Rebote</dt><dd>Tracking the ball past you, taking the carom off the back wall and firing it straight back to the front wall.</dd></div>
+        <div><dt>Rebote</dt><dd>Tracking the ball past you, taking the carom off the back wall and firing it straight back to the front wall in one fluid motion. The back wall lights up when the pelota strikes it, and whoever catches it has three seconds (Amateur), two (Standard) or one (Pro) to release. Hold longer and the ball drops: point to the other team.</dd></div>
         <div><dt>Rabo</dt><dd>A ball taken directly off the back wall on the fly: a lightning catch and release with no time to cradle it.</dd></div>
         <div><dt>Chic-Chac</dt><dd>The ball strikes the floor just before the back wall, a rapid double bounce that comes off fast and low.</dd></div>
         <div><dt>Chula</dt><dd>The perfect shot. The ball lands in the seam where the floor meets the back wall and rolls out instead of bouncing. No return is possible, so it wins the point.</dd></div>
@@ -374,7 +392,8 @@ var Core = (function () {
     normal: { noise: 4.2, pick: 0.6,  react: 0.42, err: 48, speed: 0.93 },
     hard:   { noise: 2.6, pick: 0.25, react: 0.24, err: 26, speed: 1.0 }
   };
-  var FAULTS = { ceiling: 1, over: 1, under: 1, short: 1, serveOut: 1, backOver: 1 };
+  var FAULTS = { ceiling: 1, over: 1, under: 1, short: 1, serveOut: 1, backOver: 1, held: 1 };
+  C.REBOTE_HOLD = 2;   // seconds a person may hold a ball taken off the back wall
 
   function gauss() { return (Math.random() + Math.random() + Math.random() + Math.random() - 2) * 0.87; }
   function tri(x) { x = x - Math.floor(x); return x < 0.5 ? x * 2 : 2 - 2 * x; }
@@ -466,7 +485,7 @@ var Core = (function () {
   }
 
   function reachOf(p) { return p.human ? C.REACH_H : C.REACH_C; }
-  function speedOf(g, p) { return C.SPEED * (p.human ? 1.12 : LV[g.cfg.level].speed); }
+  function speedOf(g, p) { return C.SPEED * (p.human ? 1.12 : LV[g.cfg.level].speed) * (p.single ? 1.35 : 1); }   // alone on court, a player covers more ground
   function allow(y, reach) {
     var dy = Math.abs(y - (C.FEET - 95));
     return dy < reach ? Math.sqrt(reach * reach - dy * dy) * 0.75 : -1;
@@ -485,7 +504,7 @@ var Core = (function () {
 
   function chooseAngle(g, p, serve) {
     var lv = LV[g.cfg.level], min = serve ? C.SMIN : C.AMIN, max = serve ? C.SMAX : C.AMAX, opts = [];
-    var opp = g.players.filter(function (q) { return q.team !== p.team; });
+    var opp = g.players.filter(function (q) { return q.team !== p.team && !q.out; });
     var rnd = Math.random(), hard = !serve && rnd < 0.3;           // about three throws in ten are power throws off the back wall
     var shot = serve ? 0 : hard ? 1 : rnd < 0.4 ? 2 : rnd < 0.5 ? 3 : 0;   // and now and then a cortada or a costado
     for (var a = min; a <= max; a += 1) {
@@ -522,7 +541,8 @@ var Core = (function () {
     var solo = cfg.solo || [cfg.soloTeam === 0, cfg.soloTeam === 1]; cfg.solo = solo;   // solo[t]: one person runs both players of team t
     for (var i = 0; i < 4; i++) {
       g.players.push({ i: i, team: i >> 1, role: i % 2 ? 'B' : 'F', human: !!cfg.seats[i] || solo[i >> 1], x: 0, face: 1, vx: 0,
-        holdT: 0, cool: 0, anim: 0, run: 0, aim: 20, jump: 0, ai: {} });
+        holdT: 0, cool: 0, anim: 0, run: 0, aim: 20, jump: 0, ai: {},
+        out: !!cfg.singles && i % 2 === 1, single: !!cfg.singles });   // singles: the back-court players sit out
     }
     setServe(g, cfg.firstServe || 0);
     return g;
@@ -532,12 +552,12 @@ var Core = (function () {
     var P = g.players, o = 1 - team;
     g.phase = 'serve'; g.server = team; g.lastTeam = team; g.rally = 0; g.pred = null;
     P[team * 2].x = C.LINES[10] - 14; P[team * 2 + 1].x = C.LINES[13];
-    P[o * 2].x = (C.LINES[5] + C.LINES[6]) / 2; P[o * 2 + 1].x = C.LINES[12] - 20;
+    P[o * 2].x = g.cfg.singles ? C.LINES[7] : (C.LINES[5] + C.LINES[6]) / 2; P[o * 2 + 1].x = C.LINES[12] - 20;
     P.forEach(function (p) { p.holdT = 0; p.cool = 0; p.vx = 0; p.anim = 0; p.ai = {}; });
     g.holder = team * 2;
     if (g.cfg.solo[0]) g.act[0] = 0;
     if (g.cfg.solo[1]) g.act[1] = 2;
-    g.flags = { hitFront: false, bounces: 0, serve: true };
+    g.flags = { hitFront: false, bounces: 0, serve: true }; g.reb = false;
     var hp = hand(P[team * 2]); g.ball.x = hp.x; g.ball.y = hp.y; g.ball.vx = g.ball.vy = 0;
     plan(g, P[team * 2], true);
   }
@@ -548,7 +568,7 @@ var Core = (function () {
     p.ai.hold = serve ? 1.15 : 0.24 + Math.random() * 0.2;
   }
 
-  function home(p) { return p.role === 'F' ? 1300 : 375; }   // back-court players wait deep, near lines 12 to 13
+  function home(p) { return p.single ? 820 : p.role === 'F' ? 1300 : 375; }   // back-court players wait deep, near lines 12 to 13
   function inZone(p, x) { return p.role === 'F' ? x >= 1000 : x <= 1120; }
 
   function intercept(g, p, zoneOnly) {
@@ -573,6 +593,7 @@ var Core = (function () {
   function chooseActive(g, team) {
     var best = g.act[team], bs = 1e9;
     for (var i = team * 2; i < team * 2 + 2; i++) {
+      if (g.players[i].out) continue;
       var it = intercept(g, g.players[i], false), sc = !it ? 1e8 : (it.ok ? it.t : 100 + it.short);
       if (sc < bs - 0.0001) { bs = sc; best = i; }
     }
@@ -583,10 +604,10 @@ var Core = (function () {
     if (g.phase !== 'rally') return 0;
     var target = home(p);
     if (g.holder < 0 && p.team !== g.lastTeam && g.pred && g.flightT >= (p.ai.react || 0)) {
-      var mate = g.players[p.i ^ 1], mine = intercept(g, p, mate.human);
+      var mate = g.players[p.i ^ 1], mine = intercept(g, p, mate.human && !mate.out);
       if (mine) {
         var go = true;
-        if (!mate.human) {
+        if (!mate.human && !mate.out) {
           var theirs = intercept(g, mate, false);
           if (theirs && theirs.ok && (!mine.ok || theirs.t < mine.t - 0.001 || (theirs.t <= mine.t + 0.001 && mate.i < p.i))) go = false;
         }
@@ -600,7 +621,7 @@ var Core = (function () {
   function doThrow(g, p, deg, hard) {
     deg = Math.max(-12, Math.min(60, deg));
     var serve = g.flags.serve, shot = shotOf(serve, hard), b = launch(p, deg, serve, shot), lv = LV[g.cfg.level];
-    g.hard = shot; p.shot = shot;
+    g.hard = shot; p.shot = shot; g.reb = false;
     g.ball.x = b.x; g.ball.y = b.y; g.ball.vx = b.vx; g.ball.vy = b.vy;
     g.lastTeam = p.team; g.flags = flagsFor(p, serve, shot);
     g.holder = -1; g.flightT = 0; g.phase = 'rally'; g.rally++;
@@ -625,7 +646,7 @@ var Core = (function () {
     var P = g.players, i, p;
     g.t += dt;
     for (i = 0; i < 4; i++) {
-      p = P[i];
+      p = P[i]; if (p.out) continue;
       var dir = ctl(g, p) ? ((inputs[i] && inputs[i].dir) || 0) : (p.human ? coverDir(g, p) : cpuDir(g, p));
       var max = speedOf(g, p);
       if (g.holder === i) max *= g.flags.serve ? 0 : 0.35;
@@ -657,6 +678,9 @@ var Core = (function () {
       if (p.human) {
         p.aim = sweep(p.holdT, serve);
         var inp = inputs[p.i];
+        if (g.reb && !(inp && inp.throw) && p.holdT > (g.cfg.rebHold || C.REBOTE_HOLD)) {   // held a rebote too long: the ball drops and the other team scores
+          g.holder = -1; g.reb = false; g.lastTeam = p.team; g.ball.vx = 60; g.ball.vy = 0; point(g, 'held'); return;
+        }
         if ((inp && inp.throw) || (!serve && p.holdT > 2.4)) doThrow(g, p, inp && inp.throw && typeof inp.angle === 'number' && isFinite(inp.angle) ? inp.angle : p.aim, inp && inp.throw ? inp.hard : 0);   // a person's serve waits for them
       } else {
         p.aim += (p.ai.angle - p.aim) * Math.min(1, dt * 10);
@@ -676,7 +700,7 @@ var Core = (function () {
       if (g.flags.hitFront && (!g.flags.serve || g.flags.bounces >= 1)) {
         var best = null, bd = 1e9;
         for (i = 0; i < 4; i++) {
-          p = P[i]; if (p.team === g.lastTeam || p.cool > 0) continue;
+          p = P[i]; if (p.out || p.team === g.lastTeam || p.cool > 0) continue;
           var dx = g.ball.x - p.x, dy = g.ball.y - (C.FEET - 95), d = Math.sqrt(dx * dx + dy * dy);
           if (d < reachOf(p) && d < bd) { bd = d; best = p; }
         }
@@ -684,6 +708,7 @@ var Core = (function () {
           g.holder = best.i; best.holdT = 0; best.aim = 18; g.flags.serve = false; g.flags.shot = 0;
           if (g.cfg.solo[best.team]) g.act[best.team] = best.i;
           g.events.push('catch');
+          g.reb = !!g.flags.back;                                  // off the back wall: it must go back in one motion
           if (g.flags.back) g.events.push(g.flags.bounces === 0 ? 'rabo' : 'rebote');   // taken off the back wall: on the fly it is a rabo
           if (ctl(g, best)) {                                      // every third catch by a person: a leap off the wall
             g.hc[best.team] = (g.hc[best.team] || 0) + 1;
@@ -733,15 +758,18 @@ if (typeof module !== 'undefined') module.exports = Core;
   var KEYTXT = ['A / D to run, W to throw', 'F / H to run, T to throw', 'J / L to run, I to throw', '← / → to run, ↑ to throw'];
   var ROLE = ['Front court', 'Back court', 'Front court', 'Back court'];
   var PACE = { relaxed: 0.72, standard: 0.88, pro: 1 };
+  var HOLD_S = { relaxed: 3, standard: 2, pro: 1 };              // real seconds to release a ball taken off the back wall, by pace
+  function rebHold() { return (HOLD_S[cfg.pace] || 2) * (PACE[cfg.pace] || 0.88); }   // the game clock runs at the pace, so convert
   var MSG = {
     ceiling: 'Hit the ceiling', over: 'Over the top line', under: 'Under the low line',
-    short: 'Short of the front wall', serveOut: 'Serve missed the 4 to 7 zone', double: 'Second bounce', backOver: 'Over the top line on the back wall', chula: 'Chula! It died in the back wall seam'
+    short: 'Short of the front wall', serveOut: 'Serve missed the 4 to 7 zone', double: 'Second bounce', backOver: 'Over the top line on the back wall', chula: 'Chula! It died in the back wall seam', held: 'Held the rebote too long'
   };
 
-  var cfg = { comp: 'league', pick: [0, 1], names: ['Squared Groupers', 'Peloteros'], seats: [1, 0, 0, 0], target: 9, level: 'easy', pace: 'relaxed', sound: true };
+  var cfg = { comp: 'league', pick: [0, 1], names: ['Squared Groupers', 'Peloteros'], seats: [1, 0, 0, 0], target: 9, level: 'easy', pace: 'relaxed', sound: true, singles: false };
   try {
     var saved = JSON.parse(localStorage.getItem('fronton-doubles') || 'null');
     if (saved && saved.seats && saved.names) for (var k in cfg) if (saved[k] != null) cfg[k] = saved[k];
+    for (var st = 0; st < 2; st++) { cfg.seats[st * 2] = cfg.seats[st * 2] || cfg.seats[st * 2 + 1] ? 1 : 0; cfg.seats[st * 2 + 1] = 0; }   // older saves had a switch per player; now it is one per team
     cfg.target = 9; cfg.level = 'easy'; cfg.pace = 'relaxed';     // these three always start here; they can be changed in Play Settings for the session
     if (cfg.names[0] === 'Green') cfg.names[0] = 'Squared Groupers';
     if (cfg.names[1] === 'Blue') cfg.names[1] = 'Peloteros';
@@ -813,6 +841,49 @@ if (typeof module !== 'undefined') module.exports = Core;
     applyTeams(); save(); buildSetup(); layout();
   }
   function badge(r) { return r.logo ? '<img' + (r.flagImg ? ' class="flagimg"' : '') + ' src="' + r.logo + '" alt="">' : '<span class="flag" aria-hidden="true">' + r.flag + '</span>'; }
+  /* anonymous play counter: only the standalone (GitHub) copy sets FL_STATS; a random id in this browser stands for one player */
+  function track(e, tags) {
+    var url = window.FL_STATS; if (!url || (window.claude && window.claude.use)) return;
+    var id = '';
+    try { id = localStorage.getItem('flja-id') || ''; if (!id) { id = Math.random().toString(36).slice(2, 10) + Date.now().toString(36); localStorage.setItem('flja-id', id); } }
+    catch (x) { id = track.tmp || (track.tmp = Math.random().toString(36).slice(2, 10) + 'tmp'); }
+    try { fetch(url + '?e=' + e + '&u=' + id + (tags ? '&k=' + tags : ''), { mode: 'no-cors', keepalive: true, cache: 'no-store' }).catch(function () { /* counter unreachable: play on */ }); } catch (x) { /* ignore */ }
+  }
+  track('visit');
+  var FACE_KEY = 'flja-face', faceImg = null;
+  function setFace(url) {
+    if (!url) { faceImg = null; return; }
+    var im = new Image(); im.onload = function () { faceImg = im; faceUI(); }; im.src = url;
+  }
+  try { setFace(localStorage.getItem(FACE_KEY)); } catch (e) { /* no storage: no saved face */ }
+  function faceUI() {
+    var pv = $('facePrev'); if (!pv) return;
+    pv.style.backgroundImage = faceImg ? 'url(' + faceImg.src + ')' : '';
+    pv.classList.toggle('has', !!faceImg); $('faceClear').hidden = !faceImg;
+    $('faceLbl').firstChild.nodeValue = faceImg ? 'Change photo' : 'Add your face';
+  }
+  $('faceFile').addEventListener('change', function () {
+    var f = this.files && this.files[0]; this.value = ''; if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () {
+      var im = new Image();
+      im.onload = function () {                                   // square crop from the middle, shrunk to a small round portrait
+        var s = Math.min(im.width, im.height), c = document.createElement('canvas'); c.width = c.height = 160;
+        var x = c.getContext('2d'); x.beginPath(); x.arc(80, 80, 80, 0, 6.3); x.clip();
+        x.drawImage(im, (im.width - s) / 2, (im.height - s) * 0.4, s, s, 0, 0, 160, 160);
+        var url = c.toDataURL('image/png');
+        try { localStorage.setItem(FACE_KEY, url); } catch (e) { /* still used for this visit */ }
+        setFace(url);
+      };
+      im.src = rd.result;
+    };
+    rd.readAsDataURL(f);
+  });
+  $('faceClear').addEventListener('click', function () { try { localStorage.removeItem(FACE_KEY); } catch (e) { /* ignore */ } faceImg = null; faceUI(); });
+  function faceFor(p) {                                            // your photo rides on your own player in a singles match
+    if (!faceImg || !game.cfg.singles || mode !== 'match' || p.i % 2) return false;
+    return solo >= 0 ? p.team === solo : p.human;
+  }
   function buildSetup() {
     var html = '', list = groupList(cfg.comp);
     $('comps').innerHTML = '<button type="button" id="compLeague" class="comp league" data-comp="league" aria-pressed="' + (cfg.comp === 'league') + '" aria-expanded="' + (cfg.comp === 'league') + '">League Play</button>' +
@@ -828,29 +899,32 @@ if (typeof module !== 'undefined') module.exports = Core;
           (cfg.pick[1 - t] === k ? ' disabled' : '') + '>' + badge(ROSTER[k]) + '</button>';
       }
       html += '</div>';
-      for (var r = 0; r < 2; r++) {
-        var s = t * 2 + r;
-        html += '<div class="seat"><div><span class="seat-name">' + ROLE[s] + '</span></div>' +
-          '<div class="seg"><button type="button" id="seat' + s + 'h" data-seat="' + s + '" data-v="1" aria-pressed="' + !!cfg.seats[s] + '">Player</button>' +
-          '<button type="button" id="seat' + s + 'c" data-seat="' + s + '" data-v="0" aria-pressed="' + !cfg.seats[s] + '">CPU</button></div></div>';
-      }
+      // one switch per team: a person runs both of its players, or the CPU does
+      var on = !!cfg.seats[t * 2];
+      html += '<div class="seat"><div><span class="seat-name">Played by</span></div>' +
+        '<div class="seg"><button type="button" id="seat' + t + 'h" data-team="' + t + '" data-v="1" aria-pressed="' + on + '">' + (t ? 'Player 2' : 'You') + '</button>' +
+        '<button type="button" id="seat' + t + 'c" data-team="' + t + '" data-v="0" aria-pressed="' + !on + '">CPU</button></div></div>';
+      if (t && on && cfg.seats[0]) html += '<p class="seat-note">Two people, one phone: each steers the front-court player and the partner plays along.</p>';
       html += '</div>';
       if (!t) html += '<div class="vs">VS</div>';
     }
     $('teams').innerHTML = html;
     seg($('optTarget'), [[6, '6'], [9, '9'], [15, '15']], cfg.target, 'target');
     seg($('optLevel'), [['easy', 'Easy'], ['normal', 'Normal'], ['hard', 'Hard']], cfg.level, 'level');
-    seg($('optPace'), [['relaxed', 'Relaxed'], ['standard', 'Standard'], ['pro', 'Pro']], cfg.pace, 'pace');
+    seg($('optPace'), [['relaxed', 'Amateur'], ['standard', 'Standard'], ['pro', 'Pro']], cfg.pace, 'pace');
     seg($('optSound'), [['on', 'On'], ['off', 'Off']], cfg.sound ? 'on' : 'off', 'sound');
+    seg($('optType'), [['doubles', 'Doubles'], ['singles', 'Singles']], cfg.singles ? 'singles' : 'doubles', 'type');
+    $('faceBox').hidden = !cfg.singles; faceUI();
     renderOnline();
   }
   elSetup.addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     if (b.dataset.comp) setComp(b.dataset.comp);
     else if (b.dataset.pick != null) { cfg.pick[+b.dataset.pick] = +b.dataset.v; applyTeams(); save(); buildSetup(); }
-    else if (b.dataset.seat != null) { cfg.seats[+b.dataset.seat] = +b.dataset.v; save(); buildSetup(); }
+    else if (b.dataset.team != null) { cfg.seats[+b.dataset.team * 2] = +b.dataset.v; cfg.seats[+b.dataset.team * 2 + 1] = 0; save(); buildSetup(); }
     else if (b.dataset.opt) {
       if (b.dataset.opt === 'sound') { cfg.sound = b.dataset.v === 'on'; unlock(); }
+      else if (b.dataset.opt === 'type') { cfg.singles = b.dataset.v === 'singles'; if (mode === 'demo' && !net.role) startDemo(true); }
       else cfg[b.dataset.opt] = b.dataset.opt === 'target' ? +b.dataset.v : b.dataset.v;
       save(); buildSetup();
     }
@@ -879,7 +953,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       var sb = function (only, k) { return '<button type="button" class="throw idle ' + CLS[k] + '" data-seat="' + s + '" data-only="' + only + '" data-sv="' + (k ? 0 : 1) + '" data-shot="' + Math.max(0, k - 1) + '" data-act="T">' + NAMES[k] + '</button>'; };
       var four = function (only) { return sb(only, 0) + sb(only, 1) + sb(only, 2) + sb(only, 3) + sb(only, 4); };
       // four shot buttons sit above a box naming the player they belong to
-      var box = function (only) { return '<div class="shotbox" data-box="' + only + '"><div class="shots">' + four(only) + '</div><div class="shot-label">' + (only % 2 ? 'Back Court' : 'Front Court') + '</div></div>'; };
+      var box = function (only) { return '<div class="shotbox" data-box="' + only + '"><div class="shots">' + four(only) + '</div><div class="shot-label">' + (cfg.singles ? 'Singles' : only % 2 ? 'Back Court' : 'Front Court') + '</div></div>'; };
       if (sidesOn) {                                               // sideways: one slim row under the court, so both walls stay in view
         html += '<div class="pad land t' + (s >> 1) + '"><div class="runs">' + L + R + '</div>' +
           '<div class="minis"><button type="button" class="mini" id="miniPause" data-mini="pause"' + (net.role === 'guest' ? ' hidden' : '') + '>Pause</button><button type="button" class="mini" data-mini="menu" aria-label="New match">Menu</button></div>' +
@@ -887,7 +961,7 @@ if (typeof module !== 'undefined') module.exports = Core;
         return;
       }
       html += '<div class="pad t' + (s >> 1) + '"><div class="pad-label"><i>' + (hs.length === 1 ? 'You · ' + esc(cfg.names[s >> 1]) : 'P' + n + ' · ' + esc(cfg.names[s >> 1])) + '</i></div>' +
-        '<div class="boxes">' + (hs.length === 1 ? box((s >> 1) * 2) + box((s >> 1) * 2 + 1) : box(s)) + '</div><div class="runs">' + L + R + '</div></div>';
+        '<div class="boxes">' + (hs.length === 1 && !cfg.singles ? box((s >> 1) * 2) + box((s >> 1) * 2 + 1) : box(s)) + '</div><div class="runs">' + L + R + '</div></div>';
     });
     elPads.innerHTML = html;
     elPads.className = 'pads' + (hs.length === 1 ? ' one' : '');
@@ -972,6 +1046,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     elSetup.hidden = m; elPads.hidden = !m || over || !humans().length; elAfter.hidden = !over || net.role === 'guest';
     $('btnPause').hidden = !m || over || net.role === 'guest'; $('btnSetup').hidden = !m;
     $('btnPause').textContent = paused ? 'Resume' : 'Pause';
+    $('spot5').style.pointerEvents = m ? '' : 'none';              // before a match the middle of the court says TAP HERE TO PLAY: the wall logo must not swallow that tap
     var mp = $('miniPause'); if (mp) mp.textContent = paused ? 'Play' : 'Pause';
     layout();
   }
@@ -980,15 +1055,16 @@ if (typeof module !== 'undefined') module.exports = Core;
     seatsNow = null; net.lost = false;
     mode = 'demo'; paused = false; trail = []; fxReset();
     sidesOn = false; document.body.classList.remove('sides'); sideL.innerHTML = ''; sideR.innerHTML = '';
-    game = Core.newGame({ seats: [0, 0, 0, 0], level: 'normal', target: 1e9, firstServe: Math.random() < 0.5 ? 0 : 1 });
+    game = Core.newGame({ seats: [0, 0, 0, 0], level: 'normal', target: 1e9, singles: !!cfg.singles, firstServe: Math.random() < 0.5 ? 0 : 1 });
     drag = null; cv.style.touchAction = ''; cv.style.cursor = 'pointer';
     buildSetup(); show();
   }
   function startMatch(score) {
     mode = 'match'; paused = false; trail = []; fxReset(); held = [{}, {}, {}, {}]; throwQ = [0, 0, 0, 0]; hardQ = [0, 0, 0, 0]; chg = [0, 0, 0, 0];
+    if (net.role !== 'guest') track('start', (cfg.singles ? 'singles' : 'doubles') + '.' + cfg.comp + '.' + (net.role ? 'online' : cfg.seats[0] && cfg.seats[2] ? 'local' : 'cpu'));
     if (net.role) {                                               // online: each person runs a whole team; the host is team 1
       seatsNow = net.role === 'host' ? [1, 0, 0, 0] : [0, 0, 1, 0]; solo = net.role === 'host' ? 0 : 1;
-      game = Core.newGame({ seats: [1, 1, 1, 1], solo: [true, true], level: cfg.level, target: cfg.target, firstServe: Math.random() < 0.5 ? 0 : 1 });
+      game = Core.newGame({ seats: [1, 1, 1, 1], solo: [true, true], level: cfg.level, target: cfg.target, rebHold: rebHold(), singles: !!cfg.singles, firstServe: Math.random() < 0.5 ? 0 : 1 });
       if (net.role === 'host') { net.started = true; net.gid++; net.lost = false; var pf = net.peer && net.peer.presence.fl; net.gt = pf && pf.t ? pf.t.slice(0, 2) : [0, 0]; net.pend = [null, null]; }
     } else {
       seatsNow = null;
@@ -998,7 +1074,7 @@ if (typeof module !== 'undefined') module.exports = Core;
         seatsNow = [0, 0, 0, 0]; seatsNow[hs0[0]] = 1; hs0 = humans();
       }
       solo = hs0.length === 1 ? hs0[0] >> 1 : -1;                 // one person runs both players on their team
-      game = Core.newGame({ seats: (seatsNow || cfg.seats).slice(), solo: [solo === 0, solo === 1], level: cfg.level, target: cfg.target, firstServe: Math.random() < 0.5 ? 0 : 1 });
+      game = Core.newGame({ seats: (seatsNow || cfg.seats).slice(), solo: [solo === 0, solo === 1], level: cfg.level, target: cfg.target, rebHold: rebHold(), singles: !!cfg.singles, firstServe: Math.random() < 0.5 ? 0 : 1 });
     }
     if (score) game.score = score;
     drag = null; cv.style.touchAction = 'none'; cv.style.cursor = '';
@@ -1157,7 +1233,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     }
     ctx.fillStyle = '#23262e'; ctx.fillRect(x + 16, y + 208, w - 32, 2);
     ctx.font = '700 25px ' + DISPLAY; ctx.fillStyle = MUTED; ctx.textAlign = 'left';
-    ctx.fillText((cfg.comp === 'world' ? 'WORLD CUP  ·  ' : cfg.comp === 'league' ? 'LEAGUE PLAY  ·  ' : '') + 'PLAY TO ' + cfg.target, x + 22, y + 231);
+    ctx.fillText((cfg.comp === 'world' ? 'WORLD CUP  ·  ' : cfg.comp === 'league' ? 'LEAGUE PLAY  ·  ' : '') + (game.cfg.singles ? 'SINGLES' : 'DOUBLES') + '  \u00b7  PLAY TO ' + cfg.target, x + 22, y + 231);
     ctx.textAlign = 'right';
     if (game.rally > 1 && game.phase === 'rally') ctx.fillText('RALLY ' + game.rally, x + w - 22, y + 231);
   }
@@ -1200,7 +1276,16 @@ if (typeof module !== 'undefined') module.exports = Core;
       var g = ctx.createLinearGradient(mx + nx * w, my + ny * w, mx - nx * w, my - ny * w);
       g.addColorStop(0, t[0]); g.addColorStop(0.5, t[1]); g.addColorStop(1, t[2]);
       ctx.fillStyle = g; segPath(s); ctx.fill();
+      if (!far && w >= 4.5) {                                      // arena lights catch the lit edge
+        var w0 = s[4] / 2 - 1.6, w1 = s[5] / 2 - 1.6;
+        ctx.strokeStyle = 'rgba(255,246,222,.42)'; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(s[0] + nx * w0, s[1] + ny * w0); ctx.lineTo(s[2] + nx * w1, s[3] + ny * w1); ctx.stroke();
+      }
     }
+  }
+  /* kit trim: stripes, cuffs and bands laid over a body part, no outline */
+  function trim(segs, far) {
+    for (var i = 0; i < segs.length; i++) { ctx.fillStyle = tones(segs[i][6], far)[1]; segPath(segs[i]); ctx.fill(); }
   }
   // two-bone joint solver: returns [jointX, jointY, endX, endY]
   function ik(ax, ay, bx, by, l1, l2, bend) {
@@ -1281,12 +1366,19 @@ if (typeof module !== 'undefined') module.exports = Core;
       var f = ph + (far ? Math.PI : 0), lift = Math.max(0, Math.cos(f)) * 18 * mv;
       var fx = Math.sin(f) * 28 * mv * dirSign + (far ? -r.st : r.st) * (1 - mv), ay = -6 - lift - arc * (far ? 30 : 14), hxp = hipx + (far ? -2 : 2);
       var k = ik(hxp, hipy, fx, ay, 37, 37, -1);
-      return [[hxp, hipy, k[0], k[1], 17, 14, PANTS], [k[0], k[1], k[2], k[3], 13, 10, PANTS],
-        [k[2] - 3, k[3] + 2, k[2] + 11, k[3] + 3 + (lift > 2 ? 4 : 0), 9, 7, SHOE]];
+      var toe = k[3] + 3 + (lift > 2 ? 4 : 0), lx = (k[2] - k[0]), ly = (k[3] - k[1]);
+      var out = [[hxp, hipy, k[0], k[1], 17, 14, PANTS], [k[0], k[1], k[2], k[3], 13, 10, PANTS],
+        [k[2] - 3, k[3] + 2, k[2] + 11, toe, 9, 7, SHOE]];
+      out.trim = [[hxp - 1, hipy + 2, k[0] - 1, k[1], 3.4, 3, kit.jersey], [k[0] - 1, k[1], k[0] + lx * 0.62 - 1, k[1] + ly * 0.62, 3, 2.6, kit.jersey],
+        [k[0] + lx * 0.76, k[1] + ly * 0.76, k[0] + lx * 0.8, k[1] + ly * 0.8, 8.6, 8.2, kit.sash],
+        [k[2] - 4, k[3] + 6.2, k[2] + 12, toe + 3.6, 2.6, 2.6, '#f1efe8'], [k[2] + 2, k[3] + 1.5, k[2] + 7, k[3] + 2 + (toe - k[3] - 3) * 0.6, 2.2, 2.2, kit.jersey]];
+      return out;
     }
     function arm(far, tx, ty) {
       var sx = shx + (far ? -3 : 1), sy = shy + 4, k = ik(sx, sy, sx + tx, sy + ty, 25, 24, 1);
-      return { segs: [[sx, sy, k[0], k[1], 12.5, 10.5, kit.jersey], [k[0], k[1], k[2], k[3], 9.5, 8, skin]], ex: k[2], ey: k[3], fa: Math.atan2(k[3] - k[1], k[2] - k[0]) };
+      var ux = k[0] - sx, uy = k[1] - sy, fx2 = k[2] - k[0], fy2 = k[3] - k[1];
+      return { segs: [[sx, sy, k[0], k[1], 12.5, 10.5, kit.jersey], [k[0], k[1], k[2], k[3], 9.5, 8, skin]], ex: k[2], ey: k[3], fa: Math.atan2(k[3] - k[1], k[2] - k[0]),
+        trim: [[sx + ux * 0.8, sy + uy * 0.8, k[0], k[1], 11.4, 11, kit.sash], [k[0] + fx2 * 0.72, k[1] + fy2 * 0.72, k[0] + fx2 * 0.9, k[1] + fy2 * 0.9, 9.4, 9, '#f1efe8']] };
     }
 
     var mine = mode === 'match' && Core.ctl(game, p) && (!net.role || p.team === solo), tag = solo >= 0 ? 'YOU' : 'P' + humanNo[p.i];
@@ -1303,18 +1395,34 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (arc > 0) ctx.rotate(-0.22 * arc);
 
     var offArm = arm(true, r.ox, r.oy), mainArm = arm(false, r.hx, r.hy);
-    part(offArm.segs, true);
+    part(offArm.segs, true); trim(offArm.trim, true);
     part([[offArm.ex, offArm.ey, offArm.ex + 0.5, offArm.ey + 0.5, 9.5, 9.5, skin]], true);
-    part(leg(true), true);
-    part(leg(false), false);
+    var legF = leg(true), legN = leg(false);
+    part(legF, true); trim(legF.trim, true);
+    part(legN, false); trim(legN.trim, false);
     part([[hipx, hipy - 3, hipx, hipy + 3, 26, 24, PANTS], [hipx, hipy - 4, shx, shy + 3, 27, 32, kit.jersey],
       [hipx + dx * 6, hipy + dy * 6, hipx + dx * 13, hipy + dy * 13, 28.5, 29.5, kit.sash]], false);
+    trim([[hipx + dx * 40 - 9, hipy + dy * 40, hipx + dx * 46 - 8, hipy + dy * 46, 9, 12, kit.sash], [shx - 2, shy + 5, shx + 6, shy + 7, 7, 4, kit.sash],
+      [hipx - dy * -10 + dx * 16, hipy + dx * -10 + dy * 16, hipx - dy * -11 + dx * 40, hipy + dx * -11 + dy * 40, 3, 3, kit.sash]], false);
     // number on the jersey (kept readable when the player faces left)
     ctx.save(); ctx.translate(hipx + dx * 31, hipy + dy * 31); ctx.rotate(r.lean); ctx.scale(p.face, 1);
     ctx.font = '800 15px ' + DISPLAY; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = kit.num; ctx.fillText(NUM[p.i], 0, 0);
     ctx.restore();
     // neck, head, helmet
     part([[shx + 1, shy - 3, hdx - 2, hdy + 6, 10, 9, skin], [hdx - 0.5, hdy, hdx + 0.5, hdy, 25, 26, skin]], false);
+    if (faceFor(p)) {                                              // your own photo as a big bobble head, so it reads from the stands
+      var fr = 80, wob = Math.sin(t * 4.6 + p.i) * 0.07 + Math.sin(t * 11 + p.i) * 0.05 * mv + (throwing ? Math.sin(u * 9) * 0.12 : 0);
+      var fht = tones(kit.helm, false);
+      ctx.save(); ctx.translate(hdx + 1, hdy + 9); ctx.rotate(wob); ctx.translate(0, -fr - 2 + Math.sin(t * 9.2 + p.i) * 1.5 * (0.4 + mv));   // pivots on the neck
+      ctx.beginPath(); ctx.arc(0, 0, fr + 2.6, 0, 6.3); ctx.fillStyle = '#08090b'; ctx.fill();
+      ctx.save(); ctx.beginPath(); ctx.arc(0, 0, fr, 0, 6.3); ctx.clip(); ctx.scale(p.face, 1);
+      ctx.drawImage(faceImg, -fr, -fr, fr * 2, fr * 2); ctx.restore();
+      ctx.lineCap = 'round'; ctx.strokeStyle = '#08090b'; ctx.lineWidth = 15; ctx.beginPath(); ctx.arc(0, 0, fr + 1, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke();   // helmet worn as a cap
+      ctx.strokeStyle = fht[1]; ctx.lineWidth = 11; ctx.beginPath(); ctx.arc(0, 0, fr + 1, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, fr + 2.5, Math.PI * 1.3, Math.PI * 1.55); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,246,222,.4)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, fr - 1.5, Math.PI * 1.55, Math.PI * 1.95); ctx.stroke();
+      ctx.restore();
+    } else {
     ctx.fillStyle = shade(skin, -0.05); ctx.beginPath(); ctx.arc(hdx + 12.6, hdy + 3.5, 2.6, 0, 6.3); ctx.fill();
     ctx.fillStyle = '#16110d'; ctx.fillRect(hdx + 5.5, hdy + 0.5, 2.6, 2.8);
     ctx.strokeStyle = 'rgba(20,14,10,.7)'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(hdx + 7, hdy + 9); ctx.lineTo(hdx + 11, hdy + 8.4); ctx.stroke();
@@ -1324,6 +1432,15 @@ if (typeof module !== 'undefined') module.exports = Core;
     ctx.lineWidth = 4; ctx.strokeStyle = '#08090b'; ctx.stroke(); ctx.fillStyle = hg; ctx.fill();
     ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(hdx, hdy - 1, 10.5, Math.PI * 1.2, Math.PI * 1.6); ctx.stroke();
     ctx.strokeStyle = 'rgba(15,12,10,.75)'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(hdx - 3, hdy); ctx.lineTo(hdx + 3, hdy + 11.5); ctx.stroke();
+      // finer features: ear, eye, brow, nose, helmet band and vent
+      ctx.fillStyle = shade(skin, -0.1); ctx.beginPath(); ctx.ellipse(hdx - 2.5, hdy + 3.5, 2.6, 3.6, 0, 0, 6.3); ctx.fill();
+      ctx.fillStyle = '#f4f1ea'; ctx.beginPath(); ctx.ellipse(hdx + 6.9, hdy + 1.9, 2.5, 1.9, 0, 0, 6.3); ctx.fill();
+      ctx.fillStyle = '#16110d'; ctx.beginPath(); ctx.arc(hdx + 7.6, hdy + 2, 1.25, 0, 6.3); ctx.fill();
+      ctx.strokeStyle = 'rgba(20,14,10,.85)'; ctx.lineWidth = 1.4; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(hdx + 4.2, hdy - 0.6); ctx.lineTo(hdx + 9.6, hdy - 1.3); ctx.stroke();
+      ctx.strokeStyle = shade(skin, -0.16); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(hdx + 11.4, hdy + 1.5); ctx.lineTo(hdx + 13.4, hdy + 5); ctx.lineTo(hdx + 11.2, hdy + 5.6); ctx.stroke();
+      ctx.strokeStyle = kit.sash; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.arc(hdx, hdy - 1, 12.4, Math.PI * 1.04, Math.PI * 1.98); ctx.stroke();
+      ctx.strokeStyle = 'rgba(8,9,11,.55)'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(hdx - 5, hdy - 10.5); ctx.lineTo(hdx + 2, hdy - 12.2); ctx.moveTo(hdx - 3, hdy - 7.6); ctx.lineTo(hdx + 4, hdy - 9.2); ctx.stroke();
+    }
     // throwing arm, glove and cesta
     if (throwing) {
       ctx.strokeStyle = 'rgba(255,255,255,' + (0.3 * (1 - u)) + ')'; ctx.lineWidth = 12; ctx.lineCap = 'round';
@@ -1341,8 +1458,9 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (mine && !refl) {
       var fs = Math.max(28, 12 / cssScale);
       ctx.font = '800 ' + fs + 'px ' + DISPLAY; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-      ctx.lineWidth = fs / 5; ctx.strokeStyle = '#000'; ctx.strokeText(tag, p.x, C.FEET - 186 - hop * S);
-      ctx.fillStyle = TEAM[p.team].ui; ctx.fillText(tag, p.x, C.FEET - 186 - hop * S);
+      ctx.lineWidth = fs / 5; ctx.strokeStyle = '#000'; var ty = C.FEET - 186 - hop * S - (faceFor(p) ? 150 : 0);        // clear of a bobble head
+      ctx.strokeText(tag, p.x, ty);
+      ctx.fillStyle = TEAM[p.team].ui; ctx.fillText(tag, p.x, ty);
     }
   }
 
@@ -1350,6 +1468,14 @@ if (typeof module !== 'undefined') module.exports = Core;
   function call(t, c, x, y) { fx.call = { t: t, c: c, x: Math.max(240, Math.min(C.W - 240, x)), y: y, life: 1 }; }
   function drawAim(p) {
     var serve = game.flags.serve;
+    if (game.reb && game.holder === p.i) {                         // off the back wall: a two-second clock to let it go
+      var left = Math.max(0, 1 - p.holdT / (game.cfg.rebHold || C.REBOTE_HOLD)), bw = Math.max(120, 44 / cssScale), bh = Math.max(14, 5 / cssScale), bx0 = p.x - bw / 2, by0 = C.FEET - 262 - (faceFor(p) ? 126 : 0);
+      var hot = left < 0.4 ? RED : GOLD;
+      ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(0,0,0,.75)'; ctx.fillRect(bx0 - 3, by0 - 3, bw + 6, bh + 6);
+      ctx.fillStyle = hot; ctx.fillRect(bx0, by0, bw * left, bh);
+      ctx.font = '900 ' + Math.max(30, 14 / cssScale) + 'px ' + DISPLAY; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+      ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(0,0,0,.8)'; ctx.strokeText('REBOTE! RELEASE', p.x, by0 - 10); ctx.fillStyle = hot; ctx.fillText('REBOTE! RELEASE', p.x, by0 - 10);
+    }
     var r = Math.max(4.5, 2 / cssScale), i, k;
     var arc = function (shot, col, step, a0) {
       var pr = Core.predict(Core.launch(p, p.aim, serve, shot), Core.flagsFor(p, serve, shot), true), s = pr.s;
@@ -1407,7 +1533,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.16, t + 0.18); g.gain.exponentialRampToValueAtTime(0.001, t + len);
     s.connect(f); f.connect(g); g.connect(ac.destination); s.start(t); s.stop(t + len + 0.05);
   }
-  function fxReset() { fx.parts.length = 0; fx.rings.length = 0; fx.flashes.length = 0; fx.shake = 0; fx.slow = 0; fx.cheer = 0; fx.pulse = [0, 0]; fx.call = null; }
+  function fxReset() { fx.parts.length = 0; fx.rings.length = 0; fx.flashes.length = 0; fx.shake = 0; fx.slow = 0; fx.cheer = 0; fx.pulse = [0, 0]; fx.call = null; fx.backGlow = 0; }
 
   function fxEvent(ev) {
     var b = game.ball, sp = Math.sqrt(b.vx * b.vx + b.vy * b.vy), i;
@@ -1415,6 +1541,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       burst(C.FRONT - 14, b.y, 12, { a0: Math.PI * 0.6, spread: Math.PI * 0.8, v: 420, life: 0.4, c: ['#ffffff', '#ffe9b0', GOLD], s: 4, g: 500, add: true });
       fx.rings.push({ x: C.FRONT - 8, y: b.y, life: 0.35, wall: true }); fx.shake = Math.min(7, sp / 260);
     } else if (ev === 'back' || ev === 'chicchac') {
+      fx.backGlow = 0.6;                                           // the back wall lights up when the pelota strikes it
       if (ev === 'chicchac') call('CHIC-CHAC', GOLD, C.BACK + 150, b.y - 120);
       burst(C.BACK + 14, b.y, 7, { a0: -Math.PI * 0.4, spread: Math.PI * 0.8, v: 260, life: 0.35, c: ['#ffffff', '#cfcfcf'], s: 3.5, g: 400, add: true });
       fx.rings.push({ x: C.BACK + 8, y: b.y, life: 0.3, wall: true });
@@ -1429,6 +1556,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       fx.rings.push({ x: b.x, y: C.FLOORY + 14, life: 0.35, wall: false });
     } else if (ev === 'catch') burst(b.x, b.y, 6, { v: 150, life: 0.3, c: ['#efe2b8', '#ffffff'], s: 3.5, add: true });
     else if (ev === 'point' || ev === 'win') {
+      if (ev === 'win' && mode === 'match' && net.role !== 'guest') track('end');
       var w = game.msg.winner;
       fx.cheer = 1; fx.pulse[w] = 1;
       for (i = 0; i < 12; i++) fx.flashes.push({ x: Math.random() * C.W, y: 850 + Math.random() * 35, life: 0.16, wait: Math.random() * 1.6 });
@@ -1446,6 +1574,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     }
     for (i = fx.rings.length - 1; i >= 0; i--) { fx.rings[i].life -= dt; if (fx.rings[i].life <= 0) fx.rings.splice(i, 1); }
     for (i = fx.flashes.length - 1; i >= 0; i--) { p = fx.flashes[i]; if (p.wait > 0) p.wait -= real; else { p.life -= real; if (p.life <= 0) fx.flashes.splice(i, 1); } }
+    if (fx.backGlow > 0) fx.backGlow -= real;
     if (fx.call) { fx.call.life -= real; fx.call.y -= real * 30; if (fx.call.life <= 0) fx.call = null; }
     fx.shake *= Math.pow(0.002, real); fx.cheer = Math.max(0, fx.cheer - real * 0.45);
     fx.pulse[0] = Math.max(0, fx.pulse[0] - real * 1.4); fx.pulse[1] = Math.max(0, fx.pulse[1] - real * 1.4);
@@ -1466,7 +1595,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   function drawReflections() {
     ctx.save(); ctx.beginPath(); ctx.rect(C.BACK, 716, C.FRONT - C.BACK, 90); ctx.clip();
     ctx.translate(0, 2 * (C.FEET + 3)); ctx.scale(1, -1); ctx.globalAlpha = 0.16;
-    for (var i = 0; i < 4; i++) drawPlayer(game.players[i], true);
+    for (var i = 0; i < 4; i++) if (!game.players[i].out) drawPlayer(game.players[i], true);
     ctx.restore(); ctx.globalAlpha = 1;
   }
   function drawParts(add) {
@@ -1484,6 +1613,11 @@ if (typeof module !== 'undefined') module.exports = Core;
         ctx.beginPath(); ctx.ellipse(p.x, p.y, p.wall ? 6 + k * 10 : 14 + k * 46, p.wall ? 12 + k * 44 : 4 + k * 12, 0, 0, 6.3); ctx.stroke();
       }
       ctx.globalCompositeOperation = 'source-over';
+      if (fx.backGlow > 0) {
+        var bg = ctx.createLinearGradient(C.BACK - 30, 0, C.BACK + 150, 0), ba = Math.min(1, fx.backGlow / 0.6);
+        bg.addColorStop(0, 'rgba(201,165,92,' + (0.75 * ba) + ')'); bg.addColorStop(1, 'rgba(201,165,92,0)');
+        ctx.globalAlpha = 1; ctx.fillStyle = bg; ctx.fillRect(C.BACK - 30, C.TOP, 180, C.FLOORY - C.TOP);
+      }
       if (fx.call) {                                               // name of the shot just thrown
         ctx.globalAlpha = Math.min(1, fx.call.life * 3); ctx.font = '900 ' + Math.max(34, 12 / cssScale) + 'px ' + DISPLAY; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
         ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(0,0,0,.8)'; ctx.strokeText(fx.call.t, fx.call.x, fx.call.y); ctx.fillStyle = fx.call.c; ctx.fillText(fx.call.t, fx.call.x, fx.call.y);
@@ -1601,7 +1735,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     ctx.translate(fx.zx + shx, 560 + shy); ctx.scale(z, z); ctx.translate(-fx.zx, -560);
     drawCourt(); drawBoard(); drawLight(); drawReflections();
     var P = game.players, i, holder = game.holder >= 0 ? P[game.holder] : null;
-    for (i = 0; i < 4; i++) if (P[i] !== holder) drawPlayer(P[i]);
+    for (i = 0; i < 4; i++) if (P[i] !== holder && !P[i].out) drawPlayer(P[i]);
     if (holder) drawPlayer(holder);
     if (holder && holder.human && game.phase !== 'point' && (!net.role || holder.team === solo)) drawAim(holder);
     drawParts(false); drawBall(); drawParts(true);
@@ -1633,7 +1767,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   var net = { room: null, ready: false, role: null, code: '', peer: null, peerAt: 0, started: false, gid: 0, seq: 0, lastN: -1,
     gt: [0, 0], pend: [null, null], tc: [0, 0], ta: [20, 20], th: [0, 0], sendT: 0, dirty: false, backup: null, lost: false,
     hostDir: 0, myDir: 0, thUntil: 0, thSeat: -1, lobbyKey: '', note: '' };
-  var PHASES = ['serve', 'rally', 'point', 'over'], EVS = ['ceiling', 'over', 'under', 'short', 'serveOut', 'double', 'backOver', 'chula'];
+  var PHASES = ['serve', 'rally', 'point', 'over'], EVS = ['ceiling', 'over', 'under', 'short', 'serveOut', 'double', 'backOver', 'chula', 'held'];
   function r1(v) { return Math.round(v * 10) / 10; }
   function num(v, d) { return typeof v === 'number' && isFinite(v) ? v : d; }
   function netPub(obj) { if (net.room) { try { net.room.presence({ fl: obj }).catch(function () {}); } catch (e) { /* ignore */ } } }
@@ -1703,24 +1837,25 @@ if (typeof module !== 'undefined') module.exports = Core;
   function packState() {
     var g = game;
     return { n: ++net.seq, ph: PHASES.indexOf(g.phase), sc: g.score, b: [r1(g.ball.x), r1(g.ball.y), Math.round(g.ball.vx), Math.round(g.ball.vy)],
-      h: g.holder, lt: g.lastTeam, f: [g.flags.hitFront ? 1 : 0, g.flags.bounces, g.flags.serve ? 1 : 0, g.flags.shot | 0, g.flags.side ? 1 : 0, Math.round(g.flags.sideX || 0)],
+      h: g.holder, lt: g.lastTeam, f: [g.flags.hitFront ? 1 : 0, g.flags.bounces, g.flags.serve ? 1 : 0, g.flags.shot | 0, g.flags.side ? 1 : 0, Math.round(g.flags.sideX || 0), g.reb ? 1 : 0],
       p: g.players.map(function (p) { return [r1(p.x), Math.round(p.vx), p.face, r1(p.aim), r1(Math.max(0, p.anim)), r1(p.holdT), r1(Math.max(0, p.jump))]; }),
       act: g.act, sv: g.server, ms: g.msg ? [EVS.indexOf(g.msg.ev), g.msg.winner] : null, mT: r1(g.msgT), w: g.winner, r: g.rally,
       d: net.myDir, pz: paused ? 1 : 0 };
   }
   function hostPresence() {
-    return { code: net.code, role: 'host', pick: cfg.pick, comp: cfg.comp, target: cfg.target, pace: cfg.pace, gid: net.gid,
+    return { code: net.code, role: 'host', pick: cfg.pick, comp: cfg.comp, target: cfg.target, pace: cfg.pace, sg: cfg.singles ? 1 : 0, gid: net.gid,
       on: net.started ? 1 : 0, st: net.started && mode === 'match' ? packState() : null };
   }
   /* guest: take the host's settings (teams, play-to, pace) for this match without saving them */
   function syncGuestCfg(f) {
-    var key = JSON.stringify([f.pick, f.comp, f.target, f.pace]);
+    var key = JSON.stringify([f.pick, f.comp, f.target, f.pace, f.sg]);
     if (key === net.lobbyKey) return false;
     net.lobbyKey = key;
     if (f.pick && f.pick.length === 2) cfg.pick = [f.pick[0] | 0, f.pick[1] | 0];
     if (f.comp === 'league' || f.comp === 'world') cfg.comp = f.comp;
     if ([6, 9, 15].indexOf(f.target) >= 0) cfg.target = f.target;
     if (PACE[f.pace]) cfg.pace = f.pace;
+    cfg.singles = !!f.sg;
     applyTeams();
     return true;
   }
@@ -1737,7 +1872,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     net.thUntil = 0;
     g.phase = PHASES[st.ph] || 'rally'; g.score = [st.sc[0] | 0, st.sc[1] | 0];
     g.ball.x = num(st.b[0], g.ball.x); g.ball.y = num(st.b[1], g.ball.y); g.ball.vx = num(st.b[2], 0); g.ball.vy = num(st.b[3], 0);
-    g.holder = st.h | 0; g.lastTeam = st.lt ? 1 : 0; g.flags = { hitFront: !!st.f[0], bounces: st.f[1] | 0, serve: !!st.f[2], shot: st.f[3] | 0, side: !!st.f[4], sideX: num(st.f[5], 0) }; g.hard = st.f[3] | 0;
+    g.holder = st.h | 0; g.lastTeam = st.lt ? 1 : 0; g.flags = { hitFront: !!st.f[0], bounces: st.f[1] | 0, serve: !!st.f[2], shot: st.f[3] | 0, side: !!st.f[4], sideX: num(st.f[5], 0) }; g.hard = st.f[3] | 0; g.reb = !!st.f[6];
     for (i = 0; i < 4; i++) {
       q = g.players[i]; s = st.p[i]; dx = num(s[0], q.x) - q.x;
       if (q.team === solo && Math.abs(dx) < 90) q.x += dx * 0.2;   // my own players: ease toward the host's position
@@ -1882,7 +2017,7 @@ if (typeof module !== 'undefined') module.exports = Core;
         var who = hd >= 0 && (hd >> 1) === solo ? hd : (solo >= 0 ? game.act[solo] : -1);
         var bxs = document.querySelectorAll('.shotbox');
         for (q = 0; q < bxs.length; q++) bxs[q].classList.toggle('live', +bxs[q].dataset.box === hd);
-        var sl = $('sideLab'); if (sl && who >= 0) { sl.textContent = who % 2 ? 'Back Court' : 'Front Court'; sl.classList.toggle('live', hd === who); }
+        var sl = $('sideLab'); if (sl && who >= 0) { sl.textContent = game.cfg.singles ? 'Singles' : who % 2 ? 'Back Court' : 'Front Court'; sl.classList.toggle('live', hd === who); }
       }
       var over = game.phase === 'over';
       if (over !== wasOver) { wasOver = over; show(); }
