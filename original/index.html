@@ -415,7 +415,7 @@ var Core = (function () {
     LINES: [0, 1776, 1652, 1534, 1424, 1298, 1185, 1055, 936, 811, 679, 541, 434, 311, 189],
     SPEED: 320, AMIN: -6, AMAX: 38, SMIN: 16, SMAX: 34,
     PMIN: 172, PMAX: 1812, REACH_H: 90, REACH_C: 64,
-    PASS_W: 86, PASS_H: 345           // a person's catch zone: this far either side, and this high above the floor
+    PASS_W: 86, PASS_H: 400           // a person's catch zone: this far either side, and this high above the floor
   };
   /* one standard court for every view: evenly spaced lines, the low red line, and the wall good all the way up to its gold line.
      Only the height of that gold line differs, because it sits at a different height in each picture. */
@@ -737,10 +737,12 @@ var Core = (function () {
         if (FAULTS[ev] || ev === 'double' || ev === 'chula') { if (ev === 'chula') { g.ball.vy = 0; g.ball.vx *= 0.25; } point(g, ev); return; }
         g.events.push(ev);
       }
-      if (g.flags.hitFront && (!g.flags.serve || g.flags.bounces >= 1)) {
+      // a serve must bounce before the other side may take it. A person's player may also take a good serve on the fly as it comes past him off the front wall
+      var fly = g.flags.serve && g.flags.bounces < 1, flyOk = fly && g.pred && !g.pred.fault;
+      if (g.flags.hitFront && (!fly || flyOk)) {
         var best = null, bd = 1e9;
         for (i = 0; i < 4; i++) {
-          p = P[i]; if (p.out || p.team === g.lastTeam || p.cool > 0) continue;
+          p = P[i]; if (p.out || p.team === g.lastTeam || p.cool > 0 || (fly && !p.human)) continue;
           var dx = g.ball.x - p.x, dy = g.ball.y - (C.FEET - 95), d = Math.sqrt(dx * dx + dy * dy);
           // a person's players take any ball that passes them, from the floor up to a full stretch overhead; nobody has to be standing on the exact spot
           var passing = p.human && Math.abs(dx) < C.PASS_W && g.ball.y > C.FEET - C.PASS_H && g.ball.y < C.FEET + 14;
