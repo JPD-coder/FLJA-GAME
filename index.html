@@ -163,8 +163,10 @@ canvas { display: block; max-width: 100%; background: #000; border-radius: 4px; 
 .guide .sw.s1 { background: #22c55e; } .guide .sw.s2 { background: var(--vice-pink); } .guide .sw.s3 { background: var(--vice-aqua); }
 @media (max-width: 520px) { .guide dl > div { grid-template-columns: 1fr; } }
 .type-row .seg button { padding-inline: 14px; }
-#optView { flex-wrap: wrap; }
-#optView button { padding-inline: 10px; }
+#optView { flex-wrap: nowrap; flex: 1 1 auto; min-width: 0; }
+#optView button { flex: 1 1 auto; min-width: 0; padding-inline: 8px; white-space: nowrap; }
+@media (max-width: 520px) { #optViewRow { gap: 8px; } #optView button { padding-inline: 3px; font-size: 12px; letter-spacing: 0; } }
+@media (max-width: 380px) { #optView button { font-size: 11px; padding-inline: 2px; } }
 body.retro .spot { cursor: pointer; }
 .face { display: flex; align-items: center; gap: 10px 12px; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
 .face-prev { flex: none; width: 52px; height: 52px; border-radius: 50%; border: 2px dashed var(--line); background: #1a1c22 center / cover no-repeat; }
