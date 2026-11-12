@@ -1,24 +1,18 @@
 # Fantasy League Jai Alai
 
-A browser game: two-on-two jai alai, against the computer or against a friend online.
+A browser jai alai game: singles and doubles, five shots (Saque, Pelotazo, Rebota, Cortada, Costado), league and World Cup teams, and online two-player matches.
 
-## Put it on GitHub Pages
+- **Play:** open `index.html` (GitHub Pages serves it at the repository address).
+- **Original look:** the earlier version with the drawn players and first fronton is kept in [`original/`](original/) and is playable at `/original/`.
 
-1. Create a new repository on GitHub (for example `fantasy-league-jai-alai`).
-2. Upload every file in this folder to the repository root: `index.html` and all the image files.
-3. In the repository, open Settings, then Pages. Under "Build and deployment", choose "Deploy from a branch", pick the `main` branch and the `/ (root)` folder, and save.
-4. After a minute or two the game is live at `https://<your-username>.github.io/<repository-name>/`.
+## Files
 
-Keep `index.html` and the images in the same folder.
+| File | What it is |
+| --- | --- |
+| `index.html` | The whole game: rules, drawing, controls and online play |
+| `fronton6.jpg` | The court artwork, with sponsor panels and wall logo |
+| `sprites.png` | The player in eight poses; recolored per team in the browser |
+| `brand.png`, `team-*.png`, `logo-*.png` | Game and club logos |
+| `original/` | The previous look, complete and self-contained |
 
-## Playing a friend online
-
-1. Both players open the game's web address.
-2. One taps **Host a game** and reads out the four-letter code.
-3. The other types the code and taps **Join**.
-4. The host taps the court to start.
-
-Online matches connect through a small relay running on Railway:
-`wss://relay-production-5e78c1a2.up.railway.app/ws` (project `fantasy-league-jai-alai`, service `relay`).
-The address is set near the top of `index.html` as `window.FL_RELAY`. If the relay is ever moved, change it there.
-The relay stores nothing; a match exists only while both players are connected.
+Online matches and the anonymous play counter use a small relay hosted on Railway; its address is set at the top of `index.html`.

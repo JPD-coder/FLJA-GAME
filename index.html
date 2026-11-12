@@ -3,6 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="FL Jai Alai">
+<meta name="theme-color" content="#0b0c0f">
+<link rel="apple-touch-icon" href="brand.png">
 <style>
 :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 body { margin: 0; }
@@ -93,15 +99,16 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outl
 /* sideways: the header steps aside and one slim row of controls sits under the court, so both walls stay in view */
 body.sides .bar { display: none; }
 body.sides .app { padding-top: 4px; padding-bottom: 4px; gap: 4px; max-width: none; }
+body.sides .pads { position: relative; z-index: 3; }
 .pad.land { flex-direction: row; align-items: stretch; gap: 8px; }
 .pad.land .runs { flex: 0 0 24%; }
 .pad.land .runs button { height: 100%; }
 .pad.land .minis { flex: none; display: flex; flex-direction: column; gap: 4px; }
 .pad.land .minis button { flex: 1; height: auto; padding: 0 10px; font-size: 11px !important; letter-spacing: .06em; }
-.pad.land .shotbox { flex: 1; }
+.pad.land .shotbox { flex: 1; background: #0b0c0f; }
 .pad.land .shots { grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 4px; }
 .pad.land .shots button { grid-column: auto; }
-.pad.land .shots button { height: 34px; font-size: 13px !important; }
+.pad.land .shots button { height: 30px; font-size: 13px !important; }
 .pad.land .shot-label { font-size: 10px; padding: 2px; }
 canvas { display: block; max-width: 100%; background: #000; border-radius: 4px; }
 
@@ -162,6 +169,11 @@ canvas { display: block; max-width: 100%; background: #000; border-radius: 4px; 
 .face-txt { flex: 1 1 180px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .face-txt span { color: var(--muted); font-size: 13px; line-height: 1.35; }
 .face .ghost { color: var(--text); padding: 8px 14px; font-size: 14px; font-weight: 600; cursor: pointer; }
+body.look2 #spot1 { left: 10.70% !important; top: 13.63% !important; width: 11.60% !important; height: 16.54% !important; }
+body.look2 #spot2 { left: 22.60% !important; top: 13.63% !important; width: 11.60% !important; height: 16.54% !important; }
+body.look2 #spot3 { left: 65.90% !important; top: 13.63% !important; width: 11.70% !important; height: 16.54% !important; }
+body.look2 #spot4 { left: 78.00% !important; top: 14.53% !important; width: 11.50% !important; height: 14.75% !important; }
+body.look2 #spot5 { left: 44.75% !important; top: 39.11% !important; width: 10.55% !important; height: 18.99% !important; }
 .opts-toggle:hover { text-decoration-color: var(--text); }
 .opt-label { min-width: 62px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .start {
@@ -328,8 +340,8 @@ canvas { display: block; max-width: 100%; background: #000; border-radius: 4px; 
         <div><dt><i class="sw sv"></i>Saque</dt><dd>The serve. It starts the point and must land between lines 4 and 7. This button only lights up on a serve.</dd></div>
         <div><dt><i class="sw"></i>Pelotazo</dt><dd>Your standard throw to the front wall. The safe way to keep the ball in play.</dd></div>
         <div><dt><i class="sw s1"></i>Rebota</dt><dd>Power move. The big throw. It comes off the front wall hard enough to carry to the back wall.</dd></div>
-        <div><dt><i class="sw s2"></i>Cortada</dt><dd>Power move. A shoulder-level cut shot that touches the side wall before the front wall, then drops sharply near the front.</dd></div>
-        <div><dt><i class="sw s3"></i>Costado</dt><dd>Power move. A stylish, difficult backhand played off the side wall before the front wall. It comes back deep and low.</dd></div>
+        <div><dt><i class="sw s2"></i>Cortada</dt><dd>Power move. A shoulder-level cut shot that touches the side wall up by lines 1 to 3 before the front wall, then drops sharply near the front.</dd></div>
+        <div><dt><i class="sw s3"></i>Costado</dt><dd>Power move. A stylish, difficult backhand played off the side wall up by lines 1 to 3 before the front wall. It comes back deep and low.</dd></div>
       </dl>
       <h3>Calls you will see on court</h3>
       <dl>
@@ -369,6 +381,7 @@ canvas { display: block; max-width: 100%; background: #000; border-radius: 4px; 
 </div>
 
 <script>
+window.FL_LOOK2 = 1;
 /* ---------- Jai alai rules + physics (no DOM) ---------- */
 var Core = (function () {
   'use strict';
@@ -384,6 +397,7 @@ var Core = (function () {
     SPEED: 320, AMIN: -6, AMAX: 46, SMIN: 16, SMAX: 34,
     PMIN: 172, PMAX: 1812, REACH_H: 90, REACH_C: 64
   };
+  if (typeof window !== 'undefined' && window.FL_LOOK2) { for (var ln = 1; ln <= 14; ln++) C.LINES[ln] = Math.round(1820 - (ln - 1) * 124.77); }   // new-look fronton: evenly spaced lines
   C.ZONE_NEAR = C.LINES[4];   // serve must land between line 4 ...
   C.ZONE_FAR = C.LINES[7];    // ... and line 7
 
@@ -403,7 +417,7 @@ var Core = (function () {
     b.vy += C.GRAV * h; b.x += b.vx * h; b.y += b.vy * h;
     if (b.y < C.CEIL) return 'ceiling';
     // cortada and costado touch the side wall on the way to the front wall
-    if (f.shot >= 2 && !f.side && !f.hitFront && b.vx > 0 && b.x >= f.sideX) { f.side = true; b.vx *= 0.96; return 'side'; }
+    if (f.shot >= 2 && !f.side && !f.hitFront && b.vx > 0 && b.x >= f.sideX) { f.side = true; b.vx *= 0.94; b.vy += f.shot === 2 ? 150 : -130; return 'side'; }   // the carom shows: a cortada is knocked down, a costado kicks up
     if (b.x >= C.FRONT - C.R && b.vx > 0) {
       b.x = C.FRONT - C.R;
       if (!f.hitFront) {
@@ -476,8 +490,8 @@ var Core = (function () {
   }
   function flagsFor(p, serve, shot) {
     shot = shotOf(serve, shot);
-    var hx = hand(p).x, sx = shot === 2 ? Math.max(hx + 80, C.FRONT - 300) : Math.min(hx + 240, C.FRONT - 90);
-    return { hitFront: false, bounces: 0, serve: !!serve, shot: shot, side: false, sideX: sx };
+    var hx = hand(p).x, sx = Math.min(C.FRONT - 40, Math.max(hx + 40, shot === 2 ? C.LINES[2] : C.LINES[3]));   // both touch the side wall up by lines 1 to 3: the cortada at line 2, the costado at line 3
+    return { hitFront: false, bounces: 0, serve: !!serve, shot: shot, side: false, sideX: sx, x0: hx };
   }
   function sweep(t, serve) {
     if (serve) return C.SMIN + (C.SMAX - C.SMIN) * tri(t * 0.42);
@@ -779,7 +793,75 @@ if (typeof module !== 'undefined') module.exports = Core;
   var seatsNow = null, solo = -1, mode = 'demo', game = null, paused = false, cssScale = 0.5, trail = [];
   var held = [{}, {}, {}, {}], throwQ = [0, 0, 0, 0], humanNo = [0, 0, 0, 0];
   var img = { bg: new Image(), 0: new Image(), 1: new Image() };
-  img.bg.src = 'fronton5.jpg';
+  var LOOK2 = !!window.FL_LOOK2;                                   // new-look preview: painted fronton and character sprites
+  img.bg.src = LOOK2 ? 'fronton6.jpg' : 'fronton5.jpg';
+  var SPR = {"ready": {"x": 4, "y": 4, "w": 390, "h": 430, "ax": 121.6, "hx": 172.5, "hy": 44, "hw": 67}, "run1": {"x": 402, "y": 4, "w": 337, "h": 415, "ax": 213.9, "hx": 270.5, "hy": 48, "hw": 69}, "run2": {"x": 747, "y": 4, "w": 332, "h": 415, "ax": 211.0, "hx": 260.0, "hy": 47, "hw": 68}, "windup": {"x": 1087, "y": 4, "w": 543, "h": 407, "ax": 313.6, "hx": 301.0, "hy": 50, "hw": 64}, "release": {"x": 1638, "y": 4, "w": 468, "h": 457, "ax": 206.3, "hx": 209.5, "hy": 84, "hw": 65}, "catch": {"x": 2114, "y": 4, "w": 333, "h": 485, "ax": 153.5, "hx": 164.0, "hy": 92, "hw": 68}, "backhand": {"x": 2455, "y": 4, "w": 472, "h": 407, "ax": 262.3, "hx": 230.0, "hy": 54, "hw": 68}, "jump": {"x": 2935, "y": 4, "w": 381, "h": 392, "ax": 121.9, "hx": 125.5, "hy": 85, "hw": 67}};
+  var sprImg = null, sprSheets = {};
+  if (LOOK2) { sprImg = new Image(); sprImg.src = 'sprites.png'; document.body.classList.add('look2'); }
+  function rgbOf(hex) { var n = parseInt(hex.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+  /* one tinted copy of the sprite sheet per kit: the green jersey and helmet take the team's colors */
+  function sheetFor(team) {
+    if (!sprImg || !sprImg.complete || !sprImg.naturalWidth) return null;
+    var kit = KIT[team], key = kit.jersey + kit.helm;
+    if (sprSheets[key]) return sprSheets[key];
+    var cvs = document.createElement('canvas'); cvs.width = sprImg.naturalWidth; cvs.height = sprImg.naturalHeight;
+    var x = cvs.getContext('2d'); x.drawImage(sprImg, 0, 0);
+    try {
+      var J = rgbOf(kit.jersey), Hc = rgbOf(kit.helm), name, f, d, px, i, r, g, b, v, m, T, yy, k;
+      for (name in SPR) {
+        f = SPR[name]; d = x.getImageData(f.x, f.y, f.w, f.h); px = d.data;
+        for (i = 0; i < px.length; i += 4) {
+          r = px[i]; g = px[i + 1]; b = px[i + 2];
+          if (px[i + 3] < 8 || !(g > r * 1.12 && g > b * 1.25 && g > 70)) continue;
+          yy = (i / 4 / f.w) | 0; T = yy < f.hy + 3 ? Hc : J;
+          v = g / 215; m = Math.max(0, Math.min(1, (b / g - 0.3) * 1.5));
+          for (k = 0; k < 3; k++) px[i + k] = Math.min(255, (T[k] * v + 18 * v) * (1 - m) + 255 * m);
+        }
+        x.putImageData(d, f.x, f.y);
+      }
+    } catch (e) { /* canvas not readable (opened from a file): keep the original colors */ }
+    return (sprSheets[key] = cvs);
+  }
+  /* which pose, where the ball rides, where the head is */
+  var POCKET = { catch: [300, 60], windup: [34, 112], ready: [330, 150] };
+  function drawSprite(p, refl, st) {
+    var sheet = sheetFor(p.team); if (!sheet) return false;
+    var name = 'ready', t = game.t;
+    if (st.arc > 0) name = 'jump';
+    else if (st.throwing) name = p.shot === 3 ? 'backhand' : st.u < 0.42 ? 'windup' : 'release';
+    else if (st.holding) name = p.holdT < 0.16 ? 'catch' : 'windup';
+    else if (st.mv > 0.12) name = Math.sin(st.ph * 1.7) > 0 ? 'run1' : 'run2';   // quicker stride so two poses read as a run
+    else if (st.receiving && game.flags.hitFront && Math.abs(game.ball.x - p.x) < 300) name = 'catch';
+    var f = SPR[name], k = 0.5, bob = st.mv > 0.12 ? Math.abs(Math.sin(st.ph * 1.7)) * 7 : Math.sin(t * 2.4 + p.i * 1.7) * 1.3;
+    var hopPx = st.hop * S + (st.won ? Math.abs(Math.sin(t * 7 + p.i)) * 14 : 0), baseY = C.FEET + 6 - hopPx - bob;
+    if (!refl) {                                                   // contact shadow
+      var sg = ctx.createRadialGradient(p.x, C.FEET + 6, 4, p.x, C.FEET + 6, Math.max(30, 80 - hopPx * 0.3));
+      sg.addColorStop(0, 'rgba(0,0,0,.55)'); sg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.save(); ctx.translate(p.x, C.FEET + 6); ctx.scale(1, 0.22); ctx.translate(-p.x, -(C.FEET + 6)); ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(p.x, C.FEET + 6, 90, 0, 6.3); ctx.fill(); ctx.restore();
+      if (st.mine) { ctx.strokeStyle = TEAM[p.team].ui; ctx.globalAlpha = 0.7 + 0.3 * Math.sin(t * 6); ctx.lineWidth = 4; ctx.beginPath(); ctx.ellipse(p.x, C.FEET + 6, 62, 13, 0, 0, 6.3); ctx.stroke(); ctx.globalAlpha = refl ? 0.16 : 1; }
+    }
+    ctx.save(); ctx.translate(p.x - p.face * 24, baseY); ctx.scale(p.face * k, k);
+    ctx.drawImage(sheet, f.x, f.y, f.w, f.h, -f.ax, -f.h, f.w, f.h);
+    if (!refl && faceFor(p)) {                                     // singles photo: a bobble head over the painted one
+      var fr = 150, wob = Math.sin(t * 4.6 + p.i) * 0.07 + Math.sin(t * 11 + p.i) * 0.05 * st.mv;
+      ctx.translate(f.hx - f.ax, f.hy - f.h + 30); ctx.rotate(wob); ctx.translate(0, -fr);
+      ctx.beginPath(); ctx.arc(0, 0, fr + 5, 0, 6.3); ctx.fillStyle = '#08090b'; ctx.fill();
+      ctx.save(); ctx.beginPath(); ctx.arc(0, 0, fr, 0, 6.3); ctx.clip(); ctx.scale(p.face, 1); ctx.drawImage(faceImg, -fr, -fr, fr * 2, fr * 2); ctx.restore();
+      ctx.lineCap = 'round'; ctx.strokeStyle = '#08090b'; ctx.lineWidth = 28; ctx.beginPath(); ctx.arc(0, 0, fr + 2, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke();
+      ctx.strokeStyle = KIT[p.team].helm; ctx.lineWidth = 20; ctx.beginPath(); ctx.arc(0, 0, fr + 2, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke();
+    }
+    ctx.restore();
+    if (!refl) {
+      var pk = POCKET[name] || POCKET.ready;
+      p._tip = { x: p.x - p.face * 24 + p.face * (pk[0] - f.ax) * k, y: baseY + (pk[1] - f.h) * k };
+      if (st.mine) {
+        var fs = Math.max(28, 12 / cssScale), ty = baseY - f.h * k - 14 - (faceFor(p) ? 150 : 0);
+        ctx.font = '800 ' + fs + 'px ' + DISPLAY; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+        ctx.lineWidth = fs / 5; ctx.strokeStyle = '#000'; ctx.strokeText(st.tag, p.x, ty); ctx.fillStyle = TEAM[p.team].ui; ctx.fillText(st.tag, p.x, ty);
+      }
+    }
+    return true;
+  }
   function inkFor(hex) { var n = parseInt(hex.slice(1), 16); return 0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255) > 150 ? '#0b0c0f' : '#ffffff'; }
   function applyTeams() {
     var p = cfg.pick;
@@ -955,8 +1037,9 @@ if (typeof module !== 'undefined') module.exports = Core;
       // four shot buttons sit above a box naming the player they belong to
       var box = function (only) { return '<div class="shotbox" data-box="' + only + '"><div class="shots">' + four(only) + '</div><div class="shot-label">' + (cfg.singles ? 'Singles' : only % 2 ? 'Back Court' : 'Front Court') + '</div></div>'; };
       if (sidesOn) {                                               // sideways: one slim row under the court, so both walls stay in view
-        html += '<div class="pad land t' + (s >> 1) + '"><div class="runs">' + L + R + '</div>' +
+        html += '<div class="pad land t' + (s >> 1) + '">' +
           '<div class="minis"><button type="button" class="mini" id="miniPause" data-mini="pause"' + (net.role === 'guest' ? ' hidden' : '') + '>Pause</button><button type="button" class="mini" data-mini="menu" aria-label="New match">Menu</button></div>' +
+          '<div class="runs">' + L + R + '</div>' +
           '<div class="shotbox"><div class="shots">' + four(-1) + '</div><div class="shot-label" id="sideLab">Front Court</div></div></div>';
         return;
       }
@@ -1148,6 +1231,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       while (wrapped() && k > 0.6) { k -= 0.05; elBar.style.setProperty('--k', k.toFixed(2)); }
     }
   }
+  var CROWD_H = 0.125;
   function layout() {
     fitHeader();
     var vh = viewH(), avail;
@@ -1155,10 +1239,16 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (mode === 'match') {
       var below = (elPads.hidden ? 0 : elPads.offsetHeight + 10) + (elAfter.hidden ? 0 : elAfter.offsetHeight + 10);
       var top = stage.getBoundingClientRect().top + (window.scrollY || 0);
-      avail = vh - top - below - (sidesOn ? 6 : 12);
+      avail = vh - top - below - 12;
+      // sideways: the control row sits over the crowd strip along the bottom of the picture (an eighth of its height), so the court can grow
+      if (sidesOn && !elPads.hidden) avail = Math.min(w / RATIO, (vh - top - elPads.offsetHeight - 8) / (1 - CROWD_H));
     } else avail = vh * 0.46;
     avail = Math.max(avail, 120);
-    var cw = Math.max(Math.min(w, avail * RATIO, 1400), Math.min(w, 240));
+    var cw = Math.max(Math.min(w, avail * RATIO, sidesOn ? 1e5 : 1400), Math.min(w, 240));
+    if (sidesOn && mode === 'match' && !elPads.hidden) {
+      var chh = cw / RATIO, need = top + chh + 4 + elPads.offsetHeight + 4 - vh;
+      elPads.style.marginTop = -(Math.max(0, Math.min(chh * CROWD_H, need)) + 4) + 'px';
+    } else elPads.style.marginTop = '';
     var dpr = Math.min(window.devicePixelRatio || 1, 2.5);
     cv.style.width = cw + 'px'; cv.style.height = (cw / RATIO) + 'px';
     var pw = Math.round(cw * dpr), ph = Math.round(cw / RATIO * dpr);
@@ -1181,7 +1271,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var serving = game.phase === 'serve';
     if (serving) { ctx.fillStyle = 'rgba(201,165,92,.22)'; ctx.fillRect(C.ZONE_FAR, 716, C.ZONE_NEAR - C.ZONE_FAR, 88); }
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-    for (var n = 1; n <= 14; n++) {
+    for (var n = 1; n <= (LOOK2 ? 0 : 14); n++) {
       var major = n === 4 || n === 7 || n === 11, x = C.LINES[n], top = major ? 614 : 652;
       ctx.fillStyle = serving && (n === 4 || n === 7) ? GOLD : '#fff';
       ctx.fillRect(x - 2.5, top, 5, 713 - top);
@@ -1189,8 +1279,8 @@ if (typeof module !== 'undefined') module.exports = Core;
       ctx.fillText(String(n), x, top - 9);
     }
     // sponsor mark on the right-hand banner, beside rewyld: an open book and the name
-    ctx.font = 'bold 31px Georgia,"Times New Roman",serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    var obw = ctx.measureText('Open Book').width, bx = 1450 - (44 + 12 + obw) / 2 + 22, by = 268, sd;
+    ctx.font = 'bold ' + (LOOK2 ? 30 : 31) + 'px Georgia,"Times New Roman",serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    var obw = ctx.measureText('Open Book').width, bx = (LOOK2 ? 1435 : 1450) - (44 + 12 + obw) / 2 + 22, by = LOOK2 ? 196 : 268, sd;
     for (sd = -1; sd <= 1; sd += 2) {                                   // two pages, mirrored about the spine
       ctx.fillStyle = '#ffffff'; ctx.beginPath();
       ctx.moveTo(bx + sd * 1.5, by - 11); ctx.quadraticCurveTo(bx + sd * 11, by - 18, bx + sd * 22, by - 13);
@@ -1211,7 +1301,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
 
   function drawBoard() {
-    var x = 712, y = 120, w = 578, h = 252, t;
+    var x = 712, y = LOOK2 ? 70 : 120, w = 578, h = 252, t;
     ctx.fillStyle = '#05070b'; ctx.fillRect(x, y, w, h);
     for (t = 0; t < 2; t++) {
       var ry = y + 6 + t * 100;
@@ -1356,6 +1446,8 @@ if (typeof module !== 'undefined') module.exports = Core;
     r.hx += (hx - r.hx) * kk; r.hy += (hy - r.hy) * kk; r.ox += (ox - r.ox) * kk; r.oy += (oy - r.oy) * kk;
     r.lean += (lean - r.lean) * kk; r.cr += (crouch - r.cr) * kk; r.st += (stance - r.st) * kk;
 
+    if (LOOK2 && drawSprite(p, refl, { arc: arc, hop: arc > 0 ? arc * 105 : 0, throwing: throwing, u: u, holding: holding, mv: mv, ph: ph, receiving: receiving, won: won,
+      mine: mode === 'match' && Core.ctl(game, p) && (!net.role || p.team === solo), tag: solo >= 0 ? 'YOU' : 'P' + humanNo[p.i] })) return;
     // skeleton
     var bob = mv < 0.1 ? Math.sin(t * 2.4 + p.i * 1.7) * 1.2 : 0, bounce = Math.abs(Math.sin(ph)) * 4 * mv;
     var hipx = 0, hipy = -72 + r.cr - bounce + bob * 0.4;
@@ -1481,6 +1573,10 @@ if (typeof module !== 'undefined') module.exports = Core;
       var pr = Core.predict(Core.launch(p, p.aim, serve, shot), Core.flagsFor(p, serve, shot), true), s = pr.s;
       ctx.fillStyle = pr.fault ? RED : col;
       for (i = 2; i < s.length; i += step) { ctx.globalAlpha = pr.fault ? 0.28 : Math.max(0.25, a0 - i / s.length * 0.5); ctx.beginPath(); ctx.arc(s[i].x, s[i].y, pr.fault ? r * 0.7 : r, 0, 6.3); ctx.fill(); }
+      if (shot >= 2) {                                             // where it will touch the side wall
+        var sxw = Core.flagsFor(p, serve, shot).sideX;
+        for (i = 1; i < s.length; i++) if (s[i].x >= sxw) { ctx.globalAlpha = pr.fault ? 0.4 : 0.95; ctx.strokeStyle = pr.fault ? RED : col; ctx.lineWidth = Math.max(3, 1.2 / cssScale); ctx.beginPath(); ctx.arc(s[i].x, s[i].y, r * 2.8, 0, 6.3); ctx.stroke(); break; }
+      }
       return pr;
     };
     var pr;
@@ -1533,7 +1629,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.16, t + 0.18); g.gain.exponentialRampToValueAtTime(0.001, t + len);
     s.connect(f); f.connect(g); g.connect(ac.destination); s.start(t); s.stop(t + len + 0.05);
   }
-  function fxReset() { fx.parts.length = 0; fx.rings.length = 0; fx.flashes.length = 0; fx.shake = 0; fx.slow = 0; fx.cheer = 0; fx.pulse = [0, 0]; fx.call = null; fx.backGlow = 0; }
+  function fxReset() { fx.parts.length = 0; fx.rings.length = 0; fx.flashes.length = 0; fx.shake = 0; fx.slow = 0; fx.cheer = 0; fx.pulse = [0, 0]; fx.call = null; fx.backGlow = 0; fx.mark = null; }
 
   function fxEvent(ev) {
     var b = game.ball, sp = Math.sqrt(b.vx * b.vx + b.vy * b.vy), i;
@@ -1547,7 +1643,9 @@ if (typeof module !== 'undefined') module.exports = Core;
       fx.rings.push({ x: C.BACK + 8, y: b.y, life: 0.3, wall: true });
     } else if (ev === 'side') {                                     // cortada or costado glancing off the side wall
       burst(b.x, b.y, 8, { v: 300, life: 0.35, c: ['#ffffff', SHOTCOL[game.hard] || '#ffffff'], s: 3.5, g: 300, add: true });
-      fx.rings.push({ x: b.x, y: b.y, life: 0.3, wall: true });
+      fx.rings.push({ x: b.x, y: b.y, life: 0.35, side: true });
+      fx.mark = { x: b.x, y: b.y, life: 1.4, c: SHOTCOL[game.hard] || '#ffffff' };
+      call('SIDE WALL', SHOTCOL[game.hard] || '#ffffff', b.x, b.y - 46);
     } else if (ev === 'throw') {
       if (game.flags.serve) call('SAQUE', '#fff', b.x, b.y - 150); else if (game.hard) call(SHOTNAME[game.hard], SHOTCOL[game.hard], b.x, b.y - 150);
     } else if (ev === 'rabo' || ev === 'rebote') {
@@ -1575,6 +1673,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     for (i = fx.rings.length - 1; i >= 0; i--) { fx.rings[i].life -= dt; if (fx.rings[i].life <= 0) fx.rings.splice(i, 1); }
     for (i = fx.flashes.length - 1; i >= 0; i--) { p = fx.flashes[i]; if (p.wait > 0) p.wait -= real; else { p.life -= real; if (p.life <= 0) fx.flashes.splice(i, 1); } }
     if (fx.backGlow > 0) fx.backGlow -= real;
+    if (fx.mark) { fx.mark.life -= real; if (fx.mark.life <= 0) fx.mark = null; }
     if (fx.call) { fx.call.life -= real; fx.call.y -= real * 30; if (fx.call.life <= 0) fx.call = null; }
     fx.shake *= Math.pow(0.002, real); fx.cheer = Math.max(0, fx.cheer - real * 0.45);
     fx.pulse[0] = Math.max(0, fx.pulse[0] - real * 1.4); fx.pulse[1] = Math.max(0, fx.pulse[1] - real * 1.4);
@@ -1582,6 +1681,7 @@ if (typeof module !== 'undefined') module.exports = Core;
 
   function drawLight() {
     if (!lightLayer) buildLayers();
+    if (LOOK2) return;                                             // the painted fronton has its own lighting
     ctx.globalCompositeOperation = 'lighter';
     ctx.globalAlpha = 0.9 + 0.1 * Math.sin(game.t * 1.3); ctx.drawImage(lightLayer, 0, 0, C.W, C.H);
     ctx.fillStyle = '#fff3d6';
@@ -1610,13 +1710,18 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (add) {
       for (i = 0; i < fx.rings.length; i++) {
         p = fx.rings[i]; k = 1 - p.life / 0.35; ctx.globalAlpha = Math.max(0, 0.7 * (1 - k)); ctx.strokeStyle = '#fff'; ctx.lineWidth = 4 * (1 - k) + 1;
-        ctx.beginPath(); ctx.ellipse(p.x, p.y, p.wall ? 6 + k * 10 : 14 + k * 46, p.wall ? 12 + k * 44 : 4 + k * 12, 0, 0, 6.3); ctx.stroke();
+        ctx.beginPath(); if (p.side) ctx.arc(p.x, p.y, 12 + k * 62, 0, 6.3); else ctx.ellipse(p.x, p.y, p.wall ? 6 + k * 10 : 14 + k * 46, p.wall ? 12 + k * 44 : 4 + k * 12, 0, 0, 6.3); ctx.stroke();
       }
       ctx.globalCompositeOperation = 'source-over';
       if (fx.backGlow > 0) {
         var bg = ctx.createLinearGradient(C.BACK - 30, 0, C.BACK + 150, 0), ba = Math.min(1, fx.backGlow / 0.6);
         bg.addColorStop(0, 'rgba(201,165,92,' + (0.75 * ba) + ')'); bg.addColorStop(1, 'rgba(201,165,92,0)');
         ctx.globalAlpha = 1; ctx.fillStyle = bg; ctx.fillRect(C.BACK - 30, C.TOP, 180, C.FLOORY - C.TOP);
+      }
+      if (fx.mark) {                                               // where the ball touched the side wall
+        var mk = Math.min(1, fx.mark.life / 0.5);
+        ctx.globalAlpha = 0.85 * mk; ctx.strokeStyle = fx.mark.c; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(fx.mark.x, fx.mark.y, 20, 0, 6.3); ctx.stroke();
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(fx.mark.x, fx.mark.y, 6, 0, 6.3); ctx.fill(); ctx.globalAlpha = 1;
       }
       if (fx.call) {                                               // name of the shot just thrown
         ctx.globalAlpha = Math.min(1, fx.call.life * 3); ctx.font = '900 ' + Math.max(34, 12 / cssScale) + 'px ' + DISPLAY; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
@@ -1682,7 +1787,11 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
 
   function drawBall() {
-    var b = game.ball, r = Math.max(C.R, 3.4 / cssScale), x = b.x, y = b.y, i, k, flying = true;
+    var b = game.ball, r = Math.max(C.R, 3.4 / cssScale), x = b.x, y = b.y, i, k, flying = true, fl = game.flags;
+    if (game.holder < 0 && fl.shot >= 2 && !fl.hitFront && fl.x0 != null) {
+      var dp = fl.side ? 1 - (b.x - fl.sideX) / Math.max(1, C.FRONT - fl.sideX) : (b.x - fl.x0) / Math.max(1, fl.sideX - fl.x0);
+      r *= 1 - 0.42 * Math.max(0, Math.min(1, dp));
+    }
     if (game.holder >= 0 && game.players[game.holder]._tip) { x = game.players[game.holder]._tip.x; y = game.players[game.holder]._tip.y; trail.length = 0; flying = false; }
     else {
       // where it will come down
