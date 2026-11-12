@@ -226,6 +226,7 @@ body.look2:not(.view3) #spot4 { left: 78.00% !important; top: 14.53% !important;
 .boxes { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
 .runs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .runs.four { grid-template-columns: repeat(4, 1fr); }
+.runs button .arw { width: 30px; height: 30px; display: block; margin: auto; pointer-events: none; }
 .pad.land .runs.four { flex: 0 0 34%; }
 .shotbox { min-width: 0; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 .shots { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; padding: 5px; }
@@ -1143,9 +1144,10 @@ if (typeof module !== 'undefined') module.exports = Core;
     sideL.innerHTML = ''; sideR.innerHTML = '';
     hs.forEach(function (s) {
       humanNo[s] = ++n;
-      var L = '<button type="button" id="pad' + s + 'L" data-seat="' + s + '" data-act="L" aria-label="Run toward the back wall">' + (VIEW3 ? '▼' : '◀') + '</button>';
-      var R = '<button type="button" id="pad' + s + 'R" data-seat="' + s + '" data-act="R" aria-label="Run toward the front wall">' + (VIEW3 ? '▲' : '▶') + '</button>';
-      if (AER) { L = '<button type="button" id="pad' + s + 'A" data-seat="' + s + '" data-act="A" aria-label="Step toward the side wall">◀</button>' + L; R += '<button type="button" id="pad' + s + 'D" data-seat="' + s + '" data-act="D" aria-label="Step toward the open side">▶</button>'; }
+      var ARW = function (deg) { return '<svg class="arw" viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(' + deg + 'deg)"><path d="M12 4 21 20H3z" fill="currentColor"/></svg>'; };   // one triangle, turned four ways, so every arrow matches
+      var L = '<button type="button" id="pad' + s + 'L" data-seat="' + s + '" data-act="L" aria-label="Run toward the back wall">' + ARW(VIEW3 ? 180 : 270) + '</button>';
+      var R = '<button type="button" id="pad' + s + 'R" data-seat="' + s + '" data-act="R" aria-label="Run toward the front wall">' + ARW(VIEW3 ? 0 : 90) + '</button>';
+      if (AER) { L = '<button type="button" id="pad' + s + 'A" data-seat="' + s + '" data-act="A" aria-label="Step toward the side wall">' + ARW(270) + '</button>' + L; R += '<button type="button" id="pad' + s + 'D" data-seat="' + s + '" data-act="D" aria-label="Step toward the open side">' + ARW(90) + '</button>'; }
       var NAMES = ['Saque', 'Pelotazo', 'Rebota', 'Cortada', 'Costado'], CLS = ['sv', 'sn', 's1', 's2', 's3'];   // the serve, a normal throw, then the three power moves
       var sb = function (only, k) { return '<button type="button" class="throw idle ' + CLS[k] + '" data-seat="' + s + '" data-only="' + only + '" data-sv="' + (k ? 0 : 1) + '" data-shot="' + Math.max(0, k - 1) + '" data-act="T">' + NAMES[k] + '</button>'; };
       var four = function (only) { return sb(only, 0) + sb(only, 1) + sb(only, 2) + sb(only, 3) + sb(only, 4); };
