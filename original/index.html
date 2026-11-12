@@ -225,6 +225,20 @@ body.look2:not(.view3) #spot4 { left: 78.00% !important; top: 14.53% !important;
 .pad { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .boxes { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
 .runs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+/* sponsor pop-out card */
+#adCard { position: absolute; z-index: 6; left: 50%; top: 50%; width: min(72%, 540px); transform: translate(-50%, -50%); transform-origin: 50% 50%; display: flex; flex-wrap: wrap; align-items: stretch; background: #0b0c0f; border: 2px solid var(--gold, #c9a55c); border-radius: 8px; box-shadow: 0 14px 40px rgba(0,0,0,.7); overflow: hidden; line-height: 1.25; color: #f1efe8; }
+#adCard canvas { flex: 0 0 44%; width: 44%; height: auto; display: block; background: #000; object-fit: contain; align-self: center; }
+#adCard .ad-side { flex: 1 1 0; min-width: 0; padding: 8px 12px; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+#adCard .ad-tag { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--gold, #c9a55c); }
+#adCard .ad-line { font-size: clamp(12px, 2.2vw, 17px); font-weight: 700; }
+#adCard .ad-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+#adCard .ad-btns a, #adCard .ad-btns button { flex: 1 1 auto; min-height: 32px; padding: 6px 10px; border-radius: 6px; font: 700 12px/1.2 inherit; font-family: inherit; text-align: center; text-decoration: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#adCard #adMore { background: #f1efe8; color: #0b0c0f; border: 1px solid #f1efe8; }
+#adCard #adSkip { background: transparent; color: #f1efe8; border: 1px solid #5a5e69; }
+#adCard .ad-bar { flex: 0 0 100%; height: 3px; background: #23262e; }
+#adCard .ad-bar i { display: block; height: 100%; width: 100%; background: var(--gold, #c9a55c); }
+body.sixties #adCard { filter: grayscale(1) contrast(1.15); border-radius: 0; border-color: #fff; font-family: ui-monospace, Menlo, Consolas, monospace; }
+body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-monospace, Menlo, Consolas, monospace; }
 .runs.four { grid-template-columns: repeat(4, 1fr); }
 .runs button .arw { width: 30px; height: 30px; display: block; margin: auto; pointer-events: none; }
 .pad.land .runs.four { flex: 0 0 34%; }
@@ -971,7 +985,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var p = cfg.pick;
     if (!p || !ROSTER[p[0]] || !ROSTER[p[1]] || p[0] === p[1]) p = cfg.pick = [0, 1];
     if (cfg.comp !== 'league' && cfg.comp !== 'world') cfg.comp = 'league';
-    if ([6, 9, 15].indexOf(cfg.target) < 0) cfg.target = 9;      // older saved setups used 5, 7 or 10
+    if ([9, 15, 21].indexOf(cfg.target) < 0) cfg.target = 9;      // older saved setups used 5, 7 or 10
     for (var t = 0; t < 2; t++) {
       var r = ROSTER[p[t]];
       TEAM[t] = { ui: r.ui, legs: r.kit.sash, flag: r.flag || null, flagImg: !!r.flagImg }; KIT[t] = r.kit; cfg.names[t] = r.name;
@@ -1102,7 +1116,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       if (!t) html += '<div class="vs">VS</div>';
     }
     $('teams').innerHTML = html;
-    seg($('optTarget'), [[6, '6'], [9, '9'], [15, '15']], cfg.target, 'target');
+    seg($('optTarget'), [[9, '9'], [15, '15'], [21, '21']], cfg.target, 'target');
     seg($('optLevel'), [['easy', 'Easy'], ['normal', 'Normal'], ['hard', 'Hard']], cfg.level, 'level');
     seg($('optPace'), [['relaxed', 'Amateur'], ['standard', 'Standard'], ['pro', 'Pro']], cfg.pace, 'pace');
     seg($('optSound'), [['on', 'On'], ['off', 'Off']], cfg.sound ? 'on' : 'off', 'sound');
@@ -2416,7 +2430,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     net.lobbyKey = key;
     if (f.pick && f.pick.length === 2) cfg.pick = [f.pick[0] | 0, f.pick[1] | 0];
     if (f.comp === 'league' || f.comp === 'world') cfg.comp = f.comp;
-    if ([6, 9, 15].indexOf(f.target) >= 0) cfg.target = f.target;
+    if ([9, 15, 21].indexOf(f.target) >= 0) cfg.target = f.target;
     if (PACE[f.pace]) cfg.pace = f.pace;
     cfg.singles = !!f.sg;
     applyTeams();
@@ -2541,6 +2555,76 @@ if (typeof module !== 'undefined') module.exports = Core;
   });
   $('online').addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.id === 'onCode') { e.preventDefault(); netJoin(e.target.value); } });
 
+  /* ---------- sponsor pop-out: every few points one wall sponsor steps out of the wall for a moment (only where window.FL_ADS is set) ---------- */
+  // a sponsor steps out every 2 points in a game to 9, every 3 to 15, every 5 to 21
+  var AD_EVERY = { 9: 2, 15: 3, 21: 5 }, AD_SECS = 4, ad = { on: false, n: 0, lastPh: '', t: 0, el: null, img: null, tm: 0 };
+  var SPONS = [
+    { name: 'The Casino at Dania Beach', line: 'Come play our slots', spot: 'spot2', crop: [22.6, 13.63, 11.6, 16.54] },
+    { name: 'Silver Palm Capital', line: 'Your trusted M&A advisor', spot: 'spot1', crop: [10.7, 13.63, 11.6, 16.54] },
+    { name: 'Open Book', line: 'Fair HVAC pricing for homeowners', spot: 'spot3', drawn: true },   // this mark is drawn by the game, not painted on the wall picture
+    { name: 'rewyld', line: 'Adopt a bunny, save the Everglades', spot: 'spot4', link: 'rewSite', crop: [78.0, 14.53, 11.5, 14.75] }
+  ];
+  function adBuild() {
+    var el = document.createElement('div'); el.id = 'adCard'; el.hidden = true; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Sponsor');
+    el.innerHTML = '<canvas id="adLogo" width="464" height="296"></canvas><div class="ad-side"><div class="ad-tag">Sponsor</div><div class="ad-line" id="adLine"></div>' +
+      '<div class="ad-btns"><a id="adMore" target="_blank" rel="noopener">Learn more</a><button type="button" id="adSkip">Skip</button></div></div><div class="ad-bar"><i id="adBar"></i></div>';
+    $('court').appendChild(el); ad.el = el;
+    el.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    $('adSkip').addEventListener('click', function () { adHide(); });
+    $('adMore').addEventListener('click', function () { adHide(); if (!paused) togglePause(); });   // the match waits, paused, while they look
+    ad.img = new Image(); ad.img.src = 'fronton6.jpg';
+  }
+  function adFrom(sp) {
+    var s = $(sp.spot), c = $('court').getBoundingClientRect(), r = s ? s.getBoundingClientRect() : null;
+    if (!r || r.width < 4 || RETRO || SIX) r = { left: c.left + c.width * 0.42, top: c.top + c.height * 0.22, width: c.width * 0.16, height: c.height * 0.1 };
+    return r;
+  }
+  function adPose(sp, away) {                                      // sit the card on the sponsor's wall panel (away) or in the middle of the court
+    var el = ad.el; el.style.transform = 'translate(-50%,-50%)';
+    if (!away) return;
+    var to = el.getBoundingClientRect(), fr = adFrom(sp);
+    el.style.transform = 'translate(-50%,-50%) translate(' + ((fr.left + fr.width / 2) - (to.left + to.width / 2)) + 'px,' + ((fr.top + fr.height / 2) - (to.top + to.height / 2)) + 'px) scale(' + Math.max(0.12, fr.width / Math.max(1, to.width)) + ')';
+  }
+  function adShow() {
+    if (!ad.el) adBuild();
+    var sp = SPONS[ad.n % SPONS.length], el = ad.el, lg = $('adLogo'), g = lg.getContext('2d'), im = ad.img; ad.cur = sp; ad.n++;
+    g.fillStyle = '#000'; g.fillRect(0, 0, lg.width, lg.height);
+    if (sp.drawn) {                                                // Open Book: the open book and the name, as on the wall
+      g.save(); g.translate(lg.width / 2, lg.height / 2); g.scale(1.75, 1.75);
+      g.font = 'bold 30px Georgia,"Times New Roman",serif'; g.textAlign = 'left'; g.textBaseline = 'middle';
+      var obw = g.measureText('Open Book').width, bx = -(44 + 12 + obw) / 2 + 22, sd;
+      for (sd = -1; sd <= 1; sd += 2) {
+        g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(bx + sd * 1.5, -11); g.quadraticCurveTo(bx + sd * 11, -18, bx + sd * 22, -13); g.lineTo(bx + sd * 22, 11); g.quadraticCurveTo(bx + sd * 11, 6, bx + sd * 1.5, 13); g.closePath(); g.fill();
+        g.strokeStyle = '#0d0d0d'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(bx + sd * 6, -7); g.quadraticCurveTo(bx + sd * 12, -10, bx + sd * 18, -7.5); g.moveTo(bx + sd * 6, -1); g.quadraticCurveTo(bx + sd * 12, -4, bx + sd * 18, -1.5); g.stroke();
+      }
+      g.fillStyle = '#ffffff'; g.fillText('Open Book', bx + 22 + 12, 1); g.restore();
+    } else if (im.complete && im.naturalWidth) {
+      var sw = im.naturalWidth * sp.crop[2] / 100, sh = im.naturalHeight * sp.crop[3] / 100, k = Math.min(lg.width / sw, lg.height / sh) * 0.84;   // keep the logo's own shape, with a margin round it
+      g.drawImage(im, im.naturalWidth * sp.crop[0] / 100, im.naturalHeight * sp.crop[1] / 100, sw, sh, (lg.width - sw * k) / 2, (lg.height - sh * k) / 2, sw * k, sh * k);
+    }
+    else { g.fillStyle = '#fff'; g.font = '700 44px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(sp.name, lg.width / 2, lg.height / 2, lg.width - 30); }
+    lg.setAttribute('aria-label', sp.name); $('adLine').textContent = sp.line;
+    $('adMore').href = $(sp.link || sp.spot).href;
+    clearTimeout(ad.tm); el.hidden = false; el.style.transition = 'none'; el.style.opacity = '0.25'; adPose(sp, true); void el.offsetWidth;
+    el.style.transition = 'transform .5s cubic-bezier(.2,.9,.3,1.15), opacity .3s'; el.style.opacity = '1'; adPose(sp, false);
+    ad.on = true; ad.t = AD_SECS; $('adBar').style.width = '100%';
+  }
+  function adHide(now) {
+    if (!ad.on && (!ad.el || ad.el.hidden)) return;
+    ad.on = false; var el = ad.el; clearTimeout(ad.tm);
+    if (now) { el.hidden = true; return; }
+    el.style.transition = 'transform .32s ease-in, opacity .32s'; el.style.opacity = '0'; adPose(ad.cur, true);
+    ad.tm = setTimeout(function () { el.hidden = true; }, 340);
+  }
+  function adTick(dt) {
+    if (mode !== 'match' || !game) { if (ad.el && !ad.el.hidden) adHide(true); ad.lastPh = ''; return; }
+    var ph = game.phase, tot = game.score[0] + game.score[1];
+    if (ad.g !== game) { ad.g = game; ad.n = 0; }                   // a new match: each sponsor gets one showing, then no more
+    if (!ad.on && !paused && !net.role && ad.n < SPONS.length && ad.lastPh === 'point' && ph === 'serve' && tot > 0 && tot % (AD_EVERY[game.cfg.target] || 2) === 0) adShow();
+    ad.lastPh = ph;
+    if (ad.on && !paused) { ad.t -= dt; $('adBar').style.width = Math.max(0, 100 * ad.t / AD_SECS) + '%'; throwQ = [0, 0, 0, 0]; if (ad.t <= 0) adHide(); }
+  }
+
   /* ---------- loop ---------- */
   var last = 0, wasOver = false;
   function frame(ts) {
@@ -2549,7 +2633,8 @@ if (typeof module !== 'undefined') module.exports = Core;
     fdt = paused ? 0 : dt; adT += dt;
     if (!game) return;
     netTick(dt);
-    if (!paused && !document.hidden) {
+    if (window.FL_ADS) adTick(dt);
+    if (!paused && !ad.on && !document.hidden) {
       var inputs = [];
       game.lat = AER && !net.role && (solo >= 0 || !humans().length);   // Aerial Court: you also have to be across the court to the ball
       for (var i = 0; i < 4; i++) {
