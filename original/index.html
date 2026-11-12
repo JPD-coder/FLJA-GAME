@@ -1394,10 +1394,11 @@ if (typeof module !== 'undefined') module.exports = Core;
       if (!t) { ctx.fillStyle = '#23262e'; ctx.fillRect(x + 16, ry + 99, w - 32, 2); }
     }
     ctx.fillStyle = '#23262e'; ctx.fillRect(x + 16, y + 208, w - 32, 2);
+    var showRally = game.rally > 1 && game.phase === 'rally';              // the rally count takes the place of "play to" while a rally is on
     ctx.font = '700 25px ' + DISPLAY; ctx.fillStyle = MUTED; ctx.textAlign = 'left';
-    ctx.fillText((cfg.comp === 'world' ? 'WORLD CUP  ·  ' : cfg.comp === 'league' ? 'LEAGUE PLAY  ·  ' : '') + (game.cfg.singles ? 'SINGLES' : 'DOUBLES') + '  \u00b7  PLAY TO ' + cfg.target, x + 22, y + 231);
+    ctx.fillText((cfg.comp === 'world' ? 'WORLD CUP  ·  ' : cfg.comp === 'league' ? 'LEAGUE PLAY  ·  ' : '') + (game.cfg.singles ? 'SINGLES' : 'DOUBLES') + (showRally ? '' : '  \u00b7  PLAY TO ' + cfg.target), x + 22, y + 231);
     ctx.textAlign = 'right';
-    if (game.rally > 1 && game.phase === 'rally') ctx.fillText('RALLY ' + game.rally, x + w - 22, y + 231);
+    if (showRally) ctx.fillText('RALLY ' + game.rally, x + w - 22, y + 231);
   }
 
   /* ---------- players: jointed, shaded figures ---------- */
