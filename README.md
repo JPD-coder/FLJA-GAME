@@ -3,7 +3,7 @@
 A browser jai alai game: singles and doubles, five shots (Saque, Pelotazo, Rebota, Cortada, Costado), league and World Cup teams, and online two-player matches.
 
 - **Play:** open `index.html` (GitHub Pages serves it at the repository address).
-- **Views:** the setup screen has a View choice (80s Vintage, 90s Vintage, Side Court, Aerial Court); the View button changes view during a match.
+- **Views:** the setup screen has a View choice (60s Vintage, 80s Vintage, 90s Vintage, Side Court, Aerial Court); the View button changes view during a match.
 - **Original look:** the earlier version with the drawn players and first fronton is kept in [`original/`](original/) and is playable at `/original/`.
 
 ## Files
@@ -14,7 +14,7 @@ A browser jai alai game: singles and doubles, five shots (Saque, Pelotazo, Rebot
 | `fronton6.jpg` | The court artwork, with sponsor panels and wall logo |
 | `sprites.png` | The player in eight poses; recolored per team in the browser |
 | `aerial-view.jpg` | Court artwork for the Aerial Court view |
-| `fronton5.jpg` | The original fronton, used by the 90s Vintage view (the 80s Vintage arcade view is drawn in code and needs no picture) |
+| `fronton5.jpg` | The original fronton, used by the 90s Vintage view (the 60s and 80s Vintage views are drawn in code and need no picture) |
 | `sprites-back.png` | The player seen from behind, used by the Aerial Court view |
 | `brand.png`, `team-*.png`, `logo-*.png` | Game and club logos |
 | `original/` | The previous look, complete and self-contained |
