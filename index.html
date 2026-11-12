@@ -163,6 +163,9 @@ canvas { display: block; max-width: 100%; background: #000; border-radius: 4px; 
 .guide .sw.s1 { background: #22c55e; } .guide .sw.s2 { background: var(--vice-pink); } .guide .sw.s3 { background: var(--vice-aqua); }
 @media (max-width: 520px) { .guide dl > div { grid-template-columns: 1fr; } }
 .type-row .seg button { padding-inline: 14px; }
+#optView { flex-wrap: wrap; }
+#optView button { padding-inline: 10px; }
+body.retro .spot { cursor: pointer; }
 .face { display: flex; align-items: center; gap: 10px 12px; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
 .face-prev { flex: none; width: 52px; height: 52px; border-radius: 50%; border: 2px dashed var(--line); background: #1a1c22 center / cover no-repeat; }
 .face-prev.has { border: 2px solid var(--gold); }
@@ -343,10 +346,10 @@ body.look2:not(.view3) #spot5 { left: 44.75% !important; top: 39.11% !important;
       <h3>The basics</h3>
       <ul class="rules">
       <li><b>Singles or doubles.</b> Pick the match type above the teams. Doubles is two on two, with a front-court and a back-court player on each team. Singles is one on one: you cover the whole court alone, and you can add a photo so your face is on your player.</li>
-      <li><b>Three views.</b> Play Settings has a View choice: 80s Vintage (the original fronton and hand-drawn players), Side Court, or Aerial Court (a raised, angled camera behind your players). The View button changes view during a match without interrupting it. In Aerial Court the arrows are up for toward the front wall and down for away from it. The vintage fronton has a painted top line; on the newer court the wall is good to its gold trim.</li>
+      <li><b>Four views.</b> Choose a View on the setup screen: 80s Vintage (an arcade-cabinet look in chunky pixels), 90s View (the first fronton and hand-drawn players), Side Court, or Aerial Court (a raised, angled camera behind your players). The View button changes view during a match without interrupting it. In Aerial Court the arrows are up for toward the front wall and down for away from it. The rules are the same in every view: the wall is good up to its gold line.</li>
       <li><b>Run and catch.</b> Use the arrow buttons, or hold a finger on the court to run there. Any ball that passes one of your players is caught, from the floor up to a full stretch overhead, on the fly or after one bounce. Only a ball well over his head goes by.</li>
       <li><b>Shots.</b> Saque (the serve) starts the point. In play, Pelotazo (white path) is the normal throw and there are three power moves, each with its own colored path: Rebota (green) carries to the back wall, Cortada (pink) cuts off the side wall and drops sharply by the front wall, Costado (aqua) is a backhand off the side wall that comes back deep and low. A red path is a fault.</li>
-      <li><b>Score.</b> Every throw must hit the front wall above the low red line, and the wall is good all the way to its top. A ball that goes over the top of the front or back wall is out. Miss, or let the ball bounce twice, and the other team scores. Serves must land between lines 4 and 7.</li>
+      <li><b>Score.</b> Every throw must hit the front wall above the low red line, and the wall is good all the way up to the gold line at its top. A ball that goes over the top of the front or back wall is out. Miss, or let the ball bounce twice, and the other team scores. Serves must land between lines 4 and 7.</li>
       <li><b>Rebote clock.</b> When the pelota comes off the back wall and one of your players catches it, front court or back court, it must go back to the front wall in one motion. You have three seconds on Amateur pace, two on Standard and one on Pro to press a shot button. Hold it longer and the ball drops to the floor: point to the other team.</li>
       </ul>
       <h3>Your five buttons</h3>
@@ -412,11 +415,11 @@ var Core = (function () {
     PMIN: 172, PMAX: 1812, REACH_H: 90, REACH_C: 64,
     PASS_W: 86, PASS_H: 345           // a person's catch zone: this far either side, and this high above the floor
   };
-  var COURT0 = { LINES: C.LINES.slice(), TOP: C.TOP, CHAPA: C.CHAPA };
-  /* two courts: the vintage fronton (painted top line, its own line spacing) and the new one (evenly spaced lines, good to the gold trim) */
+  /* one standard court for every view: evenly spaced lines, the low red line, and the wall good all the way up to its gold line.
+     Only the height of that gold line differs, because it sits at a different height in each picture. */
   function setCourt(modern) {
-    for (var ln = 1; ln <= 14; ln++) C.LINES[ln] = modern ? Math.round(1820 - (ln - 1) * 124.77) : COURT0.LINES[ln];
-    C.TOP = modern ? 300 : COURT0.TOP; C.CHAPA = modern ? 741 : COURT0.CHAPA;
+    for (var ln = 1; ln <= 14; ln++) C.LINES[ln] = Math.round(1820 - (ln - 1) * 124.77);
+    C.TOP = modern ? 300 : 362; C.CHAPA = 741;
     C.ZONE_NEAR = C.LINES[4];   // serve must land between line 4 ...
     C.ZONE_FAR = C.LINES[7];    // ... and line 7
   }
@@ -801,8 +804,8 @@ if (typeof module !== 'undefined') module.exports = Core;
   var HOLD_S = { relaxed: 3, standard: 2, pro: 1 };              // real seconds to release a ball taken off the back wall, by pace
   function rebHold() { return (HOLD_S[cfg.pace] || 2) * (PACE[cfg.pace] || 0.88); }   // the game clock runs at the pace, so convert
   var MSG = {
-    ceiling: 'Hit the ceiling', over: 'Over the top line', under: 'Under the low line',
-    short: 'Short of the front wall', serveOut: 'Serve missed the 4 to 7 zone', double: 'Second bounce', backOver: 'Over the top line on the back wall', chula: 'Chula! It died in the back wall seam', held: 'Held the rebote too long'
+    ceiling: 'Hit the ceiling', over: 'Over the top of the wall', under: 'Under the low line',
+    short: 'Short of the front wall', serveOut: 'Serve missed the 4 to 7 zone', double: 'Second bounce', backOver: 'Over the top of the back wall', chula: 'Chula! It died in the back wall seam', held: 'Held the rebote too long'
   };
 
   MSG.double = 'Let it bounce twice'; MSG.held = 'Held the rebote too long'; MSG.chula = 'Chula! It died in the back wall seam';
@@ -827,19 +830,18 @@ if (typeof module !== 'undefined') module.exports = Core;
   var img = { bg: new Image(), 0: new Image(), 1: new Image() };
   var MULTI = !!window.FL_LOOK2, LOOK2 = MULTI;                                   // new-look preview: painted fronton and character sprites
   /* three cameras on the same match: 'side' (classic), 'court' (behind the players), 'aerial' (raised and angled) */
-  var VIEWS = { vintage: 'fronton5.jpg', side: 'fronton6.jpg', aerial: 'aerial-view.jpg' }, bgs = {};
-  var view = window.FL_VIEW3 === 2 ? 'aerial' : window.FL_VIEW3 ? 'aerial' : (MULTI && VIEWS[cfg.view] ? cfg.view : MULTI ? 'side' : 'vintage');
+  var VIEWS = { retro: '', vintage: 'fronton5.jpg', side: 'fronton6.jpg', aerial: 'aerial-view.jpg' }, bgs = {}, RETRO = false;
+  var view = window.FL_VIEW3 === 2 ? 'aerial' : window.FL_VIEW3 ? 'aerial' : (MULTI && VIEWS[cfg.view] != null ? cfg.view : MULTI ? 'side' : 'vintage');
   var VIEW3 = false, AER = false, CROWD_H = 0.125, sprSide = null, sprBack = null;
   function setView(v) {
     if (!MULTI) { img.bg.src = 'fronton5.jpg'; return; }
-    view = VIEWS[v] ? v : 'side'; LOOK2 = view !== 'vintage'; VIEW3 = view === 'aerial'; AER = VIEW3; CROWD_H = VIEW3 ? 0 : 0.125;
+    view = VIEWS[v] != null ? v : 'side'; RETRO = view === 'retro'; LOOK2 = view !== 'vintage' && !RETRO; VIEW3 = view === 'aerial'; AER = VIEW3; CROWD_H = VIEW3 ? 0 : 0.125;
     Core.setCourt(LOOK2);                                           // the vintage fronton keeps its own lines and painted top line
-    MSG.over = LOOK2 ? 'Over the top of the wall' : 'Over the top line'; MSG.backOver = LOOK2 ? 'Over the top of the back wall' : 'Over the top line on the back wall';
-    if (!bgs[view]) { bgs[view] = new Image(); bgs[view].src = VIEWS[view]; }     // each view's pictures load the first time it is chosen
+    if (!bgs[view]) { bgs[view] = new Image(); if (VIEWS[view]) bgs[view].src = VIEWS[view]; }     // each view's pictures load the first time it is chosen
     img.bg = bgs[view];
     if (VIEW3) { if (!sprBack) { sprBack = new Image(); sprBack.src = 'sprites-back.png'; } sprImg = sprBack; }
     else if (LOOK2) { if (!sprSide) { sprSide = new Image(); sprSide.src = 'sprites.png'; } sprImg = sprSide; }
-    document.body.classList.toggle('look2', LOOK2); document.body.classList.toggle('view3', VIEW3); document.body.classList.toggle('aer', AER);
+    document.body.classList.toggle('look2', LOOK2); document.body.classList.toggle('view3', VIEW3); document.body.classList.toggle('aer', AER); document.body.classList.toggle('retro', RETRO);
   }
   var SPRB = {"ready": {"x": 4, "y": 4, "w": 298, "h": 375, "ax": 108.0, "hy": 43, "jx": 108.0, "jy": 109.0, "jw": 142, "jh": 104}, "run1": {"x": 310, "y": 4, "w": 182, "h": 405, "ax": 89.5, "hy": 44, "jx": 89.5, "jy": 109.0, "jw": 129, "jh": 102}, "run2": {"x": 500, "y": 4, "w": 173, "h": 397, "ax": 87.5, "hy": 42, "jx": 87.5, "jy": 103.5, "jw": 127, "jh": 99}, "windup": {"x": 681, "y": 4, "w": 336, "h": 398, "ax": 108.5, "hy": 44, "jx": 108.5, "jy": 116.5, "jw": 127, "jh": 113}, "release": {"x": 1025, "y": 4, "w": 294, "h": 436, "ax": 82.5, "hy": 77, "jx": 82.5, "jy": 141.5, "jw": 133, "jh": 129}, "catch": {"x": 1327, "y": 4, "w": 238, "h": 542, "ax": 124.0, "hy": 168, "jx": 124.0, "jy": 230.5, "jw": 136, "jh": 133}, "backhand": {"x": 1573, "y": 4, "w": 350, "h": 368, "ax": 130.0, "hy": 46, "jx": 130.0, "jy": 110.0, "jw": 120, "jh": 110}, "jump": {"x": 1931, "y": 4, "w": 215, "h": 413, "ax": 83.0, "hy": 140, "jx": 83.0, "jy": 199.0, "jw": 132, "jh": 124}};
   var SPR = {"ready": {"x": 4, "y": 4, "w": 390, "h": 430, "ax": 121.6, "hx": 172.5, "hy": 44, "hw": 67}, "run1": {"x": 402, "y": 4, "w": 337, "h": 415, "ax": 213.9, "hx": 270.5, "hy": 48, "hw": 69}, "run2": {"x": 747, "y": 4, "w": 332, "h": 415, "ax": 211.0, "hx": 260.0, "hy": 47, "hw": 68}, "windup": {"x": 1087, "y": 4, "w": 543, "h": 407, "ax": 313.6, "hx": 301.0, "hy": 50, "hw": 64}, "release": {"x": 1638, "y": 4, "w": 468, "h": 457, "ax": 206.3, "hx": 209.5, "hy": 84, "hw": 65}, "catch": {"x": 2114, "y": 4, "w": 333, "h": 485, "ax": 153.5, "hx": 164.0, "hy": 92, "hw": 68}, "backhand": {"x": 2455, "y": 4, "w": 472, "h": 407, "ax": 262.3, "hx": 230.0, "hy": 54, "hw": 68}, "jump": {"x": 2935, "y": 4, "w": 381, "h": 392, "ax": 121.9, "hx": 125.5, "hy": 85, "hw": 67}};
@@ -1021,7 +1023,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   function changeView(v) {                                         // same match, different camera: allowed at any moment
     if (!MULTI) return;
-    var order = ['vintage', 'side', 'aerial']; if (!v) v = order[(order.indexOf(view) + 1) % 3];
+    var order = ['retro', 'vintage', 'side', 'aerial']; if (!v) v = order[(order.indexOf(view) + 1) % order.length];
     setView(v); cfg.view = view; save(); trail = []; v3trail.length = 0; v3hits.length = 0;
     for (var i = 0; game && i < 4; i++) { game.players[i]._pose = null; game.players[i]._tip = null; game.players[i]._tipS = null; }
     lastHolder = -99; sidesOn = null; buildSetup(); show();
@@ -1055,7 +1057,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     seg($('optLevel'), [['easy', 'Easy'], ['normal', 'Normal'], ['hard', 'Hard']], cfg.level, 'level');
     seg($('optPace'), [['relaxed', 'Amateur'], ['standard', 'Standard'], ['pro', 'Pro']], cfg.pace, 'pace');
     seg($('optSound'), [['on', 'On'], ['off', 'Off']], cfg.sound ? 'on' : 'off', 'sound');
-    $('optViewRow').hidden = !MULTI || !!window.FL_VIEW3; if (MULTI) seg($('optView'), [['vintage', '80s Vintage'], ['side', 'Side Court'], ['aerial', 'Aerial Court']], view, 'view');
+    $('optViewRow').hidden = !MULTI || !!window.FL_VIEW3; if (MULTI) seg($('optView'), [['retro', '80s Vintage'], ['vintage', '90s View'], ['side', 'Side Court'], ['aerial', 'Aerial Court']], view, 'view');
     seg($('optType'), [['doubles', 'Doubles'], ['singles', 'Singles']], cfg.singles ? 'singles' : 'doubles', 'type');
     $('faceBox').hidden = !cfg.singles; faceUI();
     renderOnline();
@@ -1362,12 +1364,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     // front wall, seen edge-on: the legal band and the low line (chapa)
     ctx.fillStyle = '#d8452e'; ctx.fillRect(C.FRONT - 7, C.CHAPA, 7, C.FLOORY + 6 - C.CHAPA);
     ctx.fillStyle = GOLD; ctx.fillRect(C.FRONT - 16, C.CHAPA - 2, 16, 4);
-    if (LOOK2) return;                                             // new look: no top line is drawn, the wall is good all the way up to its gold trim
-    ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.fillRect(C.FRONT - 5, C.TOP, 5, C.CHAPA - C.TOP);
-    ctx.fillStyle = GOLD; ctx.fillRect(C.FRONT - 16, C.TOP - 2, 16, 4);
-    // back wall: the same top line; above it is out
-    ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.fillRect(C.BACK, C.TOP, 5, C.FLOORY + 6 - C.TOP);
-    ctx.fillStyle = GOLD; ctx.fillRect(C.BACK, C.TOP - 2, 16, 4);
+    // no top line is drawn in any view: the wall is good all the way up to its gold line
   }
 
   function drawBoard() {
@@ -1704,6 +1701,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   function fxReset() { fx.parts.length = 0; fx.rings.length = 0; fx.flashes.length = 0; fx.shake = 0; fx.slow = 0; fx.cheer = 0; fx.pulse = [0, 0]; fx.call = null; fx.backGlow = 0; fx.mark = null; }
 
   function fxEvent(ev) {
+    if (RETRO) rEvent(ev);
     if (VIEW3) v3event(ev);
     var b = game.ball, sp = Math.sqrt(b.vx * b.vx + b.vy * b.vy), i;
     if (ev === 'front' || ev === 'wall') {
@@ -1908,6 +1906,114 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (sub) { ctx.font = '600 ' + ss + 'px ' + BODY; ctx.fillStyle = CHALK; ctx.fillText(sub, 1000, 516 + ts * 0.42, 1650); }
   }
 
+  /* ---------------- 80s Vintage: an arcade-cabinet rendering of the same match ---------------- */
+  var RW = 400, RH = 179, rcv = document.createElement('canvas'), rc = rcv.getContext('2d'), rHits = [], rTrail = [], rScan = null, rT = 0;
+  rcv.width = RW; rcv.height = RH;
+  var RFONT = { A: [7, 5, 7, 5, 5], B: [6, 5, 6, 5, 6], C: [7, 4, 4, 4, 7], D: [6, 5, 5, 5, 6], E: [7, 4, 6, 4, 7], F: [7, 4, 6, 4, 4], G: [7, 4, 5, 5, 7], H: [5, 5, 7, 5, 5], I: [7, 2, 2, 2, 7], J: [1, 1, 1, 5, 7],
+    K: [5, 5, 6, 5, 5], L: [4, 4, 4, 4, 7], M: [5, 7, 7, 5, 5], N: [7, 5, 5, 5, 5], O: [7, 5, 5, 5, 7], P: [7, 5, 7, 4, 4], Q: [7, 5, 5, 7, 1], R: [7, 5, 6, 5, 5], S: [7, 4, 7, 1, 7], T: [7, 2, 2, 2, 2],
+    U: [5, 5, 5, 5, 7], V: [5, 5, 5, 5, 2], W: [5, 5, 7, 7, 5], X: [5, 5, 2, 5, 5], Y: [5, 5, 2, 2, 2], Z: [7, 1, 2, 4, 7], 0: [2, 5, 5, 5, 2], 1: [2, 6, 2, 2, 7], 2: [7, 1, 7, 4, 7], 3: [7, 1, 3, 1, 7],
+    4: [5, 5, 7, 1, 1], 5: [7, 4, 6, 1, 6], 6: [7, 4, 7, 5, 7], 7: [7, 1, 2, 2, 2], 8: [7, 5, 7, 5, 7], 9: [7, 5, 7, 1, 7], '-': [0, 0, 7, 0, 0], '.': [0, 0, 0, 0, 2], ':': [0, 2, 0, 2, 0], '!': [2, 2, 2, 0, 2],
+    '&': [2, 5, 2, 5, 3], "'": [2, 2, 0, 0, 0], '@': [7, 5, 7, 4, 7], '/': [1, 1, 2, 4, 4], ',': [0, 0, 0, 2, 4] };
+  function rText(s, x, y, col, sc, center) {                       // 3 x 5 pixel lettering
+    sc = sc || 1; s = String(s).toUpperCase(); if (center) x = Math.round(x - s.length * 4 * sc / 2);
+    rc.fillStyle = col;
+    for (var i = 0; i < s.length; i++) { var g = RFONT[s[i]]; if (g) for (var r = 0; r < 5; r++) for (var c = 0; c < 3; c++) if (g[r] & (4 >> c)) rc.fillRect(x + (i * 4 + c) * sc, y + r * sc, sc, sc); }
+    return s.length * 4 * sc;
+  }
+  /* the pelotari, 12 x 20 cells, facing right. H helmet, J jersey, S skin, W whites, R sash, C cesta, B shoes */
+  var RBODY = ['....HHHH....', '...HHHHHH...', '...HHSSSS...', '....SSSS....', '....JJJJ....', '...JJJJJJ...', '..JJJJJJJJ..'];
+  var RSPR = {
+    stand: RBODY.concat(['..SJJJJJJS..', '..SJJJJJJSCC', '..S.RRRR.SCC', '....RRRR..CC', '....WWWW..C.', '....WWWW....', '...WWWWWW...', '...WW..WW...', '...WW..WW...', '...WW..WW...', '...WW..WW...', '..BBB..BBB..', '..BBB..BBB..']),
+    runA: RBODY.concat(['..SJJJJJJS..', '.SSJJJJJJSS.', '.CC.RRRR..S.', 'CC..RRRR....', 'C...WWWW....', '....WWWWW...', '...WWW.WWW..', '..WWW...WWW.', '.WWW.....WW.', '.WW......WW.', 'BBB......WW.', 'BBB.....BBB.', '........BBB.']),
+    runB: RBODY.concat(['..SJJJJJJS..', '..SJJJJJJS..', '.CS.RRRR.S..', 'CC..RRRR....', 'C...WWWW....', '....WWWW....', '....WWWW....', '....WWWW....', '....WWWW....', '....WWWW....', '....WWWW....', '...BBBBB....', '...BBBBB....']),
+    wind: RBODY.concat(['CSSJJJJJJ...', 'CC.JJJJJJS..', '.CC.RRRR.S..', '....RRRR....', '....WWWW....', '....WWWWW...', '...WWW.WWW..', '..WWW...WWW.', '..WW.....WW.', '..WW.....WW.', '..WW.....WW.', '.BBB.....BBB', '.BBB.....BBB']),
+    hurl: ['....HHHH..CC', '...HHHHHH.CC', '...HHSSSSCC.', '....SSSSSS..', '....JJJJS...', '...JJJJJJ...', '..JJJJJJJJ..', '..SJJJJJJ...', '..SJJJJJJ...', '..S.RRRR....', '....RRRR....', '....WWWW....', '....WWWWW...', '...WWW.WWW..', '..WWW...WWW.', '..WW.....WW.', '..WW.....WW.', '..WW.....WW.', '.BBB.....BBB', '.BBB.....BBB'],
+    reach: ['....HHHH.CC.', '...HHHHHHCC.', '...HHSSSSC..', '....SSSSS...', '....JJJJS...', '...JJJJJJ...', '..JJJJJJJJ..', '..SJJJJJJ...', '..SJJJJJJ...', '..S.RRRR....', '....RRRR....', '....WWWW....', '....WWWW....', '...WWWWWW...', '...WW..WW...', '...WW..WW...', '...WW..WW...', '...WW..WW...', '..BBB..BBB..', '..BBB..BBB..'],
+    tuck: RBODY.concat(['..SJJJJJJSCC', '..SJJJJJJSCC', '....RRRR..C.', '....RRRR....', '...WWWWWW...', '..WWW..WWW..', '..WW....WW..', '..BBB..BBB..', '............', '............', '............', '............', '............'])
+  };
+  function rSprite(name, x, feetY, face, kit, glow) {              // each cell is 2 screen pixels
+    var m = RSPR[name], pal = { H: kit.helm, J: kit.jersey, S: '#ffb38a', W: '#ffffff', R: '#ff2e4d', C: '#ffd27a', B: '#c8c8d8' }, r, c, ch;
+    for (r = 0; r < 20; r++) for (c = 0; c < 12; c++) { ch = m[r][c]; if (ch === '.') continue; rc.fillStyle = glow && ch === 'J' ? '#ffffff' : pal[ch]; rc.fillRect(x + (face > 0 ? c - 6 : 5 - c) * 2, feetY - 40 + r * 2, 2, 2); }
+  }
+  function rEvent(ev) {
+    var b = game.ball, X = Math.round(b.x / 5), Y = Math.round(b.y / 5);
+    if (ev === 'front' || ev === 'back' || ev === 'chicchac') rHits.push({ x: ev === 'front' ? Math.round(C.FRONT / 5) - 1 : Math.round(C.BACK / 5), y: Y, life: 0.25, c: '#ffffff', v: true });
+    else if (ev === 'side') rHits.push({ x: X, y: Y, life: 0.9, c: SHOTCOL[game.hard] || '#ffffff', ring: true });
+    else if (ev === 'bounce') rHits.push({ x: X, y: Math.round(C.FLOORY / 5) + 2, life: 0.2, c: '#ffffff', h: true });
+    else if (ev === 'catch') rHits.push({ x: X, y: Y, life: 0.18, c: '#ffe14d', star: true });
+  }
+  function drawRetro() {
+    var P = game.players, b = game.ball, f = game.flags, i, k, n, t = game.t, q = function (v) { return Math.round(v / 5); };
+    var FL = q(C.FEET) + 1, BK = q(C.BACK), FR = q(C.FRONT), TP = q(C.TOP), serving = game.phase === 'serve';
+    rT += fdt;
+    rc.fillStyle = '#000'; rc.fillRect(0, 0, RW, RH);
+    // side wall: deep blue with a dotted grid; the gold line along the top of the walls is the limit
+    rc.fillStyle = '#05082a'; rc.fillRect(BK, TP, FR - BK, FL - TP);
+    rc.fillStyle = '#16207a'; for (k = TP + 6; k < FL - 4; k += 8) for (n = BK + 6 + ((k / 8) & 1) * 4; n < FR - 3; n += 8) rc.fillRect(n, k, 1, 1);
+    // end walls in brick
+    var brick = function (x0, w) { rc.fillStyle = '#0b1466'; rc.fillRect(x0, TP, w, FL - TP); rc.fillStyle = '#2f55ff'; for (var y = TP; y < FL; y += 6) { rc.fillRect(x0, y, w, 1); for (var x = x0 + (((y - TP) / 6) & 1) * 5; x < x0 + w; x += 10) rc.fillRect(x, y, 1, 6); } };
+    brick(0, BK); brick(FR, RW - FR);
+    rc.fillStyle = '#ffd21f'; rc.fillRect(0, TP - 2, RW, 2);                                   // the gold line
+    rc.fillStyle = '#ff2e4d'; rc.fillRect(FR - 1, q(C.CHAPA), 2, FL - q(C.CHAPA));             // low line on the front wall
+    // floor: neon edge and a checkered apron
+    if (serving) { rc.fillStyle = '#5a4300'; rc.fillRect(q(C.ZONE_FAR), FL - 4, q(C.ZONE_NEAR) - q(C.ZONE_FAR), 4); }
+    rc.fillStyle = '#19f2ff'; rc.fillRect(0, FL, RW, 1);
+    for (k = 0; k < 3; k++) for (n = 0; n < RW; n += 8) { rc.fillStyle = ((n / 8 + k) & 1) ? '#7a1fa2' : '#2a0a4a'; rc.fillRect(n, FL + 1 + k * 4, 8, 4); }
+    for (n = 1; n <= 14; n++) { var lx = q(C.LINES[n]), major = n === 4 || n === 7 || n === 11; rc.fillStyle = serving && (n === 4 || n === 7) ? '#ffd21f' : '#ffffff'; rc.fillRect(lx, FL - (major ? 20 : 12), 1, major ? 20 : 12); rText(n, lx, FL - (major ? 27 : 19), rc.fillStyle, 1, true); }
+    // crowd: a row of twinkling heads
+    for (n = 0; n < RW; n += 5) { k = (n * 7 + 3) % 11; rc.fillStyle = ['#ff2e97', '#19f2ff', '#ffd21f', '#7dff5a', '#ffffff'][(k + ((t * 3 + n) | 0)) % 5]; rc.fillRect(n + (k & 1), FL + 14 + (k % 3), 2, 2); rc.fillStyle = '#20203a'; rc.fillRect(n, FL + 17 + (k % 3), 4, 6); }
+    // sponsor marquees and scoreboard
+    var box = function (x, y, w, hgt, col) { rc.fillStyle = '#000'; rc.fillRect(x, y, w, hgt); rc.fillStyle = col; rc.fillRect(x, y, w, 1); rc.fillRect(x, y + hgt - 1, w, 1); rc.fillRect(x, y, 1, hgt); rc.fillRect(x + w - 1, y, 1, hgt); };
+    var blink = ((rT * 2) | 0) & 1, sp = [[30, 'SILVER PALM', 'CAPITAL', '#19f2ff'], [86, 'DANIA BEACH', 'CASINO', '#ff2e97'], [262, 'OPEN BOOK', 'FAIR HVAC', '#7dff5a'], [320, 'REWYLD', 'REWYLD.AI', '#ffd21f']];
+    for (i = 0; i < 4; i++) { box(sp[i][0], 40, 53, 28, sp[i][3]); rText(sp[i][1], sp[i][0] + 26, 46, '#ffffff', 1, true); rText(sp[i][2], sp[i][0] + 26, 56, sp[i][3], 1, true); }
+    rText('ROCK N ROLL', 200, 82, blink ? '#ffffff' : '#19f2ff', 1, true); rText('TEQUILA', 200, 90, '#ff2e97', 1, true);
+    box(142, 22, 116, 50, '#ffffff');
+    for (i = 0; i < 2; i++) { var ry = 27 + i * 16; if (game.server === i && game.phase !== 'over') { rc.fillStyle = '#ffd21f'; rc.fillRect(145, ry + 1, 2, 8); }
+      rText(cfg.names[i].slice(0, 17), 150, ry + 3, '#ffffff'); rText(game.score[i], 252 - String(game.score[i]).length * 8, ry, fx.pulse[i] > 0.5 ? '#ffffff' : TEAM[i].ui, 2); }
+    rText((cfg.comp === 'world' ? 'WORLD CUP' : 'LEAGUE') + ' ' + (game.cfg.singles ? 'SINGLES' : 'DOUBLES') + ' TO ' + cfg.target, 200, 62, '#8a8ab0', 1, true);
+    // scrolling ad line
+    rc.fillStyle = '#000'; rc.fillRect(0, 0, RW, 9); var ax = RW - ((rT * 30) % 2600), ai;
+    for (ai = 0; ai < ADS.length * 2; ai++) { var s = ADS[ai % ADS.length].replace(/\s+/g, ' ').replace(/[·•]/g, '-'); if (ax < RW && ax + s.length * 4 > 0) rText(s, Math.round(ax), 2, AD_COLORS[ai % AD_COLORS.length]); ax += s.length * 4 + 24; }
+    rc.fillStyle = '#ffd21f'; rc.fillRect(0, 9, RW, 1);
+    // aim: one dotted path per shot, in the button colors
+    var holder = game.holder >= 0 ? P[game.holder] : null;
+    if (holder && holder.human && game.phase !== 'point' && (!net.role || holder.team === solo)) {
+      var shots = f.serve ? [0] : [0, 1, 2, 3];
+      for (n = 0; n < shots.length; n++) { var pr = Core.predict(Core.launch(holder, holder.aim, f.serve, shots[n]), Core.flagsFor(holder, f.serve, shots[n]), true); rc.fillStyle = pr.fault ? '#ff2e4d' : SHOTCOL[shots[n]];
+        for (i = 2; i < pr.s.length; i += pr.fault ? 9 : 5) rc.fillRect(q(pr.s[i].x), q(pr.s[i].y), 1, 1); }
+    }
+    if (!holder && game.phase === 'rally' && game.pred && game.pred.bounceX != null && f.bounces === 0) { rc.fillStyle = blink ? TEAM[1 - Math.max(0, game.lastTeam)].ui : '#ffffff'; rc.fillRect(q(game.pred.bounceX) - 4, FL - 1, 8, 1); rc.fillRect(q(game.pred.bounceX) - 1, FL - 3, 2, 2); }
+    // players
+    for (i = 0; i < 4; i++) {
+      var p = P[i]; if (p.out) continue;
+      var kit = KIT[p.team], holding = game.holder === i, throwing = p.anim > 0 && !holding, ju = p.jump > 0 ? Math.sin(Math.PI * (1 - p.jump / 0.8)) : 0;
+      var name = ju > 0 ? 'tuck' : throwing ? (p.anim > 0.18 ? 'wind' : 'hurl') : holding ? (p.holdT < 0.16 ? 'reach' : 'stand') : Math.abs(p.vx) > 20 ? (Math.sin(p.run / 30 * 2.4) > 0 ? 'runA' : 'runB') : 'stand';
+      var px0 = q(p.x), fy = FL - Math.round(ju * 21), mine = mode === 'match' && Core.ctl(game, p) && (!net.role || p.team === solo);
+      rc.fillStyle = '#000'; rc.fillRect(px0 - 8, FL - 1, 16, 1);
+      rSprite(name, px0, fy, p.face, kit, false);
+      if (mine) { rc.fillStyle = blink ? TEAM[p.team].ui : '#ffffff'; rc.fillRect(px0 - 2, fy - 47, 5, 1); rc.fillRect(px0 - 1, fy - 46, 3, 1); rc.fillRect(px0, fy - 45, 1, 1); rText(solo >= 0 ? 'YOU' : 'P' + humanNo[i], px0 + 1, fy - 54, TEAM[p.team].ui, 1, true); }
+      if (holding) { p._tip = { x: p.x + p.face * 55, y: C.FEET - (name === 'reach' ? 190 : 110) - ju * 105 }; }
+      if (holding && game.reb && mine) { var left = Math.max(0, 1 - p.holdT / (game.cfg.rebHold || C.REBOTE_HOLD)); rc.fillStyle = '#000'; rc.fillRect(px0 - 13, fy - 62, 26, 4); rc.fillStyle = left < 0.4 ? '#ff2e4d' : '#ffd21f'; rc.fillRect(px0 - 12, fy - 61, Math.round(24 * left), 2); }
+    }
+    // ball and its trail
+    var bx = holder && holder._tip ? q(holder._tip.x) : q(b.x), by = holder && holder._tip ? q(holder._tip.y) : q(b.y);
+    if (holder) rTrail.length = 0; else { rTrail.push(bx, by); if (rTrail.length > 12) rTrail.splice(0, 2); }
+    for (k = 0; k < rTrail.length; k += 2) { rc.fillStyle = ['#3a1a6a', '#7a1fa2', '#c93bd6', '#ff7bd8', '#ffb8ea', '#ffffff'][Math.min(5, k >> 1)]; rc.fillRect(rTrail[k], rTrail[k + 1], 2, 2); }
+    rc.fillStyle = '#ffffff'; rc.fillRect(bx - 1, by - 1, 3, 3); rc.fillStyle = '#ffd21f'; rc.fillRect(bx, by, 1, 1);
+    for (i = rHits.length - 1; i >= 0; i--) {                      // wall and floor impacts
+      var hh = rHits[i]; hh.life -= fdt; if (hh.life <= 0) { rHits.splice(i, 1); continue; } rc.fillStyle = hh.c; var e = hh.ring ? 4 : Math.round(2 + (0.25 - hh.life) * 24);
+      if (hh.v) rc.fillRect(hh.x, hh.y - e, 1, e * 2); else if (hh.h) rc.fillRect(hh.x - e, hh.y, e * 2, 1);
+      else if (hh.ring) { if ((hh.life * 8 | 0) & 1) { rc.fillRect(hh.x - e, hh.y - e, e * 2 + 1, 1); rc.fillRect(hh.x - e, hh.y + e, e * 2 + 1, 1); rc.fillRect(hh.x - e, hh.y - e, 1, e * 2); rc.fillRect(hh.x + e, hh.y - e, 1, e * 2 + 1); } rText('SIDE', hh.x, hh.y - 12, hh.c, 1, true); }
+      else { rc.fillRect(hh.x - e, hh.y, e * 2 + 1, 1); rc.fillRect(hh.x, hh.y - e, 1, e * 2 + 1); }
+    }
+    if (fx.call) rText(fx.call.t, Math.max(40, Math.min(RW - 40, q(fx.call.x))), Math.max(76, q(fx.call.y) - 10), blink ? fx.call.c : '#ffffff', 1, true);
+    if (serving && holder && holder.human && (!net.role || holder.team === solo)) rText('PRESS SAQUE - LAND IT BETWEEN LINES 4 AND 7', 200, 13, blink ? '#ffd21f' : '#ffffff', 1, true);
+    // blow the little screen up with hard pixel edges, then lay scanlines over it
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(rcv, 0, 0, C.W, C.H); ctx.imageSmoothingEnabled = true;
+    if (!rScan) { rScan = document.createElement('canvas'); rScan.width = 4; rScan.height = 5; var sx = rScan.getContext('2d'); sx.fillStyle = 'rgba(0,0,0,.28)'; sx.fillRect(0, 4, 4, 1); rScan = ctx.createPattern(rScan, 'repeat'); }
+    ctx.fillStyle = rScan; ctx.fillRect(0, 0, C.W, C.H);
+  }
+
   /* ---------------- court view: the same match seen from behind the players ---------------- */
   var V3K = 1.19617, V3OY = 110, LANE = [0.36, 0.66], v3lat = 0.5, v3wall = 0.5, v3trail = [], v3hits = [], v3flash = 0;
   var A_K = 895 / 941, A_OX = 205, A_Y = [283, 308, 328, 351, 376, 402, 464, 500, 539, 582, 630, 680, 740, 805, 878, 921], A_D = [0];
@@ -2057,7 +2163,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (fx.slow > 0) { amt = Math.sin(Math.PI * Math.min(1, fx.slow / fx.slowLen)); z = 1 + 0.14 * amt; }
     ctx.setTransform(sc, 0, 0, sc, 0, 0);
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, C.W, C.H);
-    if (VIEW3) drawCourtView(); else {
+    if (RETRO) drawRetro(); else if (VIEW3) drawCourtView(); else {
     ctx.translate(fx.zx + shx, 560 + shy); ctx.scale(z, z); ctx.translate(-fx.zx, -560);
     drawCourt(); drawBoard(); drawLight(); drawReflections();
     var P = game.players, i, holder = game.holder >= 0 ? P[game.holder] : null;
@@ -2076,7 +2182,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     else if (paused) banner('PAUSED', net.role === 'guest' ? 'The host paused the match' : 'Press P or tap Resume');
     else if (game.phase === 'over') banner(cfg.names[game.winner].toUpperCase() + ' WIN ' + game.score[game.winner] + ' TO ' + game.score[1 - game.winner], null, TEAM[game.winner].ui);
     else if (game.phase === 'point') banner('POINT ' + cfg.names[game.msg.winner].toUpperCase(), whoDid(game.msg) + MSG[game.msg.ev], TEAM[game.msg.winner].ui);
-    else if (game.phase === 'serve' && holder) {
+    else if (game.phase === 'serve' && holder && !RETRO) {
       var fz = Math.max(34, 11 / cssScale);
       ctx.textBaseline = 'alphabetic'; ctx.font = '800 ' + fz + 'px ' + DISPLAY; ctx.fillStyle = GOLD;
       if (net.role && holder.team !== solo) { ctx.textAlign = 'left'; ctx.fillText('OPPONENT TO SERVE', 168, 438, 720); }
