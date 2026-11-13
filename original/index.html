@@ -66,7 +66,7 @@ body { background: var(--ink); color: var(--text); font: 15px/1.45 var(--body); 
 #musicBox .mus-top span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #musicBox .mus-top a { white-space: nowrap; margin-left: auto; color: #9fe6b4; font-size: 11px; text-decoration: underline; }
 #musicBox .mus-top button { background: none; border: 0; color: #f1efe8; font-size: 19px; line-height: 1; padding: 0 6px; cursor: pointer; }
-#musicBox iframe { display: block; width: 100%; height: 80px; border: 0; }
+#musicBox iframe { display: block; width: 100%; height: 152px; border: 0; }
 #musicBox.min iframe { height: 0; }
 
 .links { display: flex; gap: 6px; align-items: center; flex: none; }
@@ -911,7 +911,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   var MULTI = !!window.FL_LOOK2, LOOK2 = MULTI;                                   // new-look preview: painted fronton and character sprites
   /* three cameras on the same match: 'side' (classic), 'court' (behind the players), 'aerial' (raised and angled) */
   var SIX = false;                                                 // 60s Vintage: black-and-white blocks on a tube television
-  var MUSIC = { retro: '0xQpXKr8QHNrEV9TrqY4pS' }, ERA_LBL = { side: 'Standard', aerial: 'Aerial', vintage: '90s Throwback', retro: '80s Retro', sixties: '50s Vintage' }, musicOn = false;
+  var MUSIC = { retro: '5uKmOLOEQbdWSiGzSvV35N?utm_source=generator&si=53d7789fea664074' }, ERA_LBL = { side: 'Standard', aerial: 'Aerial', vintage: '90s Throwback', retro: '80s Retro', sixties: '50s Vintage' }, musicOn = false;   // MUSIC holds Spotify's own embed address for each era's playlist
   var VIEWS = { sixties: '', retro: '', vintage: 'fronton5.jpg', side: 'fronton6.jpg', aerial: 'aerial-view.jpg' }, bgs = {}, RETRO = false;
   var view = window.FL_VIEW3 === 2 ? 'aerial' : window.FL_VIEW3 ? 'aerial' : (MULTI && VIEWS[cfg.view] != null ? cfg.view : MULTI ? 'side' : 'vintage');
   var VIEW3 = false, AER = false, CROWD_H = 0.125, sprSide = null, sprBack = null;
@@ -1028,16 +1028,16 @@ if (typeof module !== 'undefined') module.exports = Core;
       box = document.createElement('div'); box.id = 'musicBox';
       box.innerHTML = '<div class="mus-top"><span id="musLab"></span><a id="musOpen" target="_blank" rel="noopener">Open in Spotify</a><button type="button" id="musMin" aria-label="Tuck the player away, keep playing">\u2013</button>' +
         '<button type="button" id="musX" aria-label="Stop and close the player">\u00d7</button></div>' +
-        '<iframe id="musFrame" title="Era playlist" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>';
+        '<iframe id="musFrame" title="Era playlist" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
       $('musicSlot').appendChild(box);
       box.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
       $('musX').addEventListener('click', closeMusic);
       $('musMin').addEventListener('click', function () { box.classList.toggle('min'); $('musMin').textContent = box.classList.contains('min') ? '\u25b2' : '\u2013'; });   // tucked away, still playing
     }
     var fr = $('musFrame');
-    if (fr.getAttribute('data-id') !== id) { fr.setAttribute('data-id', id); fr.src = 'https://open.spotify.com/embed/playlist/' + id + '?utm_source=generator'; }
+    if (fr.getAttribute('data-id') !== id) { fr.setAttribute('data-id', id); fr.src = 'https://open.spotify.com/embed/playlist/' + id; }
     $('musLab').textContent = ERA_LBL[view] || 'Era';
-    $('musOpen').href = 'https://open.spotify.com/playlist/' + id;
+    $('musOpen').href = 'https://open.spotify.com/playlist/' + id.split('?')[0];
     box.hidden = false; box.classList.remove('min'); if ($('musMin')) $('musMin').textContent = '\u2013'; musicOn = true;
   }
   function closeMusic() {
