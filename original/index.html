@@ -922,6 +922,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     '90s': '0upBXHeACqExJ1LkyATsc4?utm_source=generator&si=bc91f17320d24ad1',
     '50s': '0lV2pWMdyZt7ojB7BPLF4a?utm_source=generator&si=c9dec9fc101e4486'
   };
+  var spApi = null, spCtl = null, spReq = false, spWant = false;
   var MUSIC = { side: '80s', aerial: '80s', retro: '80s', vintage: '90s', sixties: '50s' }, musicOn = false;
   var VIEWS = { sixties: '', retro: '', vintage: 'fronton5.jpg', side: 'fronton6.jpg', aerial: 'aerial-view.jpg' }, bgs = {}, RETRO = false;
   var view = window.FL_VIEW3 === 2 ? 'aerial' : window.FL_VIEW3 ? 'aerial' : (MULTI && VIEWS[cfg.view] != null ? cfg.view : MULTI ? 'side' : 'vintage');
@@ -1030,9 +1031,10 @@ if (typeof module !== 'undefined') module.exports = Core;
   function musicUI() {
     var ok = !!(window.FL_MUSIC && MUSIC[view]), mb = $('btnMusic');
     if (mb) mb.hidden = !ok;
-    if (!ok) closeMusic(); else if (musicOn) openMusic();          // a new era brings its own playlist
+    if (!ok) { closeMusic(); return; }
+    musBuild(); spLoad(); spMake();                                // ready before the first tap, so playing needs no second one
+    if (musicOn) openMusic();                                      // a new era brings its own playlist
   }
-  var spApi = null, spCtl = null, spReq = false;
   function spLoad() {                                              // Spotify's own player API, so the bar can start the music with the track list tucked away
     if (spReq) return; spReq = true;
     window.onSpotifyIframeApiReady = function (api) { spApi = api; spMake(); };
@@ -1045,6 +1047,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var id = PLAY[MUSIC[view]]; if (!id) return;
     spApi.createController(host, { uri: 'spotify:playlist:' + id.split('?')[0], width: '100%', height: 152 }, function (ctl) {
       spCtl = ctl;
+      if (spWant) { spWant = false; try { ctl.togglePlay(); } catch (e) { /* the browser wants a fresh tap */ } }
       ctl.addListener('playback_update', function (e) {
         var pb = $('musPlay'), on = !!(e && e.data && !e.data.isPaused); if (pb) { pb.textContent = on ? '\u23f8' : '\u25b6'; pb.setAttribute('aria-label', on ? 'Pause' : 'Play'); }
       });
@@ -1057,10 +1060,9 @@ if (typeof module !== 'undefined') module.exports = Core;
     var box = $('musicBox'); if (box) { box.classList.add('open'); $('musMin').textContent = '▲'; }
     if ($('musPlay')) $('musPlay').hidden = true;
   }
-  function openMusic() {
-    var key = MUSIC[view], id = PLAY[key]; if (!id || !window.FL_MUSIC) return;
-    var box = $('musicBox');
-    if (!box) {
+  function musBuild() {                                            // the bar itself, made once and kept hidden until it is wanted
+    var box = $('musicBox'); if (box || !window.FL_MUSIC || !$('musicSlot')) return box;
+    {
       box = document.createElement('div'); box.id = 'musicBox';
       box.innerHTML = '<div class="mus-top"><span id="musLab"></span>' +
         '<a id="musOpen" target="_blank" rel="noopener" aria-label="Open the playlist in Spotify" title="Open in Spotify"><img src="spotify.png" alt="Spotify"></a>' +
@@ -1072,8 +1074,15 @@ if (typeof module !== 'undefined') module.exports = Core;
       box.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
       $('musX').addEventListener('click', closeMusic);
       $('musMin').addEventListener('click', function () { $('musMin').textContent = box.classList.toggle('open') ? '▲' : '▼'; });
-      $('musPlay').addEventListener('click', function () { if (spCtl) spCtl.togglePlay(); else spFallback(); });
+      $('musPlay').addEventListener('click', startPlay);
+      box.hidden = true;
     }
+    return box;
+  }
+  function startPlay() { if (spCtl) spCtl.togglePlay(); else { spWant = true; spFallback(); } }
+  function openMusic(play) {
+    var key = MUSIC[view], id = PLAY[key]; if (!id || !window.FL_MUSIC) return;
+    var box = musBuild(); if (!box) return;
     if (box.getAttribute('data-id') !== id) {                      // a different era: hand the player its playlist
       box.setAttribute('data-id', id);
       if (spCtl) { spCtl.loadUri('spotify:playlist:' + id.split('?')[0]); $('musPlay').textContent = '\u25b6'; $('musPlay').setAttribute('aria-label', 'Play'); }
@@ -1084,6 +1093,10 @@ if (typeof module !== 'undefined') module.exports = Core;
     musDuck = true;                                                // the playlist takes over: no ball or crowd sound over the music
     box.hidden = false; musicOn = true;
     spLoad(); spMake();
+    if (play) startPlay();
+  }
+  function musToggle() {                                           // the Music button: first tap opens the bar and starts the song
+    if (!musicOn) openMusic(true); else if (spCtl) spCtl.togglePlay(); else closeMusic();
   }
   function closeMusic() {
     var box = $('musicBox');
@@ -1432,7 +1445,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   window.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && mode === 'demo' && !/^(INPUT|TEXTAREA|BUTTON|A)$/.test(e.target.tagName)) tryStart();
   });
-  $('btnMusic').addEventListener('click', function () { if (musicOn) closeMusic(); else openMusic(); });
+  $('btnMusic').addEventListener('click', musToggle);
   $('btnRematch').addEventListener('click', function () { if (net.role === 'guest') return; unlock(); startMatch(); });
   $('btnChange').addEventListener('click', function () { startDemo(); });
   $('btnSetup').addEventListener('click', function () { startDemo(); });
@@ -1441,7 +1454,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   elApp.addEventListener('click', function (e) {
     var b = e.target.closest('button[data-mini]'); if (!b) return;
     var mk = b.getAttribute('data-mini');
-    if (mk === 'pause') togglePause(); else if (mk === 'view') changeView(); else if (mk === 'music') { if (musicOn) closeMusic(); else openMusic(); } else startDemo();
+    if (mk === 'pause') togglePause(); else if (mk === 'view') changeView(); else if (mk === 'music') musToggle(); else startDemo();
   });
 
   /* ---------- Play Settings: the four settings stay tucked away until asked for ---------- */
