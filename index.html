@@ -367,7 +367,7 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
       <h3>The basics</h3>
       <ul class="rules">
       <li><b>Singles or doubles.</b> Pick the match type above the teams. Doubles is two on two, with a front-court and a back-court player on each team. Singles is one on one: you cover the whole court alone, and you can add a photo so your face is on your player.</li>
-      <li><b>Who you play.</b> Under each team, Played by has a switch for the front-court player and one for the back-court player: set each to You or CPU. Set both to You and the game hands you whichever player can reach the ball. Set one to CPU and you stay on your own position while the CPU plays your partner.</li>
+      <li><b>Who you play.</b> Under each team, Played by has a switch for the front-court player and one for the back-court player: set each to Player 1 or CPU. Set both to Player 1 and the game hands you whichever player can reach the ball. Set one to CPU and you stay on that position while the CPU plays your partner.</li>
       <li><b>Five views.</b> Choose a View on the setup screen: 50s Vintage (black-and-white blocks on a tube television), 80s Vintage (an arcade-cabinet look in chunky pixels), 90s Vintage (the first fronton and hand-drawn players), Side Court, or Aerial Court (a raised, angled camera behind your players). The View button changes view during a match without interrupting it. In Aerial Court you also move across the court: up and down run toward the front and back walls, left and right step toward the side wall or the open side. You have to be across to the ball to catch it, and holding left or right as you throw sends the ball to that side. A Cortada or Costado comes off the side wall and back across the court. The rules are the same in every view: the wall is good up to its gold line.</li>
       <li><b>Run and catch.</b> Use the arrow buttons, or hold a finger on the court to run there. Any ball that passes one of your players is caught, from the floor up to a full stretch overhead, on the fly or after one bounce. Only a ball well over his head goes by.</li>
       <li><b>Shots.</b> Saque (the serve) starts the point. In play, Pelotazo (white path) is the normal throw and there are three power moves, each with its own colored path: Rebota (green) carries to the back wall, Cortada (pink) cuts off the side wall and drops sharply by the front wall, Costado (aqua) is a backhand off the side wall that comes back deep and low. A red path is a fault.</li>
@@ -1124,7 +1124,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       }
       html += '</div>';
       // a switch for each court position: a person plays that one, or the CPU does
-      var who = t ? 'Player 2' : 'You', nPos = cfg.singles ? 1 : 2;
+      var who = t ? 'Player 2' : 'Player 1', nPos = cfg.singles ? 1 : 2;
       html += '<div class="seat"><span class="seat-name">Played by</span></div>';
       for (var sp = 0; sp < nPos; sp++) {
         var si = t * 2 + sp, onS = !!cfg.seats[si];
