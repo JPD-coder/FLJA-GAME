@@ -142,6 +142,7 @@ canvas { display: block; max-width: 100%; background: #000; border-radius: 4px; 
 }
 .seat { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .seat-name { font-weight: 600; }
+.seat-pos { color: var(--muted); font-size: 13.5px; }
 .seat-note { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.4; }
 .seat-keys { display: block; font-size: 12px; color: var(--muted); min-height: 17px; }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
@@ -366,6 +367,7 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
       <h3>The basics</h3>
       <ul class="rules">
       <li><b>Singles or doubles.</b> Pick the match type above the teams. Doubles is two on two, with a front-court and a back-court player on each team. Singles is one on one: you cover the whole court alone, and you can add a photo so your face is on your player.</li>
+      <li><b>Who you play.</b> Under each team, Played by has a switch for the front-court player and one for the back-court player: set each to You or CPU. Set both to You and the game hands you whichever player can reach the ball. Set one to CPU and you stay on your own position while the CPU plays your partner.</li>
       <li><b>Five views.</b> Choose a View on the setup screen: 50s Vintage (black-and-white blocks on a tube television), 80s Vintage (an arcade-cabinet look in chunky pixels), 90s Vintage (the first fronton and hand-drawn players), Side Court, or Aerial Court (a raised, angled camera behind your players). The View button changes view during a match without interrupting it. In Aerial Court you also move across the court: up and down run toward the front and back walls, left and right step toward the side wall or the open side. You have to be across to the ball to catch it, and holding left or right as you throw sends the ball to that side. A Cortada or Costado comes off the side wall and back across the court. The rules are the same in every view: the wall is good up to its gold line.</li>
       <li><b>Run and catch.</b> Use the arrow buttons, or hold a finger on the court to run there. Any ball that passes one of your players is caught, from the floor up to a full stretch overhead, on the fly or after one bounce. Only a ball well over his head goes by.</li>
       <li><b>Shots.</b> Saque (the serve) starts the point. In play, Pelotazo (white path) is the normal throw and there are three power moves, each with its own colored path: Rebota (green) carries to the back wall, Cortada (pink) cuts off the side wall and drops sharply by the front wall, Costado (aqua) is a backhand off the side wall that comes back deep and low. A red path is a fault.</li>
@@ -876,18 +878,22 @@ if (typeof module !== 'undefined') module.exports = Core;
     var t = m.ev === 'chula' ? m.winner : 1 - m.winner;
     return (mode === 'match' && solo === t ? 'YOU' : cfg.names[t].toUpperCase()) + ': ';
   }
-  var cfg = { comp: 'league', pick: [0, 1], names: ['Squared Groupers', 'Peloteros'], seats: [1, 0, 0, 0], target: 9, level: 'easy', pace: 'relaxed', sound: true, singles: false, view: 'side' };
+  var cfg = { comp: 'league', pick: [0, 1], names: ['Squared Groupers', 'Peloteros'], seats: [1, 1, 0, 0], sv: 2, target: 9, level: 'easy', pace: 'relaxed', sound: true, singles: false, view: 'side' };
   try {
     var saved = JSON.parse(localStorage.getItem('fronton-doubles') || 'null');
     if (saved && saved.seats && saved.names) for (var k in cfg) if (saved[k] != null) cfg[k] = saved[k];
-    for (var st = 0; st < 2; st++) { cfg.seats[st * 2] = cfg.seats[st * 2] || cfg.seats[st * 2 + 1] ? 1 : 0; cfg.seats[st * 2 + 1] = 0; }   // older saves had a switch per player; now it is one per team
+    for (var st = 0; st < 2; st++) {                             // saves made before the front/back choice: a team that was yours keeps both of its players
+      if (cfg.sv !== 2) { var anyS = cfg.seats[st * 2] || cfg.seats[st * 2 + 1] ? 1 : 0; cfg.seats[st * 2] = anyS; cfg.seats[st * 2 + 1] = anyS; }
+      cfg.seats[st * 2] = cfg.seats[st * 2] ? 1 : 0; cfg.seats[st * 2 + 1] = cfg.seats[st * 2 + 1] ? 1 : 0;
+    }
+    cfg.sv = 2;
     cfg.target = 9; cfg.level = 'easy'; cfg.pace = 'relaxed';     // these three always start here; they can be changed in Play Settings for the session
     if (cfg.names[0] === 'Green') cfg.names[0] = 'Squared Groupers';
     if (cfg.names[1] === 'Blue') cfg.names[1] = 'Peloteros';
   } catch (e) { /* storage unavailable: defaults */ }
   function save() { try { localStorage.setItem('fronton-doubles', JSON.stringify(cfg)); } catch (e) { /* ignore */ } }
 
-  var seatsNow = null, solo = -1, mode = 'demo', game = null, paused = false, cssScale = 0.5, trail = [];
+  var seatsNow = null, solo = -1, soloBoth = [false, false], mode = 'demo', game = null, paused = false, cssScale = 0.5, trail = [];
   var held = [{}, {}, {}, {}], throwQ = [0, 0, 0, 0], humanNo = [0, 0, 0, 0];
   var img = { bg: new Image(), 0: new Image(), 1: new Image() };
   var MULTI = !!window.FL_LOOK2, LOOK2 = MULTI;                                   // new-look preview: painted fronton and character sprites
@@ -996,17 +1002,27 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
 
   /* ---------- sound ---------- */
-  var ac = null;
+  var ac = null, mg = null;
   function unlock() {
-    if (ac || !cfg.sound) return;
-    try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; }
+    if (!cfg.sound) return;
+    try {
+      if (!ac) {
+        ac = new (window.AudioContext || window.webkitAudioContext)();
+        mg = ac.createGain(); mg.gain.value = 1.9; mg.connect(ac.destination);     // the effects are quiet on a phone speaker
+      }
+      // an iPhone silences web audio when the ringer switch is off unless the page asks for playback
+      try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e2) { /* older browser */ }
+      if (ac.state !== 'running') ac.resume();
+    } catch (e) { ac = null; }
   }
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && ac && ac.state !== 'running') unlock(); });
   function tone(f0, f1, dur, type, vol, delay) {
     if (!ac || !cfg.sound || mode !== 'match') return;
+    if (ac.state !== 'running') { ac.resume(); return; }
     var t = ac.currentTime + (delay || 0), o = ac.createOscillator(), g = ac.createGain();
     o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
     g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + dur + 0.02);
+    o.connect(g); g.connect(mg || ac.destination); o.start(t); o.stop(t + dur + 0.02);
   }
   function play(ev) {
     if (ev === 'throw') tone(260, 900, 0.09, 'sawtooth', 0.06);
@@ -1106,12 +1122,18 @@ if (typeof module !== 'undefined') module.exports = Core;
           (cfg.pick[1 - t] === k ? ' disabled' : '') + '>' + badge(ROSTER[k]) + '</button>';
       }
       html += '</div>';
-      // one switch per team: a person runs both of its players, or the CPU does
-      var on = !!cfg.seats[t * 2];
-      html += '<div class="seat"><div><span class="seat-name">Played by</span></div>' +
-        '<div class="seg"><button type="button" id="seat' + t + 'h" data-team="' + t + '" data-v="1" aria-pressed="' + on + '">' + (t ? 'Player 2' : 'You') + '</button>' +
-        '<button type="button" id="seat' + t + 'c" data-team="' + t + '" data-v="0" aria-pressed="' + !on + '">CPU</button></div></div>';
-      if (t && on && cfg.seats[0]) html += '<p class="seat-note">Two people, one phone: each steers the front-court player and the partner plays along.</p>';
+      // a switch for each court position: a person plays that one, or the CPU does
+      var who = t ? 'Player 2' : 'You', nPos = cfg.singles ? 1 : 2;
+      html += '<div class="seat"><span class="seat-name">Played by</span></div>';
+      for (var sp = 0; sp < nPos; sp++) {
+        var si = t * 2 + sp, onS = !!cfg.seats[si];
+        html += '<div class="seat"><span class="seat-pos">' + (nPos === 1 ? 'Court' : sp ? 'Back Court' : 'Front Court') + '</span>' +
+          '<div class="seg"><button type="button" id="seat' + si + 'h" data-pseat="' + si + '" data-v="1" aria-pressed="' + onS + '">' + who + '</button>' +
+          '<button type="button" id="seat' + si + 'c" data-pseat="' + si + '" data-v="0" aria-pressed="' + !onS + '">CPU</button></div></div>';
+      }
+      if (!cfg.singles && cfg.seats[t * 2] && cfg.seats[t * 2 + 1]) html += '<p class="seat-note">' + (t ? 'Player 2 runs' : 'You run') + ' both players: the game hands over whichever one can reach the ball.</p>';
+      else if (!cfg.singles && (cfg.seats[t * 2] || cfg.seats[t * 2 + 1])) html += '<p class="seat-note">The CPU plays the ' + (cfg.seats[t * 2] ? 'back' : 'front') + '-court partner.</p>';
+      if (t && (cfg.seats[2] || cfg.seats[3]) && (cfg.seats[0] || cfg.seats[1])) html += '<p class="seat-note">Two people, one phone: each gets their own buttons.</p>';
       html += '</div>';
       if (!t) html += '<div class="vs">VS</div>';
     }
@@ -1130,7 +1152,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var b = e.target.closest('button'); if (!b) return;
     if (b.dataset.comp) setComp(b.dataset.comp);
     else if (b.dataset.pick != null) { cfg.pick[+b.dataset.pick] = +b.dataset.v; applyTeams(); save(); buildSetup(); }
-    else if (b.dataset.team != null) { cfg.seats[+b.dataset.team * 2] = +b.dataset.v; cfg.seats[+b.dataset.team * 2 + 1] = 0; save(); buildSetup(); }
+    else if (b.dataset.pseat != null) { cfg.seats[+b.dataset.pseat] = +b.dataset.v; save(); buildSetup(); }
     else if (b.dataset.opt) {
       if (b.dataset.opt === 'sound') { cfg.sound = b.dataset.v === 'on'; unlock(); }
       else if (b.dataset.opt === 'view') { changeView(b.dataset.v); return; }
@@ -1207,13 +1229,15 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (mode === 'demo') { tryStart(); return; }
     var hs = humans(); if (!hs.length || paused || game.phase === 'over') return;
     e.preventDefault();
-    if (game.holder >= 0 && (solo >= 0 ? (game.holder >> 1) === solo : game.holder === hs[0])) { startCharge(hs[0]); cvChg = true; try { cv.setPointerCapture(e.pointerId); } catch (x) { /* ignore */ } return; }
+    var hd = game.holder, mine0 = -1;                             // a tap on the court throws for whichever of my players has the ball
+    for (var hi = 0; hd >= 0 && hi < hs.length; hi++) if (hs[hi] === hd || (soloBoth[hs[hi] >> 1] && (hd >> 1) === (hs[hi] >> 1))) { mine0 = hs[hi]; break; }
+    if (mine0 >= 0) { startCharge(mine0); cvChg = true; try { cv.setPointerCapture(e.pointerId); } catch (x) { /* ignore */ } return; }
     try { cv.setPointerCapture(e.pointerId); } catch (x) { /* ignore */ }
     drag = { id: e.pointerId, x: courtX(e) };
   });
   cv.addEventListener('pointermove', function (e) { if (drag && e.pointerId === drag.id) drag.x = courtX(e); });
   function endDrag(e) {
-    if (cvChg) { cvChg = false; var hs = humans(); if (hs.length) { if (e.type === 'pointercancel') seatsOf(hs[0]).forEach(function (s) { chg[s] = 0; }); else endCharge(hs[0]); } }
+    if (cvChg) { cvChg = false; var hs = humans(); for (var ci = 0; ci < hs.length; ci++) { if (e.type === 'pointercancel') seatsOf(hs[ci]).forEach(function (s) { chg[s] = 0; }); else if (chg[seatsOf(hs[ci])[0]]) endCharge(hs[ci]); } }
     if (drag && e.pointerId === drag.id) drag = null;
   }
   cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
@@ -1222,7 +1246,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   // keyboard and court taps throw for whichever of your players has the ball
   // Throwing: a quick press is a normal throw; hold the button about a third of a second, then let go, for a power throw.
   var HOLD = 300, chg = [0, 0, 0, 0], hardQ = [0, 0, 0, 0], cvChg = false;
-  function seatsOf(seat) { return solo >= 0 && (seat >> 1) === solo ? [solo * 2, solo * 2 + 1] : [seat]; }
+  function seatsOf(seat) { var t = seat >> 1; return soloBoth[t] ? [t * 2, t * 2 + 1] : [seat]; }
   function powerThrow(seat) { seatsOf(seat).forEach(function (k) { throwQ[k] = 1; hardQ[k] = 1; chg[k] = 0; }); }   // the Power button: throw hard, right now
   function startCharge(seat) { var now = performance.now(); seatsOf(seat).forEach(function (s) { if (!chg[s]) chg[s] = now; }); }
   function endCharge(seat) {
@@ -1284,18 +1308,18 @@ if (typeof module !== 'undefined') module.exports = Core;
     mode = 'match'; paused = false; trail = []; fxReset(); held = [{}, {}, {}, {}]; throwQ = [0, 0, 0, 0]; hardQ = [0, 0, 0, 0]; chg = [0, 0, 0, 0];
     if (net.role !== 'guest') track('start', (cfg.singles ? 'singles' : 'doubles') + '.' + cfg.comp + '.' + (net.role ? 'online' : cfg.seats[0] && cfg.seats[2] ? 'local' : 'cpu'));
     if (net.role) {                                               // online: each person runs a whole team; the host is team 1
-      seatsNow = net.role === 'host' ? [1, 0, 0, 0] : [0, 0, 1, 0]; solo = net.role === 'host' ? 0 : 1;
+      seatsNow = net.role === 'host' ? [1, 0, 0, 0] : [0, 0, 1, 0]; solo = net.role === 'host' ? 0 : 1; soloBoth = [true, true];
       game = Core.newGame({ seats: [1, 1, 1, 1], solo: [true, true], level: cfg.level, target: cfg.target, rebHold: rebHold(), singles: !!cfg.singles, firstServe: Math.random() < 0.5 ? 0 : 1 });
       if (net.role === 'host') { net.started = true; net.gid++; net.lost = false; var pf = net.peer && net.peer.presence.fl; net.gt = pf && pf.t ? pf.t.slice(0, 2) : [0, 0]; net.pend = [null, null]; }
     } else {
-      seatsNow = null;
-      if (!humans().length) { cfg.seats[0] = 1; save(); }         // someone has to be playing
+      seatsNow = cfg.seats.slice();
+      if (cfg.singles) { seatsNow[1] = 0; seatsNow[3] = 0; }       // singles: only the front-court player is on the court
+      if (!seatsNow[0] && !seatsNow[1] && !seatsNow[2] && !seatsNow[3]) { seatsNow[0] = 1; cfg.seats[0] = 1; save(); }   // someone has to be playing
+      soloBoth = [!!(seatsNow[0] && seatsNow[1]), !!(seatsNow[2] && seatsNow[3])];
+      for (var tb = 0; tb < 2; tb++) if (soloBoth[tb]) { seatsNow[tb * 2] = 1; seatsNow[tb * 2 + 1] = 0; }   // one person, both players: one set of buttons
       var hs0 = humans();
-      if (hs0.length === 2 && (hs0[0] >> 1) === (hs0[1] >> 1)) {   // both players of one team set to Player on one phone: that is one person running the team
-        seatsNow = [0, 0, 0, 0]; seatsNow[hs0[0]] = 1; hs0 = humans();
-      }
-      solo = hs0.length === 1 ? hs0[0] >> 1 : -1;                 // one person runs both players on their team
-      game = Core.newGame({ seats: (seatsNow || cfg.seats).slice(), solo: [solo === 0, solo === 1], level: cfg.level, target: cfg.target, rebHold: rebHold(), singles: !!cfg.singles, firstServe: Math.random() < 0.5 ? 0 : 1 });
+      solo = hs0.length && (hs0[0] >> 1) === (hs0[hs0.length - 1] >> 1) ? hs0[0] >> 1 : -1;   // every human player on one team: that team is mine
+      game = Core.newGame({ seats: seatsNow.slice(), solo: soloBoth.slice(), level: cfg.level, target: cfg.target, rebHold: rebHold(), singles: !!cfg.singles, firstServe: Math.random() < 0.5 ? 0 : 1 });
     }
     if (score) game.score = score;
     drag = null; cv.style.touchAction = 'none'; cv.style.cursor = '';
@@ -1766,7 +1790,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(), t = ac.currentTime;
     s.buffer = noiseBuf; f.type = 'bandpass'; f.frequency.value = 1100; f.Q.value = 0.6;
     g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.16, t + 0.18); g.gain.exponentialRampToValueAtTime(0.001, t + len);
-    s.connect(f); f.connect(g); g.connect(ac.destination); s.start(t); s.stop(t + len + 0.05);
+    s.connect(f); f.connect(g); g.connect(mg || ac.destination); s.start(t); s.stop(t + len + 0.05);
   }
   function fxReset() { fx.parts.length = 0; fx.rings.length = 0; fx.flashes.length = 0; fx.shake = 0; fx.slow = 0; fx.cheer = 0; fx.pulse = [0, 0]; fx.call = null; fx.backGlow = 0; fx.mark = null; }
 
@@ -2159,14 +2183,15 @@ if (typeof module !== 'undefined') module.exports = Core;
   var curLat = 0;
   function pz(p) { return p.z != null && !net.role ? p.z : LANE[p.team]; }   // a player's place across the court
   var V3K = 1.19617, V3OY = 110, LANE = [0.36, 0.66], v3lat = 0.5, v3wall = 0.5, v3trail = [], v3hits = [], v3flash = 0;
-  var A_K = 895 / 941, A_OX = 205, A_Y = [283, 308, 328, 351, 376, 402, 464, 500, 539, 582, 630, 680, 740, 805, 878, 921], A_D = [0];
+  var A_OFF = 52, A_SQ = (895 - 52) / 895,                         // the aerial picture sits below the ticker, so the gold line on top of the front wall is in view
+    A_K = 895 / 941, A_OX = 205, A_Y = [283, 308, 328, 351, 376, 402, 464, 500, 539, 582, 630, 680, 740, 805, 878, 921], A_D = [0];
   (function () { for (var n = 1; n <= 14; n++) A_D.push(C.FRONT - Math.round(1820 - (n - 1) * 124.77)); A_D.push(1746); })();
   function v3y(d) {
-    if (AER) { for (var i = 1; i < A_D.length - 1; i++) if (d <= A_D[i]) break; return (A_Y[i - 1] + (A_Y[i] - A_Y[i - 1]) * (d - A_D[i - 1]) / (A_D[i] - A_D[i - 1])) * A_K; }
+    if (AER) { for (var i = 1; i < A_D.length - 1; i++) if (d <= A_D[i]) break; return (A_Y[i - 1] + (A_Y[i] - A_Y[i - 1]) * (d - A_D[i - 1]) / (A_D[i] - A_D[i - 1])) * A_K * A_SQ + A_OFF; }
     return (121 + 1055741 / (3132 - d)) * V3K - V3OY;
   }
   function v3d(Y) {                                                // the reverse: how far from the front wall a point on the floor is
-    if (AER) { var yi = Y / A_K, i; for (i = 1; i < A_Y.length - 1; i++) if (yi <= A_Y[i]) break; return Math.max(0, Math.min(1746, A_D[i - 1] + (A_D[i] - A_D[i - 1]) * (yi - A_Y[i - 1]) / (A_Y[i] - A_Y[i - 1]))); }
+    if (AER) { var yi = (Y - A_OFF) / (A_K * A_SQ), i; for (i = 1; i < A_Y.length - 1; i++) if (yi <= A_Y[i]) break; return Math.max(0, Math.min(1746, A_D[i - 1] + (A_D[i] - A_D[i - 1]) * (yi - A_Y[i - 1]) / (A_Y[i] - A_Y[i - 1]))); }
     return Math.max(0, Math.min(1746, 3132 - 1055741 / Math.max(338, (Y + V3OY) / V3K - 121)));
   }             // where the floor sits on screen, d = distance from the front wall
   function v3sc(Y) { return 0.8 * (1 + 1.7 * Math.max(0, (Y - v3y(0)) / (v3y(1680) - v3y(0)))); }   // screen size of one unit at that depth
@@ -2248,7 +2273,8 @@ if (typeof module !== 'undefined') module.exports = Core;
     ctx.globalAlpha = 1;
   }
   function drawCourtView() {
-    if (img.bg.complete && img.bg.naturalWidth) ctx.drawImage(img.bg, 0, 0, C.W, C.H);
+    ctx.fillStyle = '#05060a'; ctx.fillRect(0, 0, C.W, C.H);
+    if (img.bg.complete && img.bg.naturalWidth) ctx.drawImage(img.bg, 0, AER ? A_OFF : 0, C.W, AER ? C.H - A_OFF : C.H);
     var P = game.players, b = game.ball, f = game.flags, i, holder = game.holder >= 0 ? P[game.holder] : null, lt = game.lastTeam < 0 ? 0 : game.lastTeam;
     // the ball's place across the court: out from the thrower to the wall (by way of the side wall for a cortada or costado), then back toward the receiver
     if (!net.role && b.z != null) v3lat = holder ? pz(holder) : b.z;
@@ -2638,9 +2664,9 @@ if (typeof module !== 'undefined') module.exports = Core;
       var inputs = [];
       game.lat = AER && !net.role && (solo >= 0 || !humans().length);   // Aerial Court: you also have to be across the court to the ball
       for (var i = 0; i < 4; i++) {
-        var src = (solo >= 0 && (i >> 1) === solo) ? humans()[0] : i, h = held[src];
+        var src = soloBoth[i >> 1] ? (i >> 1) * 2 : i, h = held[src];
         var dir = ((h.R || h.kR) ? 1 : 0) - ((h.L || h.kL) ? 1 : 0);
-        if (!dir && drag && mode === 'match' && (solo >= 0 ? game.act[solo] === i : humans()[0] === i)) {
+        if (!dir && drag && mode === 'match' && (soloBoth[i >> 1] ? game.act[i >> 1] === i : humans()[0] === i)) {
           var dd = drag.x - game.players[i].x; dir = Math.abs(dd) > 16 ? (dd > 0 ? 1 : -1) : 0;
         }
         var latIn = ((h.D || h.kD) ? 1 : 0) - ((h.A || h.kA) ? 1 : 0); if (solo >= 0 && (i >> 1) === solo) curLat = latIn;
