@@ -64,8 +64,9 @@ body { background: var(--ink); color: var(--text); font: 15px/1.45 var(--body); 
 #musicBox { width: min(460px, 100%); margin: 8px 0 4px; background: #0b0c0f; border: 1px solid #2a2e37; border-radius: 10px; overflow: hidden; z-index: 7; box-shadow: 0 10px 30px rgba(0,0,0,.6); }
 #musicBox .mus-top { display: flex; align-items: center; gap: 10px; padding: 5px 6px 3px 10px; font: 700 11px/1.4 system-ui, sans-serif; letter-spacing: .09em; text-transform: uppercase; color: var(--gold); }
 #musicBox .mus-top span { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#musicBox .mus-top a { flex: none; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 999px; border: 1.5px solid #1db954; color: #1db954; font-size: 13px; line-height: 1; text-decoration: none; }
-#musicBox .mus-top a:hover { background: #1db954; color: #04130a; }
+#musicBox .mus-top a { flex: none; width: 24px; height: 24px; display: block; line-height: 0; border-radius: 6px; overflow: hidden; }
+#musicBox .mus-top a img { width: 100%; height: 100%; display: block; }
+#musicBox .mus-top a:hover { outline: 2px solid #1db954; outline-offset: 1px; }
 #musicBox .mus-top button { background: none; border: 0; color: #f1efe8; font-size: 19px; line-height: 1; padding: 0 6px; cursor: pointer; }
 #musicBox .mus-wrap { height: 0; overflow: hidden; transition: height .2s ease; }
 #musicBox.open .mus-wrap { height: 152px; }
@@ -1063,7 +1064,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (!box) {
       box = document.createElement('div'); box.id = 'musicBox';
       box.innerHTML = '<div class="mus-top"><span id="musLab"></span>' +
-        '<a id="musOpen" target="_blank" rel="noopener" aria-label="Open the playlist in Spotify" title="Open in Spotify">\u266b</a>' +
+        '<a id="musOpen" target="_blank" rel="noopener" aria-label="Open the playlist in Spotify" title="Open in Spotify"><img src="spotify.png" alt="Spotify"></a>' +
         '<button type="button" id="musPlay" aria-label="Play">\u25b6</button>' +
         '<button type="button" id="musMin" aria-label="Show or hide the track list">▼</button>' +
         '<button type="button" id="musX" aria-label="Stop and close the player">×</button></div>' +
