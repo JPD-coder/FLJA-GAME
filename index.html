@@ -912,9 +912,12 @@ if (typeof module !== 'undefined') module.exports = Core;
   var MULTI = !!window.FL_LOOK2, LOOK2 = MULTI;                                   // new-look preview: painted fronton and character sprites
   /* three cameras on the same match: 'side' (classic), 'court' (behind the players), 'aerial' (raised and angled) */
   var SIX = false;                                                 // 60s Vintage: black-and-white blocks on a tube television
-  var MUSIC = { retro: '5uKmOLOEQbdWSiGzSvV35N?utm_source=generator&si=53d7789fea664074',
-    vintage: '0upBXHeACqExJ1LkyATsc4?utm_source=generator&si=bc91f17320d24ad1',
-    sixties: '0lV2pWMdyZt7ojB7BPLF4a?utm_source=generator&si=c9dec9fc101e4486' }, ERA_LBL = { side: 'Standard', aerial: 'Aerial', vintage: '90s Throwback', retro: '80s Retro', sixties: '50s Vintage' }, musicOn = false;   // MUSIC holds Spotify's own embed address for each era's playlist
+  var PLAY = {                                                     // Spotify's own embed address for each playlist
+    '80s': '5uKmOLOEQbdWSiGzSvV35N?utm_source=generator&si=53d7789fea664074',
+    '90s': '0upBXHeACqExJ1LkyATsc4?utm_source=generator&si=bc91f17320d24ad1',
+    '50s': '0lV2pWMdyZt7ojB7BPLF4a?utm_source=generator&si=c9dec9fc101e4486'
+  };
+  var MUSIC = { side: '80s', aerial: '80s', retro: '80s', vintage: '90s', sixties: '50s' }, musicOn = false;
   var VIEWS = { sixties: '', retro: '', vintage: 'fronton5.jpg', side: 'fronton6.jpg', aerial: 'aerial-view.jpg' }, bgs = {}, RETRO = false;
   var view = window.FL_VIEW3 === 2 ? 'aerial' : window.FL_VIEW3 ? 'aerial' : (MULTI && VIEWS[cfg.view] != null ? cfg.view : MULTI ? 'side' : 'vintage');
   var VIEW3 = false, AER = false, CROWD_H = 0.125, sprSide = null, sprBack = null;
@@ -1025,7 +1028,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (!ok) closeMusic(); else if (musicOn) openMusic();          // a new era brings its own playlist
   }
   function openMusic() {
-    var id = MUSIC[view]; if (!id || !window.FL_MUSIC) return;
+    var key = MUSIC[view], id = PLAY[key]; if (!id || !window.FL_MUSIC) return;
     var box = $('musicBox');
     if (!box) {
       box = document.createElement('div'); box.id = 'musicBox';
@@ -1039,7 +1042,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     }
     var fr = $('musFrame');
     if (fr.getAttribute('data-id') !== id) { fr.setAttribute('data-id', id); fr.src = 'https://open.spotify.com/embed/playlist/' + id; }
-    $('musLab').textContent = ERA_LBL[view] || 'Era';
+    $('musLab').textContent = key + ' playlist';
     $('musOpen').href = 'https://open.spotify.com/playlist/' + id.split('?')[0];
     box.hidden = false; box.classList.remove('min'); if ($('musMin')) $('musMin').textContent = '\u2013'; musicOn = true;
   }
