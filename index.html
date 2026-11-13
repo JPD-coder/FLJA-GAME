@@ -59,6 +59,15 @@ body { background: var(--ink); color: var(--text); font: 15px/1.45 var(--body); 
 .merch { background: var(--vice-aqua); color: #04201f; border-radius: 4px; padding: 6px 12px; font: 800 15px/1.2 var(--display); letter-spacing: .08em; text-transform: uppercase; text-decoration: none; white-space: nowrap; }
 .bar-actions { margin-left: auto; }
 .merch { flex: none; }
+.music { background: #1db954; color: #04130a; border: 0; border-radius: 4px; padding: 6px 12px; font: 800 15px/1.2 var(--display); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; cursor: pointer; }
+.music:hover { background: #17a74a; }
+.music:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+#musicBox { position: absolute; left: 10px; bottom: 10px; width: min(300px, 54%); background: #0b0c0f; border: 1px solid #2a2e37; border-radius: 10px; overflow: hidden; z-index: 7; box-shadow: 0 10px 30px rgba(0,0,0,.6); }
+#musicBox .mus-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 6px 3px 10px; font: 700 11px/1.4 system-ui, sans-serif; letter-spacing: .09em; text-transform: uppercase; color: var(--gold); }
+#musicBox .mus-top button { background: none; border: 0; color: #f1efe8; font-size: 19px; line-height: 1; padding: 0 6px; cursor: pointer; }
+#musicBox iframe { display: block; width: 100%; height: 80px; border: 0; }
+#musicBox.min iframe { height: 0; }
+@media (orientation: landscape) and (max-height: 560px) { #musicBox { top: 8px; right: 8px; left: auto; bottom: auto; width: min(290px, 38%); } }   /* sideways: out of the way of the buttons */
 .links { display: flex; gap: 6px; align-items: center; flex: none; }
 .bet { background: #ffffff; color: #000000; border: 2px solid #000000; box-shadow: 0 0 0 1px #ffffff; border-radius: 4px; padding: 4px 11px; font: 800 15px/1.2 var(--display); letter-spacing: .08em; text-transform: uppercase; text-decoration: none; white-space: nowrap; }
 .bet:hover { background: #000000; color: #ffffff; }
@@ -338,6 +347,7 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
     <div class="links">
       <a class="fan" id="lnkFan" href="https://jpd-coder.github.io/FLJAC/" target="_blank" rel="noopener" aria-label="Win Prizes"><span class="long">Win Prizes</span><span class="short">Win Prizes</span><span class="tiny">Prizes</span></a>
       <a class="bet" id="lnkBet" href="https://mywinners.com" target="_blank" rel="noopener" aria-label="Bet Now"><span class="lbl">Bet Now</span><span class="tiny">Bet</span></a>
+      <button class="music" id="btnMusic" type="button" hidden aria-label="Era music"><span class="lbl">♪ Music</span><span class="tiny">♪</span></button>
       <a class="merch" id="lnkMerch" href="https://usjaialai.com" target="_blank" rel="noopener" aria-label="Merch Store"><span class="lbl">Merch Store</span><span class="tiny">Merch</span></a>
     </div>
   </header>
@@ -420,7 +430,7 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
 </div>
 
 <script>
-window.FL_LOOK2 = 1; window.FL_ADS = 1;
+window.FL_LOOK2 = 1; window.FL_ADS = 1; window.FL_MUSIC = 1;
 /* ---------- Jai alai rules + physics (no DOM) ---------- */
 var Core = (function () {
   'use strict';
@@ -900,6 +910,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   var MULTI = !!window.FL_LOOK2, LOOK2 = MULTI;                                   // new-look preview: painted fronton and character sprites
   /* three cameras on the same match: 'side' (classic), 'court' (behind the players), 'aerial' (raised and angled) */
   var SIX = false;                                                 // 60s Vintage: black-and-white blocks on a tube television
+  var MUSIC = { retro: '0xQpXKr8QHNrEV9TrqY4pS' }, ERA_LBL = { sixties: '50s', retro: '80s', vintage: '90s', side: 'Side Court', aerial: 'Aerial Court' }, musicOn = false;
   var VIEWS = { sixties: '', retro: '', vintage: 'fronton5.jpg', side: 'fronton6.jpg', aerial: 'aerial-view.jpg' }, bgs = {}, RETRO = false;
   var view = window.FL_VIEW3 === 2 ? 'aerial' : window.FL_VIEW3 ? 'aerial' : (MULTI && VIEWS[cfg.view] != null ? cfg.view : MULTI ? 'side' : 'vintage');
   var VIEW3 = false, AER = false, CROWD_H = 0.125, sprSide = null, sprBack = null;
@@ -912,6 +923,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (VIEW3) { if (!sprBack) { sprBack = new Image(); sprBack.src = 'sprites-back.png'; } sprImg = sprBack; }
     else if (LOOK2) { if (!sprSide) { sprSide = new Image(); sprSide.src = 'sprites.png'; } sprImg = sprSide; }
     document.body.classList.toggle('look2', LOOK2); document.body.classList.toggle('view3', VIEW3); document.body.classList.toggle('aer', AER); document.body.classList.toggle('retro', RETRO); document.body.classList.toggle('sixties', SIX);
+    musicUI();
   }
   var SPRB = {"ready": {"x": 4, "y": 4, "w": 298, "h": 375, "ax": 108.0, "hy": 43, "jx": 108.0, "jy": 109.0, "jw": 142, "jh": 104}, "run1": {"x": 310, "y": 4, "w": 182, "h": 405, "ax": 89.5, "hy": 44, "jx": 89.5, "jy": 109.0, "jw": 129, "jh": 102}, "run2": {"x": 500, "y": 4, "w": 173, "h": 397, "ax": 87.5, "hy": 42, "jx": 87.5, "jy": 103.5, "jw": 127, "jh": 99}, "windup": {"x": 681, "y": 4, "w": 336, "h": 398, "ax": 108.5, "hy": 44, "jx": 108.5, "jy": 116.5, "jw": 127, "jh": 113}, "release": {"x": 1025, "y": 4, "w": 294, "h": 436, "ax": 82.5, "hy": 77, "jx": 82.5, "jy": 141.5, "jw": 133, "jh": 129}, "catch": {"x": 1327, "y": 4, "w": 238, "h": 542, "ax": 124.0, "hy": 168, "jx": 124.0, "jy": 230.5, "jw": 136, "jh": 133}, "backhand": {"x": 1573, "y": 4, "w": 350, "h": 368, "ax": 130.0, "hy": 46, "jx": 130.0, "jy": 110.0, "jw": 120, "jh": 110}, "jump": {"x": 1931, "y": 4, "w": 215, "h": 413, "ax": 83.0, "hy": 140, "jx": 83.0, "jy": 199.0, "jw": 132, "jh": 124}};
   var SPR = {"ready": {"x": 4, "y": 4, "w": 390, "h": 430, "ax": 121.6, "hx": 172.5, "hy": 44, "hw": 67}, "run1": {"x": 402, "y": 4, "w": 337, "h": 415, "ax": 213.9, "hx": 270.5, "hy": 48, "hw": 69}, "run2": {"x": 747, "y": 4, "w": 332, "h": 415, "ax": 211.0, "hx": 260.0, "hy": 47, "hw": 68}, "windup": {"x": 1087, "y": 4, "w": 543, "h": 407, "ax": 313.6, "hx": 301.0, "hy": 50, "hw": 64}, "release": {"x": 1638, "y": 4, "w": 468, "h": 457, "ax": 206.3, "hx": 209.5, "hy": 84, "hw": 65}, "catch": {"x": 2114, "y": 4, "w": 333, "h": 485, "ax": 153.5, "hx": 164.0, "hy": 92, "hw": 68}, "backhand": {"x": 2455, "y": 4, "w": 472, "h": 407, "ax": 262.3, "hx": 230.0, "hy": 54, "hw": 68}, "jump": {"x": 2935, "y": 4, "w": 381, "h": 392, "ax": 121.9, "hx": 125.5, "hy": 85, "hw": 67}};
@@ -1000,6 +1012,35 @@ if (typeof module !== 'undefined') module.exports = Core;
       document.documentElement.style.setProperty(t ? '--team-b' : '--team-a', r.ui);
       document.documentElement.style.setProperty(t ? '--team-b-ink' : '--team-a-ink', inkFor(r.ui));
     }
+  }
+
+  /* ---------- era music: a Spotify playlist for the view you are in (only where window.FL_MUSIC is set; a Claude page cannot embed one) ---------- */
+  function musicUI() {
+    var ok = !!(window.FL_MUSIC && MUSIC[view]), mb = $('btnMusic');
+    if (mb) mb.hidden = !ok;
+    if (!ok) closeMusic(); else if (musicOn) openMusic();          // a new era brings its own playlist
+  }
+  function openMusic() {
+    var id = MUSIC[view]; if (!id || !window.FL_MUSIC) return;
+    var box = $('musicBox');
+    if (!box) {
+      box = document.createElement('div'); box.id = 'musicBox';
+      box.innerHTML = '<div class="mus-top"><span id="musLab"></span><button type="button" id="musMin" aria-label="Tuck the player away, keep playing">\u2013</button>' +
+        '<button type="button" id="musX" aria-label="Stop and close the player">\u00d7</button></div>' +
+        '<iframe id="musFrame" title="Era playlist" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>';
+      $('court').appendChild(box);
+      box.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+      $('musX').addEventListener('click', closeMusic);
+      $('musMin').addEventListener('click', function () { box.classList.toggle('min'); $('musMin').textContent = box.classList.contains('min') ? '\u25b2' : '\u2013'; });   // tucked away, still playing
+    }
+    var fr = $('musFrame');
+    if (fr.getAttribute('data-id') !== id) { fr.setAttribute('data-id', id); fr.src = 'https://open.spotify.com/embed/playlist/' + id + '?utm_source=generator'; }
+    $('musLab').textContent = (ERA_LBL[view] || '') + ' playlist';
+    box.hidden = false; box.classList.remove('min'); if ($('musMin')) $('musMin').textContent = '\u2013'; musicOn = true;
+  }
+  function closeMusic() {
+    var box = $('musicBox'); if (box) { box.hidden = true; var fr = $('musFrame'); if (fr) { fr.removeAttribute('data-id'); fr.src = 'about:blank'; } }
+    musicOn = false;
   }
 
   /* ---------- sound ---------- */
@@ -1190,7 +1231,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       var box = function (only) { return '<div class="shotbox" data-box="' + only + '"><div class="shots">' + four(only) + '</div><div class="shot-label">' + (cfg.singles ? 'Singles' : only % 2 ? 'Back Court' : 'Front Court') + '</div></div>'; };
       if (sidesOn) {                                               // sideways: one slim row under the court, so both walls stay in view
         html += '<div class="pad land t' + (s >> 1) + '">' +
-          '<div class="minis"><button type="button" class="mini" id="miniPause" data-mini="pause"' + (net.role === 'guest' ? ' hidden' : '') + '>Pause</button><button type="button" class="mini" data-mini="menu" aria-label="New match">Menu</button>' + (MULTI && !window.FL_VIEW3 ? '<button type="button" class="mini" data-mini="view" aria-label="Change camera view">View</button>' : '') + '</div>' +
+          '<div class="minis"><button type="button" class="mini" id="miniPause" data-mini="pause"' + (net.role === 'guest' ? ' hidden' : '') + '>Pause</button><button type="button" class="mini" data-mini="menu" aria-label="New match">Menu</button>' + (MULTI && !window.FL_VIEW3 ? '<button type="button" class="mini" data-mini="view" aria-label="Change camera view">View</button>' : '') + (window.FL_MUSIC && MUSIC[view] ? '<button type="button" class="mini" data-mini="music" aria-label="Era music">\u266a</button>' : '') + '</div>' +
           '<div class="runs' + (AER ? ' four' : '') + '">' + L + R + '</div>' +
           '<div class="shotbox"><div class="shots">' + four(-1) + '</div><div class="shot-label" id="sideLab">Front Court</div></div></div>';
         return;
@@ -1336,6 +1377,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   window.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && mode === 'demo' && !/^(INPUT|TEXTAREA|BUTTON|A)$/.test(e.target.tagName)) tryStart();
   });
+  $('btnMusic').addEventListener('click', function () { if (musicOn) closeMusic(); else openMusic(); });
   $('btnRematch').addEventListener('click', function () { if (net.role === 'guest') return; unlock(); startMatch(); });
   $('btnChange').addEventListener('click', function () { startDemo(); });
   $('btnSetup').addEventListener('click', function () { startDemo(); });
@@ -1344,7 +1386,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   elApp.addEventListener('click', function (e) {
     var b = e.target.closest('button[data-mini]'); if (!b) return;
     var mk = b.getAttribute('data-mini');
-    if (mk === 'pause') togglePause(); else if (mk === 'view') changeView(); else startDemo();
+    if (mk === 'pause') togglePause(); else if (mk === 'view') changeView(); else if (mk === 'music') { if (musicOn) closeMusic(); else openMusic(); } else startDemo();
   });
 
   /* ---------- Play Settings: the four settings stay tucked away until asked for ---------- */
