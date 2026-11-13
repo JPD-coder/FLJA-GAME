@@ -378,6 +378,7 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
       <h3>The basics</h3>
       <ul class="rules">
       <li><b>Singles or doubles.</b> Pick the match type above the teams. Doubles is two on two, with a front-court and a back-court player on each team. Singles is one on one: you cover the whole court alone, and you can add a photo so your face is on your player.</li>
+      <li><b>Music.</b> On the hosted game a ♪ Music button opens the playlist for the view you are in. While it is open the ball and crowd sounds stand down so the music is clear; close the player and they come back.</li>
       <li><b>Who you play.</b> Under each team, Played by has a switch for the front-court player and one for the back-court player: set each to Player 1 or CPU. Set both to Player 1 and the game hands you whichever player can reach the ball. Set one to CPU and you stay on that position while the CPU plays your partner.</li>
       <li><b>Five views.</b> Choose a View on the setup screen: Standard, Aerial (a raised, angled camera behind your players), 90s Throwback (the first fronton and hand-drawn players), 80s Retro (an arcade-cabinet look in chunky pixels), or 50s Vintage (black-and-white blocks on a tube television). The View button changes view during a match without interrupting it. In the Aerial view you also move across the court: up and down run toward the front and back walls, left and right step toward the side wall or the open side. You have to be across to the ball to catch it, and holding left or right as you throw sends the ball to that side. A Cortada or Costado comes off the side wall and back across the court. The rules are the same in every view: the wall is good up to its gold line.</li>
       <li><b>Run and catch.</b> Use the arrow buttons, or hold a finger on the court to run there. Any ball that passes one of your players is caught, from the floor up to a full stretch overhead, on the fly or after one bounce. Only a ball well over his head goes by.</li>
@@ -1044,17 +1045,19 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (fr.getAttribute('data-id') !== id) { fr.setAttribute('data-id', id); fr.src = 'https://open.spotify.com/embed/playlist/' + id; }
     $('musLab').textContent = key + ' playlist';
     $('musOpen').href = 'https://open.spotify.com/playlist/' + id.split('?')[0];
+    musDuck = true;                                                // the playlist takes over: no ball or crowd sound over the music
     box.hidden = false; box.classList.remove('min'); if ($('musMin')) $('musMin').textContent = '\u2013'; musicOn = true;
   }
   function closeMusic() {
     var box = $('musicBox'); if (box) { box.hidden = true; var fr = $('musFrame'); if (fr) { fr.removeAttribute('data-id'); fr.src = 'about:blank'; } }
-    musicOn = false;
+    musicOn = false; musDuck = false; unlock();                    // the game's own sound comes back
   }
 
   /* ---------- sound ---------- */
-  var ac = null, mg = null;
+  var ac = null, mg = null, musDuck = false;                        // musDuck: a playlist is playing, so the ball and crowd stay quiet
+  function sndOn() { return cfg.sound && !musDuck; }
   function unlock() {
-    if (!cfg.sound) return;
+    if (!sndOn()) return;
     try {
       if (!ac) {
         ac = new (window.AudioContext || window.webkitAudioContext)();
@@ -1067,7 +1070,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   document.addEventListener('visibilitychange', function () { if (!document.hidden && ac && ac.state !== 'running') unlock(); });
   function tone(f0, f1, dur, type, vol, delay) {
-    if (!ac || !cfg.sound || mode !== 'match') return;
+    if (!ac || !sndOn() || mode !== 'match') return;
     if (ac.state !== 'running') { ac.resume(); return; }
     var t = ac.currentTime + (delay || 0), o = ac.createOscillator(), g = ac.createGain();
     o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
@@ -1203,7 +1206,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     else if (b.dataset.pick != null) { cfg.pick[+b.dataset.pick] = +b.dataset.v; applyTeams(); save(); buildSetup(); }
     else if (b.dataset.pseat != null) { cfg.seats[+b.dataset.pseat] = +b.dataset.v; save(); buildSetup(); }
     else if (b.dataset.opt) {
-      if (b.dataset.opt === 'sound') { cfg.sound = b.dataset.v === 'on'; unlock(); }
+      if (b.dataset.opt === 'sound') { cfg.sound = b.dataset.v === 'on'; if (cfg.sound) musDuck = false; unlock(); }   // asking for sound while music plays wins
       else if (b.dataset.opt === 'view') { changeView(b.dataset.v); return; }
       else if (b.dataset.opt === 'type') { cfg.singles = b.dataset.v === 'singles'; if (mode === 'demo' && !net.role) startDemo(true); }
       else cfg[b.dataset.opt] = b.dataset.opt === 'target' ? +b.dataset.v : b.dataset.v;
@@ -1832,7 +1835,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     }
   }
   function cheerSound(len) {
-    if (!ac || !cfg.sound || mode !== 'match') return;
+    if (!ac || !sndOn() || mode !== 'match') return;
     if (!noiseBuf) {
       noiseBuf = ac.createBuffer(1, Math.floor(ac.sampleRate * 2.5), ac.sampleRate);
       var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
