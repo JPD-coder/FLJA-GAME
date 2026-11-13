@@ -63,11 +63,14 @@ body { background: var(--ink); color: var(--text); font: 15px/1.45 var(--body); 
 .musicslot { display: flex; justify-content: center; padding: 0 10px; }
 #musicBox { width: min(460px, 100%); margin: 8px 0 4px; background: #0b0c0f; border: 1px solid #2a2e37; border-radius: 10px; overflow: hidden; z-index: 7; box-shadow: 0 10px 30px rgba(0,0,0,.6); }
 #musicBox .mus-top { display: flex; align-items: center; gap: 10px; padding: 5px 6px 3px 10px; font: 700 11px/1.4 system-ui, sans-serif; letter-spacing: .09em; text-transform: uppercase; color: var(--gold); }
-#musicBox .mus-top span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#musicBox .mus-top a { white-space: nowrap; margin-left: auto; color: #9fe6b4; font-size: 11px; text-decoration: underline; }
+#musicBox .mus-top span { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#musicBox .mus-top a { flex: none; white-space: nowrap; color: #9fe6b4; font-size: 11px; text-decoration: underline; }
 #musicBox .mus-top button { background: none; border: 0; color: #f1efe8; font-size: 19px; line-height: 1; padding: 0 6px; cursor: pointer; }
+#musicBox .mus-wrap { height: 0; overflow: hidden; transition: height .2s ease; }
+#musicBox.open .mus-wrap { height: 152px; }
 #musicBox iframe { display: block; width: 100%; height: 152px; border: 0; }
-#musicBox.min iframe { height: 0; }
+#musPlay { flex: none; white-space: nowrap; background: #1db954; color: #04130a; border: 0; border-radius: 999px; padding: 4px 12px; font: 700 12px/1.3 system-ui, sans-serif; cursor: pointer; }
+#musPlay:hover { background: #17a74a; }
 
 .links { display: flex; gap: 6px; align-items: center; flex: none; }
 .bet { background: #ffffff; color: #000000; border: 2px solid #000000; box-shadow: 0 0 0 1px #ffffff; border-radius: 4px; padding: 4px 11px; font: 800 15px/1.2 var(--display); letter-spacing: .08em; text-transform: uppercase; text-decoration: none; white-space: nowrap; }
@@ -1027,28 +1030,68 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (mb) mb.hidden = !ok;
     if (!ok) closeMusic(); else if (musicOn) openMusic();          // a new era brings its own playlist
   }
+  var spApi = null, spCtl = null, spReq = false;
+  function spLoad() {                                              // Spotify's own player API, so the bar can start the music with the track list tucked away
+    if (spReq) return; spReq = true;
+    window.onSpotifyIframeApiReady = function (api) { spApi = api; spMake(); };
+    var s = document.createElement('script'); s.src = 'https://open.spotify.com/embed/iframe-api/v1'; s.async = true;
+    s.onerror = spFallback; document.head.appendChild(s);
+    setTimeout(function () { if (!spApi) spFallback(); }, 6000);
+  }
+  function spMake() {
+    var host = $('musEmbed'); if (!spApi || spCtl || !host || host.firstChild) return;
+    var id = PLAY[MUSIC[view]]; if (!id) return;
+    spApi.createController(host, { uri: 'spotify:playlist:' + id.split('?')[0], width: '100%', height: 152 }, function (ctl) {
+      spCtl = ctl;
+      ctl.addListener('playback_update', function (e) {
+        var pb = $('musPlay'); if (pb) pb.textContent = (e && e.data && !e.data.isPaused) ? 'Pause' : 'Play';
+      });
+    });
+  }
+  function spFallback() {                                          // no API: show Spotify's own player and let them press play inside it
+    var host = $('musEmbed'); if (spCtl || !host || host.firstChild) return;
+    var id = PLAY[MUSIC[view]]; if (!id) return;
+    host.innerHTML = '<iframe title="Era playlist" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" src="https://open.spotify.com/embed/playlist/' + id + '"></iframe>';
+    var box = $('musicBox'); if (box) { box.classList.add('open'); $('musMin').textContent = '▲'; }
+    if ($('musPlay')) $('musPlay').hidden = true;
+  }
   function openMusic() {
     var key = MUSIC[view], id = PLAY[key]; if (!id || !window.FL_MUSIC) return;
     var box = $('musicBox');
     if (!box) {
       box = document.createElement('div'); box.id = 'musicBox';
-      box.innerHTML = '<div class="mus-top"><span id="musLab"></span><a id="musOpen" target="_blank" rel="noopener">Open in Spotify</a><button type="button" id="musMin" aria-label="Tuck the player away, keep playing">\u2013</button>' +
-        '<button type="button" id="musX" aria-label="Stop and close the player">\u00d7</button></div>' +
-        '<iframe id="musFrame" title="Era playlist" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
+      box.innerHTML = '<div class="mus-top"><span id="musLab"></span>' +
+        '<button type="button" id="musPlay">Play</button>' +
+        '<a id="musOpen" target="_blank" rel="noopener">Spotify</a>' +
+        '<button type="button" id="musMin" aria-label="Show or hide the track list">▼</button>' +
+        '<button type="button" id="musX" aria-label="Stop and close the player">×</button></div>' +
+        '<div class="mus-wrap"><div id="musEmbed"></div></div>';
       $('musicSlot').appendChild(box);
       box.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
       $('musX').addEventListener('click', closeMusic);
-      $('musMin').addEventListener('click', function () { box.classList.toggle('min'); $('musMin').textContent = box.classList.contains('min') ? '\u25b2' : '\u2013'; });   // tucked away, still playing
+      $('musMin').addEventListener('click', function () { $('musMin').textContent = box.classList.toggle('open') ? '▲' : '▼'; });
+      $('musPlay').addEventListener('click', function () { if (spCtl) spCtl.togglePlay(); else spFallback(); });
     }
-    var fr = $('musFrame');
-    if (fr.getAttribute('data-id') !== id) { fr.setAttribute('data-id', id); fr.src = 'https://open.spotify.com/embed/playlist/' + id; }
+    if (box.getAttribute('data-id') !== id) {                      // a different era: hand the player its playlist
+      box.setAttribute('data-id', id);
+      if (spCtl) { spCtl.loadUri('spotify:playlist:' + id.split('?')[0]); $('musPlay').textContent = 'Play'; }
+      else if ($('musEmbed') && $('musEmbed').firstChild) { $('musEmbed').innerHTML = ''; spFallback(); }
+    }
     $('musLab').textContent = key + ' playlist';
     $('musOpen').href = 'https://open.spotify.com/playlist/' + id.split('?')[0];
     musDuck = true;                                                // the playlist takes over: no ball or crowd sound over the music
-    box.hidden = false; box.classList.remove('min'); if ($('musMin')) $('musMin').textContent = '\u2013'; musicOn = true;
+    box.hidden = false; musicOn = true;
+    spLoad(); spMake();
   }
   function closeMusic() {
-    var box = $('musicBox'); if (box) { box.hidden = true; var fr = $('musFrame'); if (fr) { fr.removeAttribute('data-id'); fr.src = 'about:blank'; } }
+    var box = $('musicBox');
+    if (box) {
+      box.hidden = true; box.classList.remove('open');
+      if ($('musMin')) $('musMin').textContent = '▼';
+      if (spCtl) { try { spCtl.pause(); } catch (e) { /* the player is gone */ } }
+      else if ($('musEmbed')) { $('musEmbed').innerHTML = ''; box.removeAttribute('data-id'); }
+      if ($('musPlay')) $('musPlay').textContent = 'Play';
+    }
     musicOn = false; musDuck = false; unlock();                    // the game's own sound comes back
   }
 
