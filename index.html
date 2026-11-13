@@ -1132,8 +1132,7 @@ if (typeof module !== 'undefined') module.exports = Core;
           '<div class="seg"><button type="button" id="seat' + si + 'h" data-pseat="' + si + '" data-v="1" aria-pressed="' + onS + '">' + who + '</button>' +
           '<button type="button" id="seat' + si + 'c" data-pseat="' + si + '" data-v="0" aria-pressed="' + !onS + '">CPU</button></div></div>';
       }
-      if (!cfg.singles && cfg.seats[t * 2] && cfg.seats[t * 2 + 1]) html += '<p class="seat-note">' + (t ? 'Player 2 runs' : 'You run') + ' both players: the game hands over whichever one can reach the ball.</p>';
-      else if (!cfg.singles && (cfg.seats[t * 2] || cfg.seats[t * 2 + 1])) html += '<p class="seat-note">The CPU plays the ' + (cfg.seats[t * 2] ? 'back' : 'front') + '-court partner.</p>';
+      if (!cfg.singles && (cfg.seats[t * 2] ? 1 : 0) + (cfg.seats[t * 2 + 1] ? 1 : 0) === 1) html += '<p class="seat-note">The CPU plays the ' + (cfg.seats[t * 2] ? 'back' : 'front') + '-court partner.</p>';
       if (t && (cfg.seats[2] || cfg.seats[3]) && (cfg.seats[0] || cfg.seats[1])) html += '<p class="seat-note">Two people, one phone: each gets their own buttons.</p>';
       html += '</div>';
       if (!t) html += '<div class="vs">VS</div>';
