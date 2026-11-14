@@ -771,6 +771,10 @@ var Core = (function () {
       if (g.holder === i || p.anim > 0 || g.phase === 'over') lz = 0;
       p.lz = lz;
       p.z = Math.max(0.08, Math.min(0.92, p.z + lz * (p.human ? C.LAT_V : ({ easy: 0.5, normal: 0.68, hard: 0.9 })[g.cfg.level] || 0.68) * dt));
+      if (p.jump > 0 && p.wall) {                                  // up the side wall: the foot is on it as he rises, then he swings back off it
+        var jw = 1 - p.jump / 0.8;
+        p.z = jw < 0.34 ? 0.02 : 0.02 + (p.zh - 0.02) * Math.min(1, (jw - 0.34) / 0.5);
+      }
       p.cool -= dt; p.anim -= dt; if (p.jump > 0) { p.jump -= dt; if (p.jump <= 0) p.wall = false; }
       if (g.holder === i || p.anim > 0) p.face = 1;
       else if (Math.abs(g.ball.x - p.x) > 30) p.face = g.ball.x > p.x ? 1 : -1;
@@ -1013,6 +1017,29 @@ if (typeof module !== 'undefined') module.exports = Core;
       }
     }
     return true;
+  }
+  /* up the side wall: the sole bites the wall at one spot, kicks dust loose and leaves its print there while he rides up and away from it */
+  var wkMarks = [];
+  function wallMark(p) {                                           // remember where the shoe went on, the moment the leap starts
+    wkMarks.push({ x: p.x - p.face * 78, y: C.FEET - 182, f: p.face, t: 1 });
+    if (wkMarks.length > 4) wkMarks.shift();
+  }
+  function drawWallMarks(dt) {
+    for (var i = wkMarks.length - 1; i >= 0; i--) {
+      var m = wkMarks[i]; m.t -= dt * 0.75; if (m.t <= 0) { wkMarks.splice(i, 1); continue; }
+      var up = 1 - m.t, a = Math.min(1, m.t * 1.8);
+      ctx.save(); ctx.translate(m.x, m.y); ctx.rotate(-m.f * 0.22);
+      ctx.fillStyle = 'rgba(6,8,13,' + (0.62 * a).toFixed(3) + ')';                         // the print of the sole, flat on the wall
+      ctx.beginPath(); ctx.ellipse(0, 0, 18, 36, 0, 0, 6.3); ctx.fill();
+      ctx.fillStyle = 'rgba(6,8,13,' + (0.4 * a).toFixed(3) + ')';                          // and the streak it drags upward
+      ctx.beginPath(); ctx.ellipse(-m.f * 5, -34, 13, 22, 0, 0, 6.3); ctx.fill();
+      ctx.restore();
+      for (var j = 0; j < 5; j++) {                                // dust knocked off the wall, drifting down
+        var a2 = 0.3 * a * (1 - j / 5) * Math.min(1, up * 4);
+        ctx.fillStyle = 'rgba(236,241,250,' + a2.toFixed(3) + ')';
+        ctx.beginPath(); ctx.arc(m.x + m.f * (14 + j * 16), m.y + 26 + j * 15 + up * 50, 8 + j * 5 + up * 10, 0, 6.3); ctx.fill();
+      }
+    }
   }
   function inkFor(hex) { var n = parseInt(hex.slice(1), 16); return 0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255) > 150 ? '#0b0c0f' : '#ffffff'; }
   function applyTeams() {
@@ -1721,6 +1748,10 @@ if (typeof module !== 'undefined') module.exports = Core;
     r.hx += (hx - r.hx) * kk; r.hy += (hy - r.hy) * kk; r.ox += (ox - r.ox) * kk; r.oy += (oy - r.oy) * kk;
     r.lean += (lean - r.lean) * kk; r.cr += (crouch - r.cr) * kk; r.st += (stance - r.st) * kk;
 
+    if (!refl && !VIEW3) {                                         // the moment the shoe goes on the wall, it leaves its print there
+      if (wallUp && !p._wj) { p._wj = 1; wallMark(p); }
+      else if (!wallUp && p._wj) p._wj = 0;
+    }
     if (VIEW3) { drawBack(p, { arc: arc, hop: arc > 0 ? arc * (wallUp ? 152 : 105) : 0, wall: !!wallUp, throwing: throwing, u: u, holding: holding, mv: mv, ph: ph, receiving: receiving, won: won,
       mine: mode === 'match' && Core.ctl(game, p) && (!net.role || p.team === solo), tag: solo >= 0 ? 'YOU' : 'P' + humanNo[p.i] }); return; }
     if (LOOK2 && drawSprite(p, refl, { arc: arc, hop: arc > 0 ? arc * (wallUp ? 152 : 105) : 0, wall: !!wallUp, throwing: throwing, u: u, holding: holding, mv: mv, ph: ph, receiving: receiving, won: won,
@@ -2335,7 +2366,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     else if (st.receiving && game.flags.hitFront && Math.abs(game.ball.x - p.x) < 300) name = 'catch';
     var urgent = st.arc > 0 || st.throwing || st.holding;
     if (p._pose && p._pose !== name && !urgent && t - (p._poseT || 0) < 0.11) name = p._pose; else if (p._pose !== name) { p._pose = name; p._poseT = t; }
-    var f = SPRB[name], q = v3p(p.x, C.FLOORY, pz(p) + (st.wall ? st.arc * 0.15 : 0)), k = 0.54 * q.sc;   // a wall leap carries him off the side wall and back
+    var f = SPRB[name], q = v3p(p.x, C.FLOORY, pz(p)), k = 0.54 * q.sc;   // on a wall leap his place across the court takes him onto the wall and back off it
     var bob = st.mv > 0.12 ? Math.abs(Math.sin(st.ph * 1.7)) * 6 : Math.sin(t * 2.4 + p.i * 1.7) * 1.3;
     var up = (st.hop + (st.won ? Math.abs(Math.sin(t * 7 + p.i)) * 14 : 0) + bob) * q.sc, X = q.X, Yf = q.Y0;
     ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.beginPath(); ctx.ellipse(X, Yf - 5 * q.sc, 66 * q.sc, 9 * q.sc, 0, 0, 6.3); ctx.fill();
@@ -2450,6 +2481,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (SIX) drawPong(); else if (RETRO) drawRetro(); else if (VIEW3) drawCourtView(); else {
     ctx.translate(fx.zx + shx, 560 + shy); ctx.scale(z, z); ctx.translate(-fx.zx, -560);
     drawCourt(); drawBoard(); drawLight(); drawReflections();
+    drawWallMarks(fdt);                                            // shoe prints left up the side wall, behind the players
     var P = game.players, i, holder = game.holder >= 0 ? P[game.holder] : null;
     for (i = 0; i < 4; i++) if (P[i] !== holder && !P[i].out) drawPlayer(P[i]);
     if (holder) drawPlayer(holder);
