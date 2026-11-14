@@ -626,7 +626,7 @@ var Core = (function () {
     var solo = cfg.solo || [cfg.soloTeam === 0, cfg.soloTeam === 1]; cfg.solo = solo;   // solo[t]: one person runs both players of team t
     for (var i = 0; i < 4; i++) {
       g.players.push({ i: i, team: i >> 1, role: i % 2 ? 'B' : 'F', human: !!cfg.seats[i] || solo[i >> 1], x: 0, z: (i >> 1) ? 0.66 : 0.36, zh: (i >> 1) ? 0.66 : 0.36, face: 1, vx: 0,
-        holdT: 0, cool: 0, anim: 0, run: 0, aim: 20, jump: 0, ai: {},
+        holdT: 0, cool: 0, anim: 0, run: 0, aim: 20, jump: 0, wall: false, ai: {},
         out: !!cfg.singles && i % 2 === 1, single: !!cfg.singles });   // singles: the back-court players sit out
     }
     setServe(g, cfg.firstServe || 0);
@@ -778,7 +778,7 @@ var Core = (function () {
       if (g.holder === i || p.anim > 0 || g.phase === 'over') lz = 0;
       p.lz = lz;
       p.z = Math.max(0.08, Math.min(0.92, p.z + lz * (p.human ? C.LAT_V : ({ easy: 0.5, normal: 0.68, hard: 0.9 })[g.cfg.level] || 0.68) * dt));
-      p.cool -= dt; p.anim -= dt; if (p.jump > 0) p.jump -= dt;
+      p.cool -= dt; p.anim -= dt; if (p.jump > 0) { p.jump -= dt; if (p.jump <= 0) p.wall = false; }
       if (g.holder === i || p.anim > 0) p.face = 1;
       else if (Math.abs(g.ball.x - p.x) > 30) p.face = g.ball.x > p.x ? 1 : -1;
     }
@@ -840,7 +840,8 @@ var Core = (function () {
           g.events.push('catch');
           g.reb = !!g.flags.back;                                  // off the back wall: it must go back in one motion
           if (g.flags.back) g.events.push(g.flags.bounces === 0 ? 'rabo' : 'rebote');   // taken off the back wall: on the fly it is a rabo
-          if (best.human && g.ball.y < C.FEET - 215 && !(best.jump > 0)) { best.jump = 0.8; g.events.push('jump'); }   // a high take is made with a leap
+          var wallZone = best.x >= C.LINES[10] && best.x <= C.LINES[6];   // mid-court, where a pelotari goes up the side wall for it
+          if (!(best.jump > 0) && (wallZone || (best.human && g.ball.y < C.FEET - 215))) { best.jump = 0.8; best.wall = wallZone; g.events.push(wallZone ? 'wallJump' : 'jump'); }   // a high take is made with a leap
           else if (ctl(g, best)) {                                      // every third catch by a person: a leap off the wall
 
             g.hc[best.team] = (g.hc[best.team] || 0) + 1;
@@ -1159,6 +1160,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     else if (ev === 'side') tone(1100, 700, 0.04, 'square', 0.07);
     else if (ev === 'catch') tone(620, 420, 0.05, 'triangle', 0.12);
     else if (ev === 'jump') tone(170, 560, 0.2, 'sine', 0.12);
+    else if (ev === 'wallJump') { tone(120, 300, 0.09, 'square', 0.1); tone(190, 650, 0.26, 'sine', 0.13, 0.07); }   // the foot on the wall, then the leap
     else if (ev === 'point') { tone(660, 660, 0.12, 'triangle', 0.12); tone(880, 880, 0.18, 'triangle', 0.12, 0.13); }
     else if (ev === 'win') { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, f, 0.2, 'triangle', 0.13, i * 0.14); }); }
   }
@@ -1729,15 +1731,16 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (lost) { lean = 0.3; hx = 8; hy = 42; ox = -4; oy = 40; crouch = 5; }
     // leap off the wall: up and back down over 0.8 s, knees tucked, body tilted back
     var ju = p.jump > 0 ? 1 - p.jump / 0.8 : -1, arc = ju >= 0 ? Math.sin(Math.PI * ju) : 0;
-    if (arc > 0) { hop = arc * 105; crouch = 14 * arc; lean -= 0.28 * arc; stance = 6; }
+    var wallUp = arc > 0 && p.wall ? 1 : 0;                           // off the side wall: higher, and tilted further back
+    if (arc > 0) { hop = arc * (wallUp ? 152 : 105); crouch = 14 * arc; lean -= (wallUp ? 0.46 : 0.28) * arc; stance = 6; }
     var r = p._r || (p._r = { hx: hx, hy: hy, ox: ox, oy: oy, lean: lean, cr: crouch, st: stance });
     var kk = refl ? 0 : Math.min(1, fdt * (throwing ? 45 : 13));
     r.hx += (hx - r.hx) * kk; r.hy += (hy - r.hy) * kk; r.ox += (ox - r.ox) * kk; r.oy += (oy - r.oy) * kk;
     r.lean += (lean - r.lean) * kk; r.cr += (crouch - r.cr) * kk; r.st += (stance - r.st) * kk;
 
-    if (VIEW3) { drawBack(p, { arc: arc, hop: arc > 0 ? arc * 105 : 0, throwing: throwing, u: u, holding: holding, mv: mv, ph: ph, receiving: receiving, won: won,
+    if (VIEW3) { drawBack(p, { arc: arc, hop: arc > 0 ? arc * (wallUp ? 152 : 105) : 0, wall: !!wallUp, throwing: throwing, u: u, holding: holding, mv: mv, ph: ph, receiving: receiving, won: won,
       mine: mode === 'match' && Core.ctl(game, p) && (!net.role || p.team === solo), tag: solo >= 0 ? 'YOU' : 'P' + humanNo[p.i] }); return; }
-    if (LOOK2 && drawSprite(p, refl, { arc: arc, hop: arc > 0 ? arc * 105 : 0, throwing: throwing, u: u, holding: holding, mv: mv, ph: ph, receiving: receiving, won: won,
+    if (LOOK2 && drawSprite(p, refl, { arc: arc, hop: arc > 0 ? arc * (wallUp ? 152 : 105) : 0, wall: !!wallUp, throwing: throwing, u: u, holding: holding, mv: mv, ph: ph, receiving: receiving, won: won,
       mine: mode === 'match' && Core.ctl(game, p) && (!net.role || p.team === solo), tag: solo >= 0 ? 'YOU' : 'P' + humanNo[p.i] })) return;
     // skeleton
     var bob = mv < 0.1 ? Math.sin(t * 2.4 + p.i * 1.7) * 1.2 : 0, bounce = Math.abs(Math.sin(ph)) * 4 * mv;
