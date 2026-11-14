@@ -2326,7 +2326,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   function pz(p) { return p.z != null && !net.role ? p.z : LANE[p.team]; }   // a player's place across the court
   var V3K = 1.19617, V3OY = 110, LANE = [0.36, 0.66], v3lat = 0.5, v3wall = 0.5, v3trail = [], v3hits = [], v3flash = 0;
   var A_OFF = 52, A_SQ = (895 - 52) / 895,                         // the aerial picture sits below the ticker, so the gold line on top of the front wall is in view
-    A_K = 895 / 941, A_OX = 205, A_Y = [283, 308, 328, 351, 376, 402, 464, 500, 539, 582, 630, 680, 740, 805, 878, 921], A_D = [0];
+    A_K = 895 / 941, A_OX = 205, A_Y = [283, 297, 325, 354, 386, 420, 456, 500, 539, 582, 630, 680, 740, 805, 878, 921], A_D = [0];
   (function () { for (var n = 1; n <= 14; n++) A_D.push(C.FRONT - Math.round(1820 - (n - 1) * 124.77)); A_D.push(1746); })();
   function v3y(d) {
     if (AER) { for (var i = 1; i < A_D.length - 1; i++) if (d <= A_D[i]) break; return (A_Y[i - 1] + (A_Y[i] - A_Y[i - 1]) * (d - A_D[i - 1]) / (A_D[i] - A_D[i - 1])) * A_K * A_SQ + A_OFF; }
