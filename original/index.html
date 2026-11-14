@@ -837,13 +837,10 @@ var Core = (function () {
           g.events.push('catch');
           g.reb = !!g.flags.back;                                  // off the back wall: it must go back in one motion
           if (g.flags.back) g.events.push(g.flags.bounces === 0 ? 'rabo' : 'rebote');   // taken off the back wall: on the fly it is a rabo
-          var wallZone = best.x >= C.LINES[10] && best.x <= C.LINES[6];   // mid-court, where a pelotari goes up the side wall for it
-          if (!(best.jump > 0) && (wallZone || (best.human && g.ball.y < C.FEET - 215))) { best.jump = 0.8; best.wall = wallZone; g.events.push(wallZone ? 'wallJump' : 'jump'); }   // a high take is made with a leap
-          else if (ctl(g, best)) {                                      // every third catch by a person: a leap off the wall
-
-            g.hc[best.team] = (g.hc[best.team] || 0) + 1;
-            if (g.hc[best.team] % 3 === 0) { best.jump = 0.8; g.events.push('jump'); }
-          }
+          // only a ball taken high is worth leaving the floor for, and only up the side wall between lines 10 and 6
+          // from line 10 up the court he goes off the side wall for it; deeper than that, or right under the front wall, it is a straight leap
+          var high = g.ball.y < C.FEET - 215, wallZone = high && best.x >= C.LINES[10] && best.x <= C.LINES[2];
+          if (high && !(best.jump > 0)) { best.jump = 0.8; best.wall = wallZone; g.events.push(wallZone ? 'wallJump' : 'jump'); }
           plan(g, best, false); return;
         }
       }
