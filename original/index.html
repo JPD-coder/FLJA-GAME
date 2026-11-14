@@ -891,6 +891,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     { name: 'Mexico', flagImg: true, logo: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='184' height='132' viewBox='0 0 46 33'%3E%3Cdefs%3E%3CclipPath id='c'%3E%3Crect width='46' height='33' rx='2.5'/%3E%3C/clipPath%3E%3C/defs%3E%3Cg clip-path='url(%23c)'%3E%3Crect width='15.34' height='33' fill='%23006847'/%3E%3Crect x='15.34' width='15.33' height='33' fill='%23fff'/%3E%3Crect x='30.67' width='15.33' height='33' fill='%23ce1126'/%3E%3C/g%3E%3Crect x='.5' y='.5' width='45' height='32' rx='2.5' fill='none' stroke='%23000' stroke-opacity='.35'/%3E%3C/svg%3E", ui: '#35c27c', kit: { jersey: '#f3f3f3', sash: '#0e8f55', helm: '#ce1126', num: '#0e6b40' } },
     { name: 'Philippines', flagImg: true, logo: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='184' height='132' viewBox='0 0 46 33'%3E%3Cdefs%3E%3CclipPath id='c'%3E%3Crect width='46' height='33' rx='2.5'/%3E%3C/clipPath%3E%3C/defs%3E%3Cg clip-path='url(%23c)'%3E%3Crect width='46' height='16.5' fill='%230038a8'/%3E%3Crect y='16.5' width='46' height='16.5' fill='%23ce1126'/%3E%3Cpath d='M0 0 L0 33 L19 16.5 Z' fill='%23fff'/%3E%3Ccircle cx='6.4' cy='16.5' r='2.6' fill='%23fcd116'/%3E%3Ccircle cx='2.2' cy='3.4' r='.85' fill='%23fcd116'/%3E%3Ccircle cx='2.2' cy='29.6' r='.85' fill='%23fcd116'/%3E%3Ccircle cx='15.6' cy='16.5' r='.85' fill='%23fcd116'/%3E%3C/g%3E%3Crect x='.5' y='.5' width='45' height='32' rx='2.5' fill='none' stroke='%23000' stroke-opacity='.35'/%3E%3C/svg%3E", ui: '#fcd116', kit: { jersey: '#0038a8', sash: '#ce1126', helm: '#fcd116', num: '#fcd116' } }
   ];
+  window.FL_ROSTER = ROSTER;                                      // the opening film shows the same crests and flags
   var TEAM = [{ ui: '#a8e22a', legs: '#1c4a0b' }, { ui: '#3bb4e6', legs: '#ef1a8c' }];
   var GOLD = '#c9a55c', CHALK = '#f2efe6', MUTED = '#9b9ca6', RED = '#ff5a4d';
   var DISPLAY = "'Big Shoulders Display','Arial Narrow',Impact,sans-serif", BODY = "'Barlow','Helvetica Neue',Arial,sans-serif";
@@ -2893,9 +2894,9 @@ if (typeof module !== 'undefined') module.exports = Core;
   load('aer', 'aerial-view.jpg');
   load('spr', 'sprites.png');
   load('mark', 'brand.png');
-  var CREST = [['team-a.png', 'SQUARED GROUPERS'], ['team-b.png', 'PELOTEROS'],
-               ['logo-skunk-apes.png', 'SKUNK APES'], ['logo-don-juans.png', 'DON JUANS']];
-  for (var ci = 0; ci < CREST.length; ci++) load('c' + ci, CREST[ci][0]);
+  var ROSTER = window.FL_ROSTER || [];
+  var CLUBS = ROSTER.slice(0, 6), LANDS = ROSTER.slice(6, 12);
+  for (var ri = 0; ri < ROSTER.length; ri++) load('r' + ri, ROSTER[ri].logo);
   var SPR = {                                                       // frames in sprites.png
     ready: { x: 4, y: 4, w: 390, h: 430 }, windup: { x: 1087, y: 4, w: 543, h: 407 },
     release: { x: 1638, y: 4, w: 468, h: 457 }, catch: { x: 2114, y: 4, w: 333, h: 485 },
@@ -2949,82 +2950,64 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   function u() { return Math.min(W, H) / 100; }                     // one unit: the type reads the same on a phone and a laptop
 
-  /* ---------- the seven scenes ---------- */
+  /* ---------- the six scenes: no sponsor board appears anywhere in the film ---------- */
   function scene1(t) {                                              // 0.0-3.4  the lights come up on an empty court
     var k = ease(span(0, 3.4, t));
-    cover(art.court, lerp(700, 480, k), lerp(240, 150, k), lerp(600, 1040, k), lerp(269, 466, k));
+    cover(art.court, lerp(760, 630, k), lerp(330, 286, k), lerp(620, 860, k), lerp(278, 385, k));
     vignette();
     shade(1 - ease(span(0.1, 1.5, t)));
     var a = Math.min(fadeIn(t, 1.7, 0.7), 1 - fadeIn(t, 3.0, 0.4));
     title('SILVER PALM CAPITAL', W / 2, H / 2 - u() * 1.2, u() * 3.4, '700', 0.26, CHALK, a * 0.92);
     title('PRESENTS', W / 2, H / 2 + u() * 4.2, u() * 2.4, '600', 0.4, GOLD, a * 0.8);
   }
-  function scene2(t) {                                              // 3.4-6.6  the ball goes into the front wall
-    var s = t - 3.4, hit = 1.45, k = ease(span(0, 3.2, s));
-    var sh = s > hit && s < hit + 0.36 ? (hit + 0.36 - s) * 34 : 0;
-    ctx.save(); ctx.translate((Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh);
-    cover(art.court, lerp(1430, 1500, k), lerp(150, 190, k), lerp(540, 420, k), lerp(242, 188, k));
-    ctx.restore();
-    vignette();
-    if (s < hit) {                                                  // the pelota comes in from the open side
-      var p = s / hit, bx = lerp(-W * 0.15, W * 0.62, p * p), by = lerp(H * 0.26, H * 0.46, p);
-      var g = ctx.createLinearGradient(bx - W * 0.3, by, bx, by);
-      g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(255,255,255,.7)');
-      ctx.fillStyle = g; ctx.fillRect(bx - W * 0.3, by - u() * 0.5, W * 0.3, u());
-      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(bx, by, u() * 1.15, 0, 6.3); ctx.fill();
-    } else if (s < hit + 0.5) {                                     // the strike: a flash, then the ball away
-      var f = 1 - (s - hit) / 0.5;
-      ctx.fillStyle = 'rgba(255,255,255,' + (f * f * 0.85).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H);
-    }
-    shade(1 - ease(span(0, 0.3, s)));
-    shade(ease(span(3.0, 3.2, s)));
-  }
-  function scene3(t) {                                              // 6.6-10.0  the throw, and what the game is
-    var s = t - 6.6, k = ease(span(0, 3.4, s));
-    ctx.fillStyle = '#07080c'; ctx.fillRect(0, 0, W, H);
-    ctx.save(); ctx.globalAlpha = 0.5; cover(art.back, lerp(560, 460, k), 170, lerp(900, 1080, k), lerp(403, 484, k)); ctx.restore();
-    var g = ctx.createRadialGradient(W / 2, H * 0.46, 0, W / 2, H * 0.46, Math.min(W, H) * 0.62);
-    g.addColorStop(0, 'rgba(255,245,215,.22)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  function scene2(t) {                                              // 3.4-7.8  the throw, on nothing but light
+    var s = t - 3.4;
+    ctx.fillStyle = '#06070b'; ctx.fillRect(0, 0, W, H);
+    var g = ctx.createRadialGradient(W / 2, H * 0.44, 0, W / 2, H * 0.44, Math.min(W, H) * 0.7);
+    g.addColorStop(0, 'rgba(255,246,220,.2)'); g.addColorStop(0.55, 'rgba(90,96,120,.09)'); g.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    var cut = s < 1.7;
-    sprite(cut ? 'windup' : 'release', W / 2 + (cut ? -u() * 4 : u() * 3), H * 0.47, Math.min(H * 0.62, u() * 62), false, 1);
-    if (!cut && s < 2.1) { ctx.fillStyle = 'rgba(255,255,255,' + ((2.1 - s) / 0.4 * 0.5).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
+    var fl = ctx.createRadialGradient(W / 2, H * 0.8, 0, W / 2, H * 0.8, Math.min(W, H) * 0.42);
+    fl.addColorStop(0, 'rgba(0,0,0,.55)'); fl.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.save(); ctx.translate(0, 0); ctx.fillStyle = fl; ctx.fillRect(0, H * 0.6, W, H * 0.4); ctx.restore();
+    var cut = s < 2.2, hgt = Math.min(H * 0.6, u() * 60);
+    sprite(cut ? 'windup' : 'release', W / 2 + (cut ? -u() * 3 : u() * 2), H * 0.45, hgt, false, 1);
+    if (!cut && s < 2.6) { ctx.fillStyle = 'rgba(255,255,255,' + ((2.6 - s) / 0.4 * 0.45).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
     vignette();
-    var a = Math.min(fadeIn(s, 0.5, 0.6), 1 - fadeIn(s, 2.9, 0.5));
-    title('THE FASTEST BALL IN SPORT', W / 2, H - u() * 9, u() * 3.1, '700', 0.2, CHALK, a);
-    shade(1 - ease(span(0, 0.25, s)));
+    title('FASTEST SPORT IN THE WORLD', W / 2, H - u() * 9, u() * 3.3, '700', 0.2, CHALK,
+      Math.min(fadeIn(s, 0.6, 0.6), 1 - fadeIn(s, 3.8, 0.5)));
+    shade(1 - ease(span(0, 0.3, s)));
   }
-  function scene4(t) {                                              // 10.0-13.6  the clubs, one cut each
-    var s = t - 10.0, i = Math.min(3, Math.floor(s / 0.9)), k = (s - i * 0.9) / 0.9;
-    ctx.fillStyle = '#07080c'; ctx.fillRect(0, 0, W, H);
-    ctx.save(); ctx.globalAlpha = 0.34; cover(art.aer, 560, 300 + i * 40, 900, 403); ctx.restore();
+  /* a wall of crests or flags, all at once, each one arriving a beat after the last */
+  function lineup(list, off, head, s, len) {
+    ctx.fillStyle = '#06070b'; ctx.fillRect(0, 0, W, H);
+    ctx.save(); ctx.globalAlpha = 0.26; cover(art.aer, 760, 360, 760, 340); ctx.restore();
     vignette();
-    var im = art['c' + i], hgt = Math.min(H * 0.42, u() * 40);
-    if (ok(im)) {
-      var w2 = hgt * im.naturalWidth / im.naturalHeight, sc = lerp(1.1, 1.0, ease(Math.min(1, k * 3)));
-      ctx.save(); ctx.globalAlpha = Math.min(1, k * 6) * Math.min(1, (1 - k) * 8);
-      ctx.translate(W / 2, H * 0.42); ctx.scale(sc, sc);
-      ctx.drawImage(im, -w2 / 2, -hgt / 2, w2, hgt); ctx.restore();
+    var wide = W > H * 1.1, cols = wide ? 3 : 2, rows = Math.ceil(list.length / cols);
+    var topY = H * (wide ? 0.3 : 0.26), botY = H * 0.9;
+    var cw = (W * (wide ? 0.78 : 0.86)) / cols, ch = (botY - topY) / rows;
+    var box = Math.min(cw * 0.56, ch * 0.52), x0 = W / 2 - (cols - 1) * cw / 2;
+    title(head, W / 2, H * (wide ? 0.17 : 0.15), u() * (wide ? 4.4 : 3.8), '800', 0.22, GOLD,
+      Math.min(fadeIn(s, 0.1, 0.5), 1 - fadeIn(s, len - 0.45, 0.4)));
+    for (var i = 0; i < list.length; i++) {
+      var im = art['r' + (off + i)], a = Math.min(fadeIn(s, 0.45 + i * 0.12, 0.45), 1 - fadeIn(s, len - 0.45, 0.4));
+      if (a <= 0) continue;
+      var cx = x0 + (i % cols) * cw, cy = topY + ((i / cols) | 0) * ch + ch * 0.44;
+      var pop = lerp(0.86, 1, ease(Math.min(1, (s - 0.45 - i * 0.12) / 0.45)));
+      if (ok(im)) {
+        var sc = Math.min(box / im.naturalWidth, box / im.naturalHeight) * pop;
+        ctx.save(); ctx.globalAlpha = a;
+        ctx.drawImage(im, cx - im.naturalWidth * sc / 2, cy - im.naturalHeight * sc / 2, im.naturalWidth * sc, im.naturalHeight * sc);
+        ctx.restore();
+      }
+      title(list[i].name.toUpperCase(), cx, cy + box * 0.62, Math.min(u() * 2.3, cw * 0.1), '700', 0.1, CHALK, a * 0.95);
     }
-    title(CREST[i][1], W / 2, H * 0.42 + hgt * 0.78, u() * 3.4, '800', 0.16, CHALK, Math.min(1, k * 6) * Math.min(1, (1 - k) * 8));
-    if (k < 0.12) { ctx.fillStyle = 'rgba(255,255,255,' + (0.3 * (1 - k / 0.12)).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
   }
-  function scene5(t) {                                              // 13.6-16.6  up the side wall
-    var s = t - 13.6, k = ease(span(0, 3.0, s));
-    cover(art.court, lerp(800, 690, k), lerp(330, 290, k), lerp(640, 820, k), lerp(287, 367, k));
-    ctx.save(); ctx.globalAlpha = 0.5; ctx.fillStyle = '#05070c'; ctx.fillRect(0, 0, W, H); ctx.restore();
-    var up = ease(Math.min(1, s / 1.3));
-    sprite('jump', W / 2 - u() * 2, lerp(H * 0.9, H * 0.5, up), Math.min(H * 0.5, u() * 48), false, 1);
-    vignette();
-    var a = Math.min(fadeIn(s, 1.1, 0.6), 1 - fadeIn(s, 2.5, 0.45));
-    title('FOURTEEN LINES. ONE WALL.', W / 2, H - u() * 9, u() * 3.1, '700', 0.2, CHALK, a);
-    shade(1 - ease(span(0, 0.25, s)));
-    shade(ease(span(2.8, 3.0, s)));
-  }
-  function scene6(t) {                                              // 16.6-19.2  the name
-    var s = t - 16.6, land = ease(Math.min(1, s / 0.45));
+  function scene3(t) { lineup(CLUBS, 0, 'OUR LEAGUE TEAMS', t - 7.8, 4.2); }
+  function scene4(t) { lineup(LANDS, 6, 'OUR WORLD COUNTRIES', t - 12.0, 4.2); }
+  function scene5(t) {                                              // 16.2-19.1  the name
+    var s = t - 16.2, land = ease(Math.min(1, s / 0.45));
     ctx.fillStyle = '#05060a'; ctx.fillRect(0, 0, W, H);
-    ctx.save(); ctx.globalAlpha = 0.3; cover(art.court, 500, 170, 1000, 448); ctx.restore();
+    ctx.save(); ctx.globalAlpha = 0.3; cover(art.court, 620, 300, 860, 385); ctx.restore();
     vignette();
     var pop = lerp(1.5, 1, land);
     ctx.save(); ctx.translate(W / 2, H * 0.46); ctx.scale(pop, pop); ctx.translate(-W / 2, -H * 0.46);
@@ -3039,23 +3022,22 @@ if (typeof module !== 'undefined') module.exports = Core;
     ctx.restore();
     if (s < 0.5) { ctx.fillStyle = 'rgba(255,255,255,' + ((0.5 - s) * 0.7).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
   }
-  function scene7(t) {                                              // 19.2-20.0  hand over to the court
-    scene6(t);
-    var s = t - 19.2;
-    title('PLAY FREE', W / 2, H * 0.46 + u() * 23, u() * 3.2, '700', 0.34, CHALK, fadeIn(s, 0, 0.3) * (1 - fadeIn(s, 0.55, 0.25)));
-    shade(ease(span(0.45, 0.8, s)));
+  function scene6(t) {                                              // 19.1-20.0  hand over to the court
+    scene5(t);
+    var s = t - 19.1;
+    title('PLAY FREE', W / 2, H * 0.46 + u() * 23, u() * 3.2, '700', 0.34, CHALK, fadeIn(s, 0, 0.3) * (1 - fadeIn(s, 0.6, 0.25)));
+    shade(ease(span(0.5, 0.9, s)));
   }
 
   function draw(t) {
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     ctx.fillStyle = '#05060a'; ctx.fillRect(0, 0, W, H);
     if (t < 3.4) scene1(t);
-    else if (t < 6.6) scene2(t);
-    else if (t < 10.0) scene3(t);
-    else if (t < 13.6) scene4(t);
-    else if (t < 16.6) scene5(t);
-    else if (t < 19.2) scene6(t);
-    else scene7(t);
+    else if (t < 7.8) scene2(t);
+    else if (t < 12.0) scene3(t);
+    else if (t < 16.2) scene4(t);
+    else if (t < 19.1) scene5(t);
+    else scene6(t);
     ctx.fillStyle = 'rgba(255,255,255,.015)';                       // a touch of grain, so it reads as film
     for (var i = 0; i < 16; i++) ctx.fillRect(Math.random() * W, Math.random() * H, 2, 2);
   }
