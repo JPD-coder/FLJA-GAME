@@ -138,6 +138,9 @@ canvas { display: block; max-width: 100%; background: #000; border-radius: 4px; 
   text-transform: uppercase; cursor: pointer; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 #film .film-btns button:hover { background: rgba(242,239,230,.16); }
 #filmSound { opacity: .82; }
+#filmSound.wants { opacity: 1; border-color: rgba(201,165,92,.9); color: #c9a55c; animation: film-snd 1.6s ease-in-out infinite; }
+@keyframes film-snd { 0%, 100% { box-shadow: 0 0 0 0 rgba(201,165,92,.5); } 50% { box-shadow: 0 0 0 7px rgba(201,165,92,0); } }
+@media (prefers-reduced-motion: reduce) { #filmSound.wants { animation: none; } }
 body.filming { overflow: hidden; }
 body:not(.filming) .setup { animation: setup-in .4s ease-out; }
 @keyframes setup-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
@@ -3051,11 +3054,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
 
   /* ---------- the score: written here in sound, so the film carries no audio file ---------- */
-  var ac = null, bus = null, noiseBuf = null, soundOn = true;
-  try {                                                             // whoever turned the game's sound off gets a silent film
-    var sv = JSON.parse(localStorage.getItem('fronton-doubles') || 'null');
-    if (sv && sv.sound === false) soundOn = false;
-  } catch (e) { /* no storage: play it */ }
+  var ac = null, bus = null, noiseBuf = null, soundOn = true;       // the film opens with its music; Mute is there for anyone who wants it
 
   function noise() {
     if (noiseBuf) return noiseBuf;
@@ -3127,6 +3126,10 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (due(18.9)) bus.gain.setValueAtTime(bus.gain.value, go(18.9));
     bus.gain.exponentialRampToValueAtTime(0.0001, go(20.0));        // out with the picture
   }
+  var cued = false;
+  function pos() { return t0 ? (performance.now() - t0) / 1000 : 0; }
+  function begin() { if (cued || !ac) return; cued = true; cue(pos()); }   // the score joins the film where it already is
+  function resume() { if (ac && ac.state === 'suspended') ac.resume().then(function () { begin(); syncSnd(); }, function () {}); }
   function startAudio() {
     if (ac || !soundOn) return;
     try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
@@ -3135,14 +3138,14 @@ if (typeof module !== 'undefined') module.exports = Core;
     lim.threshold.value = -8; lim.knee.value = 6; lim.ratio.value = 12; lim.attack.value = 0.003; lim.release.value = 0.25;
     lim.connect(ac.destination);
     bus = ac.createGain(); bus.gain.value = 0.9; bus.connect(lim);
-    var go = function () { cue(t0 ? (performance.now() - t0) / 1000 : 0); };
-    if (ac.state === 'suspended') ac.resume().then(go, function () {});
-    else go();
+    cued = false;
+    if (ac.state === 'suspended') ac.resume().then(begin, function () {});
+    else begin();
   }
   function stopAudio() {
     if (!ac) return;
     try { bus.gain.cancelScheduledValues(ac.currentTime); bus.gain.setTargetAtTime(0.0001, ac.currentTime, 0.08); } catch (e) { /* ignore */ }
-    var a = ac; ac = null; setTimeout(function () { try { a.close(); } catch (e) { /* ignore */ } }, 400);
+    var a = ac; ac = null; cued = false; setTimeout(function () { try { a.close(); } catch (e) { /* ignore */ } }, 400);
   }
 
   function finish() {
@@ -3162,21 +3165,33 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
 
   var sndBtn = document.getElementById('filmSound');
-  function syncSnd() { sndBtn.textContent = ac && ac.state === 'running' ? 'Mute' : 'Sound on'; }
-  sndBtn.addEventListener('click', function (e) {                   // a browser will not play a note until someone taps
+  function syncSnd() {                                              // playing: offer Mute. Held back by the browser: offer the sound
+    var on = !!(ac && ac.state === 'running');
+    sndBtn.textContent = on ? 'Mute' : 'Sound';
+    sndBtn.classList.toggle('wants', !on && soundOn);               // a quiet nudge when only a tap is missing
+  }
+  sndBtn.addEventListener('click', function (e) {
     e.stopPropagation();
-    if (ac) { soundOn = false; stopAudio(); } else { soundOn = true; startAudio(); }
+    if (ac && ac.state === 'running') { soundOn = false; stopAudio(); }
+    else { soundOn = true; if (ac) resume(); else startAudio(); }
     setTimeout(syncSnd, 150);
   });
-  root.addEventListener('pointerdown', function () { if (!ac && soundOn) { startAudio(); setTimeout(syncSnd, 150); } });
+  function wake() {                                                 // any touch is the permission the browser was waiting for
+    if (done || !soundOn) return;
+    if (!ac) startAudio(); else resume();
+    setTimeout(syncSnd, 150);
+  }
+  root.addEventListener('pointerdown', wake);                       // no browser plays a note before someone touches the page
+  document.addEventListener('keydown', wake);
+  document.addEventListener('pointerdown', wake, true);
   document.getElementById('filmSkip').addEventListener('click', function (e) { e.stopPropagation(); finish(); });
   window.addEventListener('resize', size);
   window.addEventListener('orientationchange', function () { setTimeout(size, 120); });
   document.body.classList.add('filming');
   size();
   raf = requestAnimationFrame(frame);
-  startAudio();                                                     // plays at once where the browser allows it
-  setTimeout(syncSnd, 300);
+  startAudio();                                                     // plays at once wherever the browser allows it
+  setTimeout(syncSnd, 250); setTimeout(syncSnd, 900);
 })();
 
 </script>
