@@ -132,11 +132,12 @@ canvas { display: block; max-width: 100%; background: #000; border-radius: 4px; 
 #film { position: fixed; inset: 0; z-index: 9999; background: #05060a; opacity: 1; transition: opacity .5s ease; }
 #film.gone { opacity: 0; pointer-events: none; }
 #film canvas { display: block; width: 100%; height: 100%; }
-#filmSkip { position: absolute; top: max(14px, env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px));
-  min-height: 42px; padding: 9px 20px; border-radius: 999px; border: 1px solid rgba(242,239,230,.45);
+#film .film-btns { position: absolute; top: max(14px, env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px)); display: flex; gap: 8px; }
+#film .film-btns button { min-height: 42px; padding: 9px 20px; border-radius: 999px; border: 1px solid rgba(242,239,230,.45);
   background: rgba(8,10,14,.55); color: #f2efe6; font: 700 14px/1 var(--display); letter-spacing: .18em;
   text-transform: uppercase; cursor: pointer; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
-#filmSkip:hover { background: rgba(242,239,230,.16); }
+#film .film-btns button:hover { background: rgba(242,239,230,.16); }
+#filmSound { opacity: .82; }
 body.filming { overflow: hidden; }
 body:not(.filming) .setup { animation: setup-in .4s ease-out; }
 @keyframes setup-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
@@ -354,7 +355,7 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
 <body>
 
 
-<div id="film"><canvas id="filmCv"></canvas><button id="filmSkip" type="button">Skip</button></div>
+<div id="film"><canvas id="filmCv"></canvas><div class="film-btns"><button id="filmSound" type="button">Sound on</button><button id="filmSkip" type="button">Skip</button></div></div>
 <div class="app">
   <header class="bar" id="bar">
     <h1><img src="brand.png" alt=""><b>Fantasy League <span>Jai Alai</span></b></h1>
@@ -3049,9 +3050,105 @@ if (typeof module !== 'undefined') module.exports = Core;
     for (var i = 0; i < 16; i++) ctx.fillRect(Math.random() * W, Math.random() * H, 2, 2);
   }
 
+  /* ---------- the score: written here in sound, so the film carries no audio file ---------- */
+  var ac = null, bus = null, noiseBuf = null, soundOn = true;
+  try {                                                             // whoever turned the game's sound off gets a silent film
+    var sv = JSON.parse(localStorage.getItem('fronton-doubles') || 'null');
+    if (sv && sv.sound === false) soundOn = false;
+  } catch (e) { /* no storage: play it */ }
+
+  function noise() {
+    if (noiseBuf) return noiseBuf;
+    noiseBuf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate);
+    var d = noiseBuf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return noiseBuf;
+  }
+  function env(at, a, hold, dec, peak) {                            // one gain shape, in seconds from now
+    var g = ac.createGain(); g.connect(bus);
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0001, peak), at + a);
+    g.gain.setValueAtTime(Math.max(0.0001, peak), at + a + hold);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + a + hold + dec);
+    return g;
+  }
+  function tone(at, freq, a, hold, dec, peak, type, bend) {
+    var o = ac.createOscillator(), g = env(at, a, hold, dec, peak);
+    o.type = type || 'sine'; o.frequency.setValueAtTime(freq, at);
+    if (bend) o.frequency.exponentialRampToValueAtTime(bend, at + a + hold + dec);
+    o.connect(g); o.start(at); o.stop(at + a + hold + dec + 0.05);
+  }
+  function hit(at, peak, lo) {                                      // a drum: the floor of the fronton
+    tone(at, lo ? 120 : 190, 0.004, 0.02, lo ? 0.75 : 0.3, peak, 'sine', lo ? 36 : 52);
+    var s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = env(at, 0.003, 0.01, lo ? 0.3 : 0.14, peak * 0.5);
+    s.buffer = noise(); f.type = 'lowpass'; f.frequency.setValueAtTime(lo ? 420 : 2600, at);
+    s.connect(f); f.connect(g); s.start(at); s.stop(at + 0.5);
+  }
+  function swell(at, len, peak) {                                   // air moving: the rise into a cut
+    var s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = env(at, len * 0.8, 0.02, len * 0.2, peak);
+    s.buffer = noise(); s.loop = true; f.type = 'bandpass'; f.Q.value = 1.1;
+    f.frequency.setValueAtTime(260, at); f.frequency.exponentialRampToValueAtTime(5200, at + len);
+    s.connect(f); f.connect(g); s.start(at); s.stop(at + len + 0.3);
+  }
+  function chord(at, roots, len, peak, type) {                      // a stack of strings, filtered warm
+    for (var i = 0; i < roots.length; i++) {
+      var o = ac.createOscillator(), f = ac.createBiquadFilter(), g = env(at, 0.5, len, 1.1, peak);
+      o.type = type || 'sawtooth'; o.frequency.value = roots[i] * (i % 2 ? 1.004 : 0.997);
+      f.type = 'lowpass'; f.frequency.setValueAtTime(500, at); f.frequency.linearRampToValueAtTime(2300, at + len);
+      o.connect(f); f.connect(g); o.start(at); o.stop(at + len + 1.3);
+    }
+  }
+  /* the cue, cut to the frames: drone, a pulse that builds, a note per crest, a chord on the name */
+  function cue(from) {
+    var T = ac.currentTime + 0.06, i, at;
+    function go(t) { return T + t - from; }                         // where the film already is, if sound starts late
+    function due(t) { return t >= from; }
+    if (due(0.1)) chord(go(0.1), [55, 82.4, 110], 3.0, 0.1);        // the lights coming up
+    if (due(0.4)) hit(go(0.4), 0.5, true);
+    if (due(2.9)) swell(go(2.9), 0.6, 0.1);
+    if (due(3.4)) { hit(go(3.4), 0.85, true); chord(go(3.4), [73.4, 110, 146.8], 4.0, 0.09); }   // the player
+    for (i = 0; i < 7; i++) { at = 3.9 + i * 0.6; if (due(at)) hit(go(at), i % 2 ? 0.2 : 0.42, i % 2 === 0); }
+    if (due(5.6)) hit(go(5.6), 0.6, false);                         // the release
+    var NOTES = [196, 233.1, 261.6, 293.7, 349.2, 392];             // one bell as each crest lands
+    if (due(7.7)) { hit(go(7.7), 0.8, true); chord(go(7.8), [98, 146.8, 196], 4.0, 0.075); }
+    for (i = 0; i < 6; i++) { at = 8.25 + i * 0.12; if (due(at)) tone(go(at), NOTES[i], 0.01, 0.05, 0.9, 0.3, 'triangle'); }
+    for (i = 0; i < 7; i++) { at = 8.1 + i * 0.6; if (due(at)) hit(go(at), i % 2 ? 0.22 : 0.46, i % 2 === 0); }
+    if (due(11.9)) { hit(go(11.9), 0.8, true); chord(go(12.0), [110, 164.8, 220], 4.0, 0.075); }
+    for (i = 0; i < 6; i++) { at = 12.45 + i * 0.12; if (due(at)) tone(go(at), NOTES[i] * 1.122, 0.01, 0.05, 0.9, 0.3, 'triangle'); }
+    for (i = 0; i < 7; i++) { at = 12.3 + i * 0.6; if (due(at)) hit(go(at), i % 2 ? 0.22 : 0.46, i % 2 === 0); }
+    if (due(15.5)) swell(go(15.5), 0.7, 0.16);                      // into the name
+    if (due(16.2)) {
+      hit(go(16.2), 0.72, true); hit(go(16.2), 0.34, false);
+      chord(go(16.2), [65.4, 98, 130.8, 196, 261.6], 2.6, 0.062);
+      var s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = env(go(16.2), 0.01, 0.1, 2.4, 0.1);
+      s.buffer = noise(); f.type = 'highpass'; f.frequency.value = 3600;
+      s.connect(f); f.connect(g); s.start(go(16.2)); s.stop(go(19.2));
+    }
+    if (due(18.9)) bus.gain.setValueAtTime(bus.gain.value, go(18.9));
+    bus.gain.exponentialRampToValueAtTime(0.0001, go(20.0));        // out with the picture
+  }
+  function startAudio() {
+    if (ac || !soundOn) return;
+    try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { /* ignore */ }
+    var lim = ac.createDynamicsCompressor();                        // a limiter, so the big hits never crackle
+    lim.threshold.value = -8; lim.knee.value = 6; lim.ratio.value = 12; lim.attack.value = 0.003; lim.release.value = 0.25;
+    lim.connect(ac.destination);
+    bus = ac.createGain(); bus.gain.value = 0.9; bus.connect(lim);
+    var go = function () { cue(t0 ? (performance.now() - t0) / 1000 : 0); };
+    if (ac.state === 'suspended') ac.resume().then(go, function () {});
+    else go();
+  }
+  function stopAudio() {
+    if (!ac) return;
+    try { bus.gain.cancelScheduledValues(ac.currentTime); bus.gain.setTargetAtTime(0.0001, ac.currentTime, 0.08); } catch (e) { /* ignore */ }
+    var a = ac; ac = null; setTimeout(function () { try { a.close(); } catch (e) { /* ignore */ } }, 400);
+  }
+
   function finish() {
     if (done) return; done = true;
     cancelAnimationFrame(raf);
+    stopAudio();
     root.classList.add('gone');
     document.body.classList.remove('filming');
     setTimeout(function () { if (root.parentNode) root.remove(); }, 520);
@@ -3064,12 +3161,22 @@ if (typeof module !== 'undefined') module.exports = Core;
     draw(t);
   }
 
+  var sndBtn = document.getElementById('filmSound');
+  function syncSnd() { sndBtn.textContent = ac && ac.state === 'running' ? 'Mute' : 'Sound on'; }
+  sndBtn.addEventListener('click', function (e) {                   // a browser will not play a note until someone taps
+    e.stopPropagation();
+    if (ac) { soundOn = false; stopAudio(); } else { soundOn = true; startAudio(); }
+    setTimeout(syncSnd, 150);
+  });
+  root.addEventListener('pointerdown', function () { if (!ac && soundOn) { startAudio(); setTimeout(syncSnd, 150); } });
   document.getElementById('filmSkip').addEventListener('click', function (e) { e.stopPropagation(); finish(); });
   window.addEventListener('resize', size);
   window.addEventListener('orientationchange', function () { setTimeout(size, 120); });
   document.body.classList.add('filming');
   size();
   raf = requestAnimationFrame(frame);
+  startAudio();                                                     // plays at once where the browser allows it
+  setTimeout(syncSnd, 300);
 })();
 
 </script>
