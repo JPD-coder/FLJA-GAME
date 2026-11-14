@@ -69,11 +69,14 @@ body { background: var(--ink); color: var(--text); font: 15px/1.45 var(--body); 
 #musicBox .mus-top a:hover { outline: 2px solid #1db954; outline-offset: 1px; }
 #musicBox .mus-top button { background: none; border: 0; color: #f1efe8; font-size: 19px; line-height: 1; padding: 0 6px; cursor: pointer; }
 /* the playlist on the wall: Spotify's own player, clipped to its artwork and video */
-#musWall { position: absolute; left: 8%; top: 31%; height: 29%; aspect-ratio: 300 / 236; overflow: hidden; z-index: 5; background: #000; border-radius: 3px; box-shadow: 0 0 0 2px rgba(201,165,92,.85), 0 12px 26px rgba(0,0,0,.6); pointer-events: none; transition: opacity .25s ease; }
+#musWall { position: absolute; left: 50%; transform: translateX(-50%); top: 42%; height: 24%; aspect-ratio: 300 / 236; overflow: hidden; z-index: 5; background: #000; border-radius: 0 0 4px 4px; box-shadow: 0 0 0 2px rgba(201,165,92,.85), 0 12px 26px rgba(0,0,0,.6); pointer-events: none; transition: opacity .25s ease; }   /* hangs under the scoreboard */
 #musWall.off { opacity: 0; }
 #musWall #musEmbed { width: 300px; height: 352px; transform-origin: 0 0; }
 #musWall iframe { display: block; width: 300px; height: 352px; border: 0; }
 body.aer #musWall { opacity: 0 !important; }   /* the aerial camera has no flat wall to hang it on */
+body.look2 #musWall { top: 37%; }
+body.retro #musWall { top: 41%; }
+body.sixties #musWall { top: 41%; }
 body.retro #musWall, body.sixties #musWall { border-radius: 0; box-shadow: 0 0 0 2px rgba(255,255,255,.75); }
 #musicBox .mus-top button#musPlay { flex: none; width: 24px; height: 24px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #1db954; color: #04130a; border: 0; border-radius: 999px; padding: 0 0 0 1px; font: 700 11px/1 system-ui, sans-serif; cursor: pointer; }
 #musicBox .mus-top button#musPlay:hover { background: #17a74a; }
