@@ -2930,13 +2930,20 @@ if (typeof module !== 'undefined') module.exports = Core;
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   }
   /* type centred on the ink it actually puts down, not on the space the glyphs reserve */
-  function title(txt, cx, y, px, weight, track, color, alpha) {
+  function title(txt, cx, y, px, weight, track, color, alpha, maxW) {
     if (alpha <= 0) return;
     ctx.save(); ctx.globalAlpha = Math.min(1, alpha); ctx.fillStyle = color;
     ctx.font = weight + ' ' + px + 'px ' + DISPLAY; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
     var sp = px * track, adv = [], total = 0, i, m;
     for (i = 0; i < txt.length; i++) { m = ctx.measureText(txt[i]); adv.push(m.width); total += m.width + sp; }
     total -= sp;
+    var lim = maxW || W * 0.92;
+    if (total > lim) {                                              // set it as large as the screen allows, never wider
+      px = Math.max(8, px * lim / total); sp = px * track; total = 0; adv.length = 0;
+      ctx.font = weight + ' ' + px + 'px ' + DISPLAY;
+      for (i = 0; i < txt.length; i++) { m = ctx.measureText(txt[i]); adv.push(m.width); total += m.width + sp; }
+      total -= sp;
+    }
     var m0 = ctx.measureText(txt[0]), mN = ctx.measureText(txt[txt.length - 1]);
     var inkL = -(m0.actualBoundingBoxLeft || 0), inkR = total - adv[adv.length - 1] + (mN.actualBoundingBoxRight || adv[adv.length - 1]);
     var x = cx - (inkL + inkR) / 2;
@@ -2958,8 +2965,8 @@ if (typeof module !== 'undefined') module.exports = Core;
     vignette();
     shade(1 - ease(span(0.1, 1.5, t)));
     var a = Math.min(fadeIn(t, 1.7, 0.7), 1 - fadeIn(t, 3.0, 0.4));
-    title('SILVER PALM CAPITAL', W / 2, H / 2 - u() * 1.2, u() * 3.4, '700', 0.26, CHALK, a * 0.92);
-    title('PRESENTS', W / 2, H / 2 + u() * 4.2, u() * 2.4, '600', 0.4, GOLD, a * 0.8);
+    title('SILVER PALM CAPITAL', W / 2, H / 2 - u() * 1.6, u() * 5.8, '700', 0.2, CHALK, a * 0.92);
+    title('PRESENTS', W / 2, H / 2 + u() * 7, u() * 4, '600', 0.38, GOLD, a * 0.8);
   }
   function scene2(t) {                                              // 3.4-7.8  the throw, on nothing but light
     var s = t - 3.4;
@@ -2974,7 +2981,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     sprite(cut ? 'windup' : 'release', W / 2 + (cut ? -u() * 3 : u() * 2), H * 0.45, hgt, false, 1);
     if (!cut && s < 2.6) { ctx.fillStyle = 'rgba(255,255,255,' + ((2.6 - s) / 0.4 * 0.45).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
     vignette();
-    title('FASTEST SPORT IN THE WORLD', W / 2, H - u() * 9, u() * 3.3, '700', 0.2, CHALK,
+    title('FASTEST SPORT IN THE WORLD', W / 2, H - u() * 7, u() * 6.2, '800', 0.14, CHALK,
       Math.min(fadeIn(s, 0.6, 0.6), 1 - fadeIn(s, 3.8, 0.5)));
     shade(1 - ease(span(0, 0.3, s)));
   }
@@ -2986,9 +2993,9 @@ if (typeof module !== 'undefined') module.exports = Core;
     var wide = W > H * 1.1, cols = wide ? 3 : 2, rows = Math.ceil(list.length / cols);
     var topY = H * (wide ? 0.3 : 0.26), botY = H * 0.9;
     var cw = (W * (wide ? 0.78 : 0.86)) / cols, ch = (botY - topY) / rows;
-    var box = Math.min(cw * 0.56, ch * 0.52), x0 = W / 2 - (cols - 1) * cw / 2;
-    title(head, W / 2, H * (wide ? 0.17 : 0.15), u() * (wide ? 4.4 : 3.8), '800', 0.22, GOLD,
-      Math.min(fadeIn(s, 0.1, 0.5), 1 - fadeIn(s, len - 0.45, 0.4)));
+    var box = Math.min(cw * 0.7, ch * 0.54), x0 = W / 2 - (cols - 1) * cw / 2;
+    title(head, W / 2, H * (wide ? 0.18 : 0.15), u() * (wide ? 8 : 6.6), '800', 0.16, GOLD,
+      Math.min(fadeIn(s, 0.1, 0.5), 1 - fadeIn(s, len - 0.45, 0.4)), W * 0.9);
     for (var i = 0; i < list.length; i++) {
       var im = art['r' + (off + i)], a = Math.min(fadeIn(s, 0.45 + i * 0.12, 0.45), 1 - fadeIn(s, len - 0.45, 0.4));
       if (a <= 0) continue;
@@ -3000,7 +3007,7 @@ if (typeof module !== 'undefined') module.exports = Core;
         ctx.drawImage(im, cx - im.naturalWidth * sc / 2, cy - im.naturalHeight * sc / 2, im.naturalWidth * sc, im.naturalHeight * sc);
         ctx.restore();
       }
-      title(list[i].name.toUpperCase(), cx, cy + box * 0.62, Math.min(u() * 2.3, cw * 0.1), '700', 0.1, CHALK, a * 0.95);
+      title(list[i].name.toUpperCase(), cx, cy + box * 0.82, Math.min(u() * 4, cw * 0.17), '800', 0.08, CHALK, a * 0.95, cw * 0.96);
     }
   }
   function scene3(t) { lineup(CLUBS, 0, 'OUR LEAGUE TEAMS', t - 7.8, 4.2); }
@@ -3010,23 +3017,23 @@ if (typeof module !== 'undefined') module.exports = Core;
     ctx.fillStyle = '#05060a'; ctx.fillRect(0, 0, W, H);
     ctx.save(); ctx.globalAlpha = 0.3; cover(art.court, 620, 300, 860, 385); ctx.restore();
     vignette();
-    var pop = lerp(1.5, 1, land);
-    ctx.save(); ctx.translate(W / 2, H * 0.46); ctx.scale(pop, pop); ctx.translate(-W / 2, -H * 0.46);
+    var pop = lerp(1.5, 1, land), ax = H * 0.42;
+    ctx.save(); ctx.translate(W / 2, ax); ctx.scale(pop, pop); ctx.translate(-W / 2, -ax);
     if (ok(art.mark)) {
-      var mh = Math.min(H * 0.3, u() * 26), mw = mh * art.mark.naturalWidth / art.mark.naturalHeight;
-      ctx.globalAlpha = land; ctx.drawImage(art.mark, W / 2 - mw / 2, H * 0.46 - mh * 1.28, mw, mh);
+      var mh = Math.min(H * 0.34, u() * 32), mw = mh * art.mark.naturalWidth / art.mark.naturalHeight;
+      ctx.globalAlpha = land; ctx.drawImage(art.mark, W / 2 - mw / 2, ax - mh * 1.16, mw, mh);
     }
-    title('FANTASY LEAGUE', W / 2, H * 0.46 + u() * 3.6, u() * 4.2, '800', 0.3, GOLD, land);
-    title('JAI ALAI', W / 2, H * 0.46 + u() * 14, u() * 13, '900', 0.06, CHALK, land);
+    title('FANTASY LEAGUE', W / 2, ax + u() * 5.4, u() * 6.6, '800', 0.24, GOLD, land, W * 0.86);
+    title('JAI ALAI', W / 2, ax + u() * 22, u() * 19, '900', 0.05, CHALK, land, W * 0.9);
     ctx.globalAlpha = land; ctx.fillStyle = GOLD;
-    ctx.fillRect(W / 2 - u() * 15, H * 0.46 + u() * 17.2, u() * 30, Math.max(2, u() * 0.4));
+    ctx.fillRect(W / 2 - u() * 21, ax + u() * 26, u() * 42, Math.max(3, u() * 0.55));
     ctx.restore();
     if (s < 0.5) { ctx.fillStyle = 'rgba(255,255,255,' + ((0.5 - s) * 0.7).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
   }
   function scene6(t) {                                              // 19.1-20.0  hand over to the court
     scene5(t);
     var s = t - 19.1;
-    title('PLAY FREE', W / 2, H * 0.46 + u() * 23, u() * 3.2, '700', 0.34, CHALK, fadeIn(s, 0, 0.3) * (1 - fadeIn(s, 0.6, 0.25)));
+    title('PLAY FREE', W / 2, H * 0.42 + u() * 33, u() * 5, '700', 0.3, CHALK, fadeIn(s, 0, 0.3) * (1 - fadeIn(s, 0.6, 0.25)), W * 0.8);
     shade(ease(span(0.5, 0.9, s)));
   }
 
