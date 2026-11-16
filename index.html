@@ -470,7 +470,7 @@ var Core = (function () {
     LINES: [0, 1776, 1652, 1534, 1424, 1298, 1185, 1055, 936, 811, 679, 541, 434, 311, 189],
     SPEED: 320, AMIN: -6, AMAX: 38, SMIN: 16, SMAX: 34,
     PMIN: 172, PMAX: 1812, REACH_H: 90, REACH_C: 64,
-    PASS_W: 86, PASS_H: 400,
+    PASS_W: 86, PASS_H: 190, JUMP_UP: 80, LEAP_UP: 55,
     LAT_V: 0.85, LAT_R: 0.2           // across the court (0 = side wall, 1 = open side): how fast a player shuffles sideways, and how far to either side he can take a ball           // a person's catch zone: this far either side, and this high above the floor
   };
   /* one standard court for every view: evenly spaced lines, the low red line, and the wall good all the way up to its gold line.
@@ -839,15 +839,19 @@ var Core = (function () {
       // a serve must bounce before the other side may take it. A person's player may also take a good serve on the fly as it comes past him off the front wall
       var fly = g.flags.serve && g.flags.bounces < 1, flyOk = fly && g.pred && !g.pred.fault;
       if (g.flags.hitFront && (!fly || flyOk)) {
-        var best = null, bd = 1e9;
+        var best = null, bd = 1e9, bestUp = false;
         for (i = 0; i < 4; i++) {
           p = P[i]; if (p.out || p.team === g.lastTeam || p.cool > 0 || (fly && !p.human)) continue;
           if (g.lat && Math.abs(g.ball.z - p.z) > C.LAT_R) continue;   // seen from above, he has to be across to it as well
-          var dx = g.ball.x - p.x, dy = g.ball.y - (C.FEET - 95), d = Math.sqrt(dx * dx + dy * dy);
-          // a person's players take any ball that passes them, from the floor up to a full stretch overhead; nobody has to be standing on the exact spot
-          var passing = p.human && Math.abs(dx) < C.PASS_W && g.ball.y > C.FEET - C.PASS_H && g.ball.y < C.FEET + 14;
-          if (passing && d >= reachOf(p)) d = reachOf(p) - 1 + Math.abs(dx) * 0.001;
-          if (d < reachOf(p) && d < bd) { bd = d; best = p; }
+          var hy = C.FEET - 95, rr = reachOf(p), top = hy - rr;      // the highest his cesta goes standing
+          var dx = g.ball.x - p.x, dy = g.ball.y - hy, d = Math.sqrt(dx * dx + dy * dy);
+          // above a standing stretch he can still go up for it, but only as far as a leap honestly reaches;
+          // anything higher passes over his head and belongs to whoever is behind him
+          var jmp = Math.abs(dx) < C.PASS_W * 0.8 && g.ball.y < top && g.ball.y >= top - C.JUMP_UP;
+          // at body height or lower it never slips through a person's player, wherever he stands in its path
+          var passing = p.human && Math.abs(dx) < C.PASS_W && g.ball.y >= top && g.ball.y < C.FEET + 14;
+          if ((jmp || passing) && d >= rr) d = rr - 1 + Math.abs(dx) * 0.001;
+          if (d < rr && d < bd) { bd = d; best = p; bestUp = jmp && g.ball.y < top - C.LEAP_UP; }   // only the highest of them is worth leaving the floor for
         }
         if (best) {
           g.holder = best.i; best.holdT = 0; best.aim = 18; g.flags.serve = false; g.flags.shot = 0;
@@ -855,10 +859,9 @@ var Core = (function () {
           g.events.push('catch');
           g.reb = !!g.flags.back;                                  // off the back wall: it must go back in one motion
           if (g.flags.back) g.events.push(g.flags.bounces === 0 ? 'rabo' : 'rebote');   // taken off the back wall: on the fly it is a rabo
-          // only a ball taken high is worth leaving the floor for, and only up the side wall between lines 10 and 6
-          // from line 10 up the court he goes off the side wall for it; deeper than that, or right under the front wall, it is a straight leap
-          var high = g.ball.y < C.FEET - 215, wallZone = high && best.x >= C.LINES[10] && best.x <= C.LINES[2];
-          if (high && !(best.jump > 0)) { best.jump = 0.8; best.wall = wallZone; g.events.push(wallZone ? 'wallJump' : 'jump'); }
+          // he leaves the floor only for a ball he had to go up for; from line 10 up the court that is a push off the side wall
+          var wallZone = bestUp && best.x >= C.LINES[10] && best.x <= C.LINES[2];
+          if (bestUp && !(best.jump > 0)) { best.jump = 0.8; best.wall = wallZone; g.events.push(wallZone ? 'wallJump' : 'jump'); }
           plan(g, best, false); return;
         }
       }
@@ -1758,7 +1761,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     // leap off the wall: up and back down over 0.8 s, knees tucked, body tilted back
     var ju = p.jump > 0 ? 1 - p.jump / 0.8 : -1, arc = ju >= 0 ? Math.sin(Math.PI * ju) : 0;
     var wallUp = arc > 0 && p.wall ? 1 : 0;                           // off the side wall: higher, and tilted further back
-    if (arc > 0) { hop = arc * (wallUp ? 152 : 105); crouch = 14 * arc; lean -= (wallUp ? 0.46 : 0.28) * arc; stance = 6; }
+    if (arc > 0) { hop = arc * (wallUp ? 128 : 88); crouch = 14 * arc; lean -= (wallUp ? 0.46 : 0.28) * arc; stance = 6; }
     var r = p._r || (p._r = { hx: hx, hy: hy, ox: ox, oy: oy, lean: lean, cr: crouch, st: stance });
     var kk = refl ? 0 : Math.min(1, fdt * (throwing ? 45 : 13));
     r.hx += (hx - r.hx) * kk; r.hy += (hy - r.hy) * kk; r.ox += (ox - r.ox) * kk; r.oy += (oy - r.oy) * kk;
@@ -1768,9 +1771,9 @@ if (typeof module !== 'undefined') module.exports = Core;
       if (wallUp && !p._wj) { p._wj = 1; wallMark(p); }
       else if (!wallUp && p._wj) p._wj = 0;
     }
-    if (VIEW3) { drawBack(p, { arc: arc, hop: arc > 0 ? arc * (wallUp ? 152 : 105) : 0, wall: !!wallUp, throwing: throwing, u: u, holding: holding, mv: mv, ph: ph, receiving: receiving, won: won,
+    if (VIEW3) { drawBack(p, { arc: arc, hop: arc > 0 ? arc * (wallUp ? 128 : 88) : 0, wall: !!wallUp, throwing: throwing, u: u, holding: holding, mv: mv, ph: ph, receiving: receiving, won: won,
       mine: mode === 'match' && Core.ctl(game, p) && (!net.role || p.team === solo), tag: solo >= 0 ? 'YOU' : 'P' + humanNo[p.i] }); return; }
-    if (LOOK2 && drawSprite(p, refl, { arc: arc, hop: arc > 0 ? arc * (wallUp ? 152 : 105) : 0, wall: !!wallUp, throwing: throwing, u: u, holding: holding, mv: mv, ph: ph, receiving: receiving, won: won,
+    if (LOOK2 && drawSprite(p, refl, { arc: arc, hop: arc > 0 ? arc * (wallUp ? 128 : 88) : 0, wall: !!wallUp, throwing: throwing, u: u, holding: holding, mv: mv, ph: ph, receiving: receiving, won: won,
       mine: mode === 'match' && Core.ctl(game, p) && (!net.role || p.team === solo), tag: solo >= 0 ? 'YOU' : 'P' + humanNo[p.i] })) return;
     // skeleton
     var bob = mv < 0.1 ? Math.sin(t * 2.4 + p.i * 1.7) * 1.2 : 0, bounce = Math.abs(Math.sin(ph)) * 4 * mv;
