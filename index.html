@@ -260,6 +260,35 @@ body.look2:not(.view3) #spot4 { left: 78.00% !important; top: 14.53% !important;
 .pad { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .boxes { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
 .runs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+/* one thumb control instead of arrows: a track where the court runs one way, a full stick in the aerial view */
+.stick { position: relative; touch-action: none; -webkit-user-select: none; user-select: none; overflow: hidden;
+  background: #15171d; border: 1px solid #2a2e38; border-radius: 999px; min-height: 86px; cursor: grab; }
+.stick.two { border-radius: 14px; min-height: 132px; }
+.stick .stick-base { position: absolute; inset: 0; color: #5a6070; pointer-events: none; }
+.stick .stick-base .arw { position: absolute; width: 20px; height: 20px; opacity: .45; }
+.stick .stick-base .arw:nth-child(1) { left: 9px; top: 50%; margin-top: -10px; }                       /* back down the court */
+.stick:not(.two) .stick-base .arw:nth-child(2) { right: 9px; top: 50%; margin-top: -10px; }            /* up toward the front wall */
+.stick.two .stick-base .arw:nth-child(2) { left: 50%; top: 7px; margin-left: -10px; }                  /* toward the front wall */
+.stick.two .stick-base .arw:nth-child(3) { right: 9px; top: 50%; margin-top: -10px; }                  /* across, to the open side */
+.stick.two .stick-base .arw:nth-child(4) { left: 50%; bottom: 7px; margin-left: -10px; }               /* back toward the rebote */
+.stick .stick-knob { position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #6d7483, #343a46 70%); border: 1px solid #7d8496;
+  box-shadow: 0 3px 10px rgba(0,0,0,.5); transition: transform .14s ease; pointer-events: none; }
+.stick.live .stick-knob { transition: none; border-color: var(--gold, #c9a55c); background: radial-gradient(circle at 38% 32%, #d9c391, #9c7f44 70%); }
+.stick.live { cursor: grabbing; border-color: var(--gold, #c9a55c); }
+.pad.land .stick { flex: 0 0 24%; min-height: 0; }
+.pad.land .stick.two { flex: 0 0 26%; }
+.pad.land .stick .stick-knob { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
+/* sideways the row is short, so the two-way stick keeps its knob clear of its own arrows */
+.pad.land .stick.two .stick-knob { width: 32px; height: 32px; margin: -16px 0 0 -16px; }
+.pad.land .stick.two .stick-base .arw { width: 13px; height: 13px; }
+.pad.land .stick.two .stick-base .arw:nth-child(2) { top: 3px; margin-left: -6px; }
+.pad.land .stick.two .stick-base .arw:nth-child(4) { bottom: 3px; margin-left: -6px; }
+.pad.land .stick.two .stick-base .arw:nth-child(1) { left: 6px; margin-top: -6px; }
+.pad.land .stick.two .stick-base .arw:nth-child(3) { right: 6px; margin-top: -6px; }
+body.sixties .stick, body.retro .stick { border-radius: 4px; }
+body.sixties .stick .stick-knob { background: #fff; border-color: #fff; border-radius: 4px; }
+body.retro .stick .stick-knob { background: #1fd5d9; border-color: #1fd5d9; }
 /* sponsor pop-out card */
 #adCard { position: absolute; z-index: 6; left: 50%; top: 50%; width: min(72%, 540px); transform: translate(-50%, -50%); transform-origin: 50% 50%; display: flex; flex-wrap: wrap; align-items: stretch; background: #0b0c0f; border: 2px solid var(--gold, #c9a55c); border-radius: 8px; box-shadow: 0 14px 40px rgba(0,0,0,.7); overflow: hidden; line-height: 1.25; color: #f1efe8; }
 #adCard canvas { flex: 0 0 44%; width: 44%; height: auto; display: block; background: #000; object-fit: contain; align-self: center; }
@@ -1341,9 +1370,11 @@ if (typeof module !== 'undefined') module.exports = Core;
     hs.forEach(function (s) {
       humanNo[s] = ++n;
       var ARW = function (deg) { return '<svg class="arw" viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(' + deg + 'deg)"><path d="M12 4 21 20H3z" fill="currentColor"/></svg>'; };   // one triangle, turned four ways, so every arrow matches
-      var L = '<button type="button" id="pad' + s + 'L" data-seat="' + s + '" data-act="L" aria-label="Run toward the back wall">' + ARW(VIEW3 ? 180 : 270) + '</button>';
-      var R = '<button type="button" id="pad' + s + 'R" data-seat="' + s + '" data-act="R" aria-label="Run toward the front wall">' + ARW(VIEW3 ? 0 : 90) + '</button>';
-      if (AER) { L = '<button type="button" id="pad' + s + 'A" data-seat="' + s + '" data-act="A" aria-label="Step toward the side wall">' + ARW(270) + '</button>' + L; R += '<button type="button" id="pad' + s + 'D" data-seat="' + s + '" data-act="D" aria-label="Step toward the open side">' + ARW(90) + '</button>'; }
+      // one thumb control: a track along the court, and in the aerial view a stick that also goes across it
+      var hint = AER ? ARW(270) + ARW(0) + ARW(90) + ARW(180) : ARW(270) + ARW(90);
+      var stick = '<div class="stick' + (AER ? ' two' : '') + '" data-seat="' + s + '" data-stick="1" role="group" aria-label="' +
+        (AER ? 'Move the player up, down and across the court' : 'Move the player up and down the court') + '">' +
+        '<div class="stick-base">' + hint + '</div><div class="stick-knob"></div></div>';
       var NAMES = ['Saque', 'Pelotazo', 'Rebota', 'Cortada', 'Costado'], CLS = ['sv', 'sn', 's1', 's2', 's3'];   // the serve, a normal throw, then the three power moves
       var sb = function (only, k) { return '<button type="button" class="throw idle ' + CLS[k] + '" data-seat="' + s + '" data-only="' + only + '" data-sv="' + (k ? 0 : 1) + '" data-shot="' + Math.max(0, k - 1) + '" data-act="T">' + NAMES[k] + '</button>'; };
       var four = function (only) { return sb(only, 0) + sb(only, 1) + sb(only, 2) + sb(only, 3) + sb(only, 4); };
@@ -1352,12 +1383,12 @@ if (typeof module !== 'undefined') module.exports = Core;
       if (sidesOn) {                                               // sideways: one slim row under the court, so both walls stay in view
         html += '<div class="pad land t' + (s >> 1) + '">' +
           '<div class="minis"><button type="button" class="mini" id="miniPause" data-mini="pause"' + (net.role === 'guest' ? ' hidden' : '') + '>Pause</button><button type="button" class="mini" data-mini="menu" aria-label="New match">Menu</button>' + (MULTI && !window.FL_VIEW3 ? '<button type="button" class="mini" data-mini="view" aria-label="Change camera view">View</button>' : '') + (window.FL_MUSIC && MUSIC[view] ? '<button type="button" class="mini" data-mini="music" aria-label="Era music">\u266a</button>' : '') + '</div>' +
-          '<div class="runs' + (AER ? ' four' : '') + '">' + L + R + '</div>' +
+          stick +
           '<div class="shotbox"><div class="shots">' + four(-1) + '</div><div class="shot-label" id="sideLab">Front Court</div></div></div>';
         return;
       }
       html += '<div class="pad t' + (s >> 1) + '"><div class="pad-label"><i>' + (hs.length === 1 ? 'You · ' + esc(cfg.names[s >> 1]) : 'P' + n + ' · ' + esc(cfg.names[s >> 1])) + '</i></div>' +
-        '<div class="boxes">' + (hs.length === 1 && !cfg.singles ? box((s >> 1) * 2) + box((s >> 1) * 2 + 1) : box(s)) + '</div><div class="runs' + (AER ? ' four' : '') + '">' + L + R + '</div></div>';
+        '<div class="boxes">' + (hs.length === 1 && !cfg.singles ? box((s >> 1) * 2) + box((s >> 1) * 2 + 1) : box(s)) + '</div>' + stick + '</div>';
     });
     elPads.innerHTML = html;
     elPads.className = 'pads' + (hs.length === 1 ? ' one' : '');
@@ -1373,9 +1404,45 @@ if (typeof module !== 'undefined') module.exports = Core;
       if (down && !b.classList.contains('idle')) { var only = +b.dataset.only, shot = +b.dataset.shot || 0; (only < 0 ? seatsOf(s) : [only]).forEach(function (k) { throwQ[k] = 1; hardQ[k] = shot; chg[k] = 0; }); }
     } else held[s][a] = down;
   }
-  elApp.addEventListener('pointerdown', function (e) { padEvent(e, true); });
-  elApp.addEventListener('pointerup', function (e) { padEvent(e, false); });
-  elApp.addEventListener('pointercancel', function (e) { padEvent(e, false); });
+  /* the thumb control: which way it is pushed, and how far, is how fast the player runs */
+  var DEAD = 0.15, sticks = {};
+  function stickAt(el, e) {
+    var r = el.getBoundingClientRect(), two = el.classList.contains('two');
+    var halfX = (two ? r.width / 2 : r.width / 2 - 24) - 8, halfY = r.height / 2 - 8;   // the whole control is usable, however wide the row makes it
+    var ax = (e.clientX - (r.left + r.width / 2)) / Math.max(18, halfX);
+    var az = two ? (e.clientY - (r.top + r.height / 2)) / Math.max(18, halfY) : 0;
+    var m = Math.sqrt(ax * ax + az * az);
+    if (m > 1) { ax /= m; az /= m; m = 1; }
+    var k = m < DEAD ? 0 : (m - DEAD) / (1 - DEAD);                // a dead zone, so a resting thumb stands still
+    el.querySelector('.stick-knob').style.transform =             // the knob follows the thumb, inside its track
+      'translate(' + (halfX * ax).toFixed(1) + 'px,' + (halfY * az).toFixed(1) + 'px)';
+    return m ? { x: ax / m * k, z: az / m * k } : { x: 0, z: 0 };
+  }
+  function stickSet(el, v) { var s = +el.dataset.seat; held[s].ax = v.x; held[s].az = v.z; }
+  function stickEnd(el) {
+    el.classList.remove('live');
+    el.querySelector('.stick-knob').style.transform = '';
+    stickSet(el, { x: 0, z: 0 });                                  // let go and he stops where he stands
+    delete sticks[el.dataset.pid];
+  }
+  elApp.addEventListener('pointerdown', function (e) {
+    var st = e.target.closest('.stick');
+    if (st) {
+      e.preventDefault(); unlock();
+      try { st.setPointerCapture(e.pointerId); } catch (x) { /* ignore */ }
+      st.dataset.pid = e.pointerId; sticks[e.pointerId] = st;      // one thumb per stick, so two people never cross
+      st.classList.add('live'); stickSet(st, stickAt(st, e));
+      return;
+    }
+    padEvent(e, true);
+  });
+  elApp.addEventListener('pointermove', function (e) {
+    var st = sticks[e.pointerId]; if (!st) return;
+    e.preventDefault(); stickSet(st, stickAt(st, e));
+  });
+  elApp.addEventListener('lostpointercapture', function (e) { var st = sticks[e.pointerId]; if (st) stickEnd(st); });
+  elApp.addEventListener('pointerup', function (e) { var st = sticks[e.pointerId]; if (st) { stickEnd(st); return; } padEvent(e, false); });
+  elApp.addEventListener('pointercancel', function (e) { var st = sticks[e.pointerId]; if (st) { stickEnd(st); return; } padEvent(e, false); });
   elApp.addEventListener('contextmenu', function (e) { if (e.target.closest('button[data-act]')) e.preventDefault(); });
 
   /* ---------- touch the court: hold to run there, tap to throw when holding the ball ---------- */
@@ -2840,10 +2907,12 @@ if (typeof module !== 'undefined') module.exports = Core;
       for (var i = 0; i < 4; i++) {
         var src = soloBoth[i >> 1] ? (i >> 1) * 2 : i, h = held[src];
         var dir = ((h.R || h.kR) ? 1 : 0) - ((h.L || h.kL) ? 1 : 0);
+        if (!dir && h.ax) dir = h.ax;                              // a nudge of the thumb walks, a full push runs
         if (!dir && drag && mode === 'match' && (soloBoth[i >> 1] ? game.act[i >> 1] === i : humans()[0] === i)) {
           var dd = drag.x - game.players[i].x; dir = Math.abs(dd) > 16 ? (dd > 0 ? 1 : -1) : 0;
         }
-        var latIn = ((h.D || h.kD) ? 1 : 0) - ((h.A || h.kA) ? 1 : 0); if (solo >= 0 && (i >> 1) === solo) curLat = latIn;
+        var latIn = ((h.D || h.kD) ? 1 : 0) - ((h.A || h.kA) ? 1 : 0);
+        if (!latIn && h.az) latIn = h.az; if (solo >= 0 && (i >> 1) === solo) curLat = latIn;
         inputs.push({ dir: dir, lat: latIn, throw: !!throwQ[i], hard: hardQ[i] | 0 });   // in play a plain throw (key or court tap) is a rebota; a serve ignores the shot
         game.players[i].pw = 0;
       }
