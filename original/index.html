@@ -260,32 +260,21 @@ body.look2:not(.view3) #spot4 { left: 78.00% !important; top: 14.53% !important;
 .pad { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .boxes { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
 .runs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-/* one thumb control instead of arrows: a track where the court runs one way, a full stick in the aerial view */
-.stick { position: relative; touch-action: none; -webkit-user-select: none; user-select: none; overflow: hidden;
-  background: #15171d; border: 1px solid #2a2e38; border-radius: 999px; min-height: 86px; cursor: grab; }
-.stick.two { border-radius: 14px; min-height: 132px; }
-.stick .stick-base { position: absolute; inset: 0; color: #5a6070; pointer-events: none; }
-.stick .stick-base .arw { position: absolute; width: 20px; height: 20px; opacity: .45; }
-.stick .stick-base .arw:nth-child(1) { left: 9px; top: 50%; margin-top: -10px; }                       /* back down the court */
-.stick:not(.two) .stick-base .arw:nth-child(2) { right: 9px; top: 50%; margin-top: -10px; }            /* up toward the front wall */
-.stick.two .stick-base .arw:nth-child(2) { left: 50%; top: 7px; margin-left: -10px; }                  /* toward the front wall */
-.stick.two .stick-base .arw:nth-child(3) { right: 9px; top: 50%; margin-top: -10px; }                  /* across, to the open side */
-.stick.two .stick-base .arw:nth-child(4) { left: 50%; bottom: 7px; margin-left: -10px; }               /* back toward the rebote */
-.stick .stick-knob { position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%;
-  background: radial-gradient(circle at 38% 32%, #6d7483, #343a46 70%); border: 1px solid #7d8496;
-  box-shadow: 0 3px 10px rgba(0,0,0,.5); transition: transform .14s ease; pointer-events: none; }
-.stick.live .stick-knob { transition: none; border-color: var(--gold, #c9a55c); background: radial-gradient(circle at 38% 32%, #d9c391, #9c7f44 70%); }
+/* a joystick: a round base, a ball you push out from the middle, and it springs back when you let go */
+.stick { position: relative; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+  width: 138px; height: 138px; margin: 2px auto; border-radius: 50%; cursor: grab;
+  background: radial-gradient(circle at 50% 40%, #1c2027 0%, #0e1016 72%);
+  border: 1px solid #2b303a; box-shadow: inset 0 3px 14px rgba(0,0,0,.65), 0 1px 0 rgba(255,255,255,.04); }
+.stick::after { content: ''; position: absolute; inset: 14px; border-radius: 50%; border: 1px dashed #262b34; pointer-events: none; }
+.stick .stick-knob { position: absolute; left: 50%; top: 50%; width: 66px; height: 66px; margin: -33px 0 0 -33px; border-radius: 50%;
+  background: radial-gradient(circle at 38% 30%, #7b8294, #30353f 72%); border: 1px solid #868da0;
+  box-shadow: 0 4px 12px rgba(0,0,0,.55); transition: transform .13s ease; pointer-events: none; }
 .stick.live { cursor: grabbing; border-color: var(--gold, #c9a55c); }
-.pad.land .stick { flex: 0 0 24%; min-height: 0; }
-.pad.land .stick.two { flex: 0 0 26%; }
-.pad.land .stick .stick-knob { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
-/* sideways the row is short, so the two-way stick keeps its knob clear of its own arrows */
-.pad.land .stick.two .stick-knob { width: 32px; height: 32px; margin: -16px 0 0 -16px; }
-.pad.land .stick.two .stick-base .arw { width: 13px; height: 13px; }
-.pad.land .stick.two .stick-base .arw:nth-child(2) { top: 3px; margin-left: -6px; }
-.pad.land .stick.two .stick-base .arw:nth-child(4) { bottom: 3px; margin-left: -6px; }
-.pad.land .stick.two .stick-base .arw:nth-child(1) { left: 6px; margin-top: -6px; }
-.pad.land .stick.two .stick-base .arw:nth-child(3) { right: 6px; margin-top: -6px; }
+.stick.live .stick-knob { transition: none; border-color: var(--gold, #c9a55c);
+  background: radial-gradient(circle at 38% 30%, #e3cfa0, #a0823f 72%); }
+.pad.land .stick { flex: 0 0 auto; width: 104px; height: 104px; margin: 0 8px 0 2px; align-self: center; }
+.pad.land .stick .stick-knob { width: 52px; height: 52px; margin: -26px 0 0 -26px; }
+.pad.land .stick::after { inset: 10px; }
 body.sixties .stick, body.retro .stick { border-radius: 4px; }
 body.sixties .stick .stick-knob { background: #fff; border-color: #fff; border-radius: 4px; }
 body.retro .stick .stick-knob { background: #1fd5d9; border-color: #1fd5d9; }
@@ -968,6 +957,7 @@ if (typeof module !== 'undefined') module.exports = Core;
 
   var seatsNow = null, solo = -1, soloBoth = [false, false], mode = 'demo', game = null, paused = false, cssScale = 0.5, trail = [];
   var held = [{}, {}, {}, {}], throwQ = [0, 0, 0, 0], humanNo = [0, 0, 0, 0];
+  var JOYSTICK = false;   // the thumb stick, on hiatus: arrow buttons for now. Its code all still stands — set this true to bring it back.
   var img = { bg: new Image(), 0: new Image(), 1: new Image() };
   var MULTI = !!window.FL_LOOK2, LOOK2 = MULTI;                                   // new-look preview: painted fronton and character sprites
   /* three cameras on the same match: 'side' (classic), 'court' (behind the players), 'aerial' (raised and angled) */
@@ -1369,11 +1359,19 @@ if (typeof module !== 'undefined') module.exports = Core;
     hs.forEach(function (s) {
       humanNo[s] = ++n;
       var ARW = function (deg) { return '<svg class="arw" viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(' + deg + 'deg)"><path d="M12 4 21 20H3z" fill="currentColor"/></svg>'; };   // one triangle, turned four ways, so every arrow matches
-      // one thumb control: a track along the court, and in the aerial view a stick that also goes across it
-      var hint = AER ? ARW(270) + ARW(0) + ARW(90) + ARW(180) : ARW(270) + ARW(90);
-      var stick = '<div class="stick' + (AER ? ' two' : '') + '" data-seat="' + s + '" data-stick="1" role="group" aria-label="' +
-        (AER ? 'Move the player up, down and across the court' : 'Move the player up and down the court') + '">' +
-        '<div class="stick-base">' + hint + '</div><div class="stick-knob"></div></div>';
+      // the movement control. JOYSTICK is off while the thumb stick is sorted out: set it true to bring the stick back.
+      var move;
+      if (JOYSTICK) {
+        var hint = AER ? ARW(270) + ARW(0) + ARW(90) + ARW(180) : ARW(270) + ARW(90);
+        move = '<div class="stick' + (AER ? ' two' : '') + '" data-seat="' + s + '" data-stick="1" role="group" aria-label="' +
+          (AER ? 'Move the player up, down and across the court' : 'Move the player up and down the court') + '">' +
+          '<div class="stick-base">' + hint + '</div><div class="stick-knob"></div></div>';
+      } else {
+        var L = '<button type="button" id="pad' + s + 'L" data-seat="' + s + '" data-act="L" aria-label="Run toward the back wall">' + ARW(VIEW3 ? 180 : 270) + '</button>';
+        var R = '<button type="button" id="pad' + s + 'R" data-seat="' + s + '" data-act="R" aria-label="Run toward the front wall">' + ARW(VIEW3 ? 0 : 90) + '</button>';
+        if (AER) { L = '<button type="button" id="pad' + s + 'A" data-seat="' + s + '" data-act="A" aria-label="Step toward the side wall">' + ARW(270) + '</button>' + L; R += '<button type="button" id="pad' + s + 'D" data-seat="' + s + '" data-act="D" aria-label="Step toward the open side">' + ARW(90) + '</button>'; }
+        move = '<div class="runs' + (AER ? ' four' : '') + '">' + L + R + '</div>';
+      }
       var NAMES = ['Saque', 'Pelotazo', 'Rebota', 'Cortada', 'Costado'], CLS = ['sv', 'sn', 's1', 's2', 's3'];   // the serve, a normal throw, then the three power moves
       var sb = function (only, k) { return '<button type="button" class="throw idle ' + CLS[k] + '" data-seat="' + s + '" data-only="' + only + '" data-sv="' + (k ? 0 : 1) + '" data-shot="' + Math.max(0, k - 1) + '" data-act="T">' + NAMES[k] + '</button>'; };
       var four = function (only) { return sb(only, 0) + sb(only, 1) + sb(only, 2) + sb(only, 3) + sb(only, 4); };
@@ -1382,12 +1380,12 @@ if (typeof module !== 'undefined') module.exports = Core;
       if (sidesOn) {                                               // sideways: one slim row under the court, so both walls stay in view
         html += '<div class="pad land t' + (s >> 1) + '">' +
           '<div class="minis"><button type="button" class="mini" id="miniPause" data-mini="pause"' + (net.role === 'guest' ? ' hidden' : '') + '>Pause</button><button type="button" class="mini" data-mini="menu" aria-label="New match">Menu</button>' + (MULTI && !window.FL_VIEW3 ? '<button type="button" class="mini" data-mini="view" aria-label="Change camera view">View</button>' : '') + (window.FL_MUSIC && MUSIC[view] ? '<button type="button" class="mini" data-mini="music" aria-label="Era music">\u266a</button>' : '') + '</div>' +
-          stick +
+          move +
           '<div class="shotbox"><div class="shots">' + four(-1) + '</div><div class="shot-label" id="sideLab">Front Court</div></div></div>';
         return;
       }
       html += '<div class="pad t' + (s >> 1) + '"><div class="pad-label"><i>' + (hs.length === 1 ? 'You · ' + esc(cfg.names[s >> 1]) : 'P' + n + ' · ' + esc(cfg.names[s >> 1])) + '</i></div>' +
-        '<div class="boxes">' + (hs.length === 1 && !cfg.singles ? box((s >> 1) * 2) + box((s >> 1) * 2 + 1) : box(s)) + '</div>' + stick + '</div>';
+        '<div class="boxes">' + (hs.length === 1 && !cfg.singles ? box((s >> 1) * 2) + box((s >> 1) * 2 + 1) : box(s)) + '</div>' + move + '</div>';
     });
     elPads.innerHTML = html;
     elPads.className = 'pads' + (hs.length === 1 ? ' one' : '');
@@ -1407,9 +1405,10 @@ if (typeof module !== 'undefined') module.exports = Core;
   var DEAD = 0.15, sticks = {};
   function stickAt(el, e) {
     var r = el.getBoundingClientRect(), two = el.classList.contains('two');
-    var halfX = (two ? r.width / 2 : r.width / 2 - 24) - 8, halfY = r.height / 2 - 8;   // the whole control is usable, however wide the row makes it
+    var halfX = r.width / 2 - 10, halfY = two ? r.height / 2 - 10 : 0;   // one way in most views, every way in the aerial one
     var ax = (e.clientX - (r.left + r.width / 2)) / Math.max(18, halfX);
     var az = two ? (e.clientY - (r.top + r.height / 2)) / Math.max(18, halfY) : 0;
+    if (!two) ax = Math.max(-1, Math.min(1, ax));
     var m = Math.sqrt(ax * ax + az * az);
     if (m > 1) { ax /= m; az /= m; m = 1; }
     var k = m < DEAD ? 0 : (m - DEAD) / (1 - DEAD);                // a dead zone, so a resting thumb stands still
