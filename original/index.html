@@ -509,6 +509,12 @@ body.hvp .pick-label, body.hvp .picker { display: none !important; }
 #a2hs .a2-x { flex: none; width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; }
 /* matchup poster (preview): a still court, a Tap to Play button, then the two teams face off while the match loads */
 #tapPlay { display: none; }
+#moveTip { position: fixed; inset: 0; z-index: 9400; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(5,6,10,.55); }
+#moveTip .mt-card { position: relative; width: min(420px, 100%); background: #15171d; border: 1px solid var(--gold); border-radius: 16px; padding: 20px 20px 16px; box-shadow: 0 14px 40px rgba(0,0,0,.6); color: var(--text); font: 500 15px/1.5 var(--body); }
+#moveTip b { display: block; font: 900 20px/1.1 var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+#moveTip ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+#moveTip .mt-x { position: absolute; top: 8px; right: 8px; width: 36px; height: 36px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 24px; line-height: 1; cursor: pointer; }
+#moveTip .mt-go { margin-top: 14px; width: 100%; min-height: 46px; border: 0; border-radius: 999px; background: var(--gold); color: #0b0c0f; font: 800 15px/1 var(--display); letter-spacing: .16em; text-transform: uppercase; cursor: pointer; }
 body.poster-on #tapPlay.wait { background: #2a2d36; color: var(--muted); animation: none; }
 .team.blank .team-name { color: var(--muted); }
 .blank-badge { width: 56px; height: 56px; flex: none; border-radius: 50%; border: 2px dashed var(--line); background: radial-gradient(circle, rgba(255,255,255,.04), transparent 70%); }
@@ -560,6 +566,7 @@ body.poster-on #tapPlay { display: block; position: sticky; bottom: calc(10px + 
 <div class="g-name">Members only</div><div class="g-big"><span class="ho">Hoots</span> vs <span class="pk">Peaks</span></div>
 <input id="hvpPass" type="password" inputmode="text" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Hoots vs Peaks password" placeholder="Password">
 <button type="submit">Enter</button><button type="button" class="g-back" id="hvpBack">Back</button><div class="g-no" id="hvpNo" role="alert"></div></form></div>
+<div id="moveTip" hidden role="dialog" aria-label="How to move"><div class="mt-card"><button type="button" class="mt-x" aria-label="Close">&times;</button><b>How to move</b><div class="mt-body"></div><button type="button" class="mt-go">Got it</button></div></div>
 <div id="poster" hidden><div class="pz"><div class="ph l"></div><div class="ph r"></div><div class="vs">VS</div></div><div class="side-txt"><div class="pn"></div><div class="pload"><span class="spin"></span>Loading match</div></div></div>
 <div id="film"><canvas id="filmCv"></canvas><div class="film-btns"><button id="filmSound" type="button">Sound on</button><button id="filmSkip" type="button">Skip</button></div><div id="filmGo" hidden><button id="goPC" type="button">Play PC</button><button id="goMob" type="button">Play Mobile</button></div></div>
 <div class="app">
@@ -986,7 +993,8 @@ var Core = (function () {
       if (g.holder === i) max *= g.flags.serve ? 0 : 0.35;
       if (p.anim > 0) max = 0;                 // follow-through after a throw
       if (g.phase === 'over') dir = 0;
-      var want = dir * max, acc = 4200 * dt;
+      if (g.lat && p.human) max *= 0.82;                          // seen from above the court is close: a person's player runs a touch slower
+      var want = dir * max, acc = (g.lat && p.human ? 1900 : 4200) * dt;   // and builds up to it, so a nudge is a step, not a dash
       p.vx += Math.max(-acc, Math.min(acc, want - p.vx));
       var x0 = p.x;
       p.x += p.vx * dt;
@@ -1008,7 +1016,7 @@ var Core = (function () {
       }
       if (g.holder === i || p.anim > 0 || g.phase === 'over') lz = 0;
       p.lz = lz;
-      p.z = Math.max(0.08, Math.min(0.92, p.z + lz * (p.human ? C.LAT_V : ({ easy: 0.5, normal: 0.68, hard: 0.9 })[g.cfg.level] || 0.68) * dt));
+      p.z = Math.max(0.08, Math.min(0.92, p.z + lz * (p.human ? C.LAT_V * (g.lat ? 0.75 : 1) : ({ easy: 0.5, normal: 0.68, hard: 0.9 })[g.cfg.level] || 0.68) * dt));
       if (p.jump > 0 && p.wall) {                                  // up the side wall: the foot is on it as he rises, then he swings back off it
         var jw = 1 - p.jump / 0.8;
         p.z = jw < 0.34 ? 0.02 : 0.02 + (p.zh - 0.02) * Math.min(1, (jw - 0.34) / 0.5);
@@ -1779,8 +1787,8 @@ if (typeof module !== 'undefined') module.exports = Core;
     kn.style.transform =                                           // it follows the hand wherever it is pushed
       'translate(' + (half * ax).toFixed(1) + 'px,' + (half * ay).toFixed(1) + 'px)';
     if (m < DEAD) return { x: 0, z: 0 };                           // a hand resting at the centre is a player standing still
-    var k = Math.min(1, (m - DEAD) / (0.76 - DEAD));               // full pace before the ball reaches the rim
-    k = Math.pow(k, 0.8);                                          // quick, but it leans in rather than snapping
+    var k = Math.min(1, (m - DEAD) / ((two ? 0.95 : 0.76) - DEAD));   // full pace at the rim (Pro) or just short of it
+    k = Math.pow(k, two ? 1.6 : 0.8);                              // Pro: a small push is a careful step, only a full push runs
     // the aerial camera turns the court on its side: up the screen is up the court, left and right go across it
     return two ? { x: -ay / m * k, z: ax / m * k } : { x: ax / m * k, z: 0 };
   }
@@ -1942,15 +1950,31 @@ if (typeof module !== 'undefined') module.exports = Core;
   function startDemo(keepNet) {
     if (keepNet !== true) { if (net.role === 'guest') netLeave(); else if (net.role === 'host') net.started = false; }
     seatsNow = null; net.lost = false;
-    mode = 'demo'; paused = false; trail = []; fxReset();
+    mode = 'demo'; paused = false; trail = []; fxReset(); moveTipClose();
     sidesOn = false; document.body.classList.remove('sides'); sideL.innerHTML = ''; sideR.innerHTML = '';
     game = Core.newGame({ seats: [0, 0, 0, 0], level: 'normal', target: 1e9, singles: !!cfg.singles, firstServe: Math.random() < 0.5 ? 0 : 1 });
     drag = null; cv.style.touchAction = ''; cv.style.cursor = 'pointer';
     document.body.classList.toggle('pv-setup', POSTER && !net.role);   // preview: no court on the setup screen (an online wait still shows its message)
     buildSetup(); show();
   }
+  /* a quick reminder from the guide on how to move, every time a match starts; the match waits until it is closed */
+  var tipOpen = false;
+  function moveTip() {
+    var el = $('moveTip'); if (!el || net.role) return;
+    var pro = view === 'aerial', pc = window.FL_PLAY === 'pc' || !('ontouchstart' in window);
+    var stick = pro
+      ? '<li><b style="display:inline;font:inherit;color:var(--gold);letter-spacing:0;text-transform:none">Joystick:</b> up runs toward the front wall, down toward the back wall, left and right step across the court. A small push walks, a full push runs.</li>'
+      : '<li><b style="display:inline;font:inherit;color:var(--gold);letter-spacing:0;text-transform:none">Joystick:</b> push right to run toward the front wall, left toward the back wall. A small push walks, a full push runs.</li>';
+    var html = '<ul>' + stick + '<li>Or hold a finger on the court where you want to go.</li>' +
+      (pc ? '<li>On a keyboard, the arrow keys move you' + (pro ? ' (up and down along the court, left and right across it)' : '') + '.</li>' : '') +
+      '<li>When you catch the pelota (ball), throw it with a shot button.</li></ul>';
+    el.querySelector('.mt-body').innerHTML = html;
+    el.hidden = false; tipOpen = true;
+  }
+  function moveTipClose() { var el = $('moveTip'); if (el) el.hidden = true; tipOpen = false; }
+  if ($('moveTip')) { $('moveTip').addEventListener('click', function (e) { if (e.target.closest('.mt-x, .mt-go') || e.target.id === 'moveTip') moveTipClose(); }); }
   function startMatch(score) {
-    mode = 'match'; paused = false; trail = []; fxReset(); held = [{}, {}, {}, {}]; throwQ = [0, 0, 0, 0]; hardQ = [0, 0, 0, 0]; chg = [0, 0, 0, 0];
+    mode = 'match'; paused = false; trail = []; fxReset(); moveTip(); held = [{}, {}, {}, {}]; throwQ = [0, 0, 0, 0]; hardQ = [0, 0, 0, 0]; chg = [0, 0, 0, 0];
     if (net.role !== 'guest') track('start', (cfg.singles ? 'singles' : 'doubles') + '.' + cfg.comp + '.' + (net.role ? 'online' : cfg.seats[0] && cfg.seats[2] ? 'local' : 'cpu'));
     if (net.role) {                                               // online: each person runs a whole team; the host is team 1
       seatsNow = net.role === 'host' ? [1, 0, 0, 0] : [0, 0, 1, 0]; solo = net.role === 'host' ? 0 : 1; soloBoth = [true, true];
@@ -3343,7 +3367,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (!game) return;
     netTick(dt);
     if (window.FL_ADS) adTick(dt);
-    if (!paused && !ad.on && !document.hidden) {
+    if (!paused && !ad.on && !document.hidden && !(tipOpen && mode === 'match')) {
       var inputs = [];
       game.lat = AER && !net.role && (solo >= 0 || !humans().length);   // Aerial Court: you also have to be across the court to the ball
       for (var i = 0; i < 4; i++) {
