@@ -1237,6 +1237,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var p = cfg.pick;
     if (!p || !ROSTER[p[0]] || !ROSTER[p[1]] || p[0] === p[1]) p = cfg.pick = [0, 1];
     if (cfg.comp !== 'league' && cfg.comp !== 'world') cfg.comp = 'league';
+    if (cfg.singles && cfg.who === 'mixed') cfg.who = 'men';      // nobody to mix with in singles
     if ([9, 15, 21].indexOf(cfg.target) < 0) cfg.target = 9;      // older saved setups used 5, 7 or 10
     for (var t = 0; t < 2; t++) {
       var r = ROSTER[p[t]];
@@ -1478,15 +1479,15 @@ if (typeof module !== 'undefined') module.exports = Core;
       // a switch for each court position: a person plays that one, or the CPU does
       var who = t ? 'Player 2' : 'Player 1', nPos = cfg.singles ? 1 : 2;
       html += '<div class="seat"><span class="seat-name">Played by</span></div>';
-      var WHO = [['men', 'Men'], ['women', 'Women'], ['mixed', 'Mixed']], wh = '';   // who is on court: the same choice on both cards
-      for (var wi = 0; wi < WHO.length; wi++) wh += '<button type="button" id="who' + t + '-' + WHO[wi][0] + '" data-opt="who" data-v="' + WHO[wi][0] + '" aria-pressed="' + (cfg.who === WHO[wi][0]) + '">' + WHO[wi][1] + '</button>';
-      html += '<div class="seat"><span class="seat-pos">Players</span><div class="seg" role="group" aria-label="Men, women or mixed">' + wh + '</div></div>';
       for (var sp = 0; sp < nPos; sp++) {
         var si = t * 2 + sp, onS = !!cfg.seats[si];
         html += '<div class="seat"><span class="seat-pos">' + (nPos === 1 ? 'Court' : sp ? 'Back Court' : 'Front Court') + '</span>' +
           '<div class="seg"><button type="button" id="seat' + si + 'h" data-pseat="' + si + '" data-v="1" aria-pressed="' + onS + '">' + who + '</button>' +
           '<button type="button" id="seat' + si + 'c" data-pseat="' + si + '" data-v="0" aria-pressed="' + !onS + '">CPU</button></div></div>';
       }
+      var WHO = cfg.singles ? [['men', 'Men'], ['women', 'Women']] : [['men', 'Men'], ['women', 'Women'], ['mixed', 'Mixed']], wh = '';   // one choice, shown on both cards; mixed needs a pair
+      for (var wi = 0; wi < WHO.length; wi++) wh += '<button type="button" id="who' + t + '-' + WHO[wi][0] + '" data-opt="who" data-v="' + WHO[wi][0] + '" aria-pressed="' + (cfg.who === WHO[wi][0]) + '">' + WHO[wi][1] + '</button>';
+      html += '<div class="seat"><span class="seat-pos">Players</span><div class="seg" role="group" aria-label="Men, women or mixed">' + wh + '</div></div>';
       if (!cfg.singles && (cfg.seats[t * 2] ? 1 : 0) + (cfg.seats[t * 2 + 1] ? 1 : 0) === 1) html += '<p class="seat-note">The CPU plays the ' + (cfg.seats[t * 2] ? 'back' : 'front') + '-court partner.</p>';
       if (t && (cfg.seats[2] || cfg.seats[3]) && (cfg.seats[0] || cfg.seats[1])) html += '<p class="seat-note">Two people, one phone: each gets their own buttons.</p>';
       html += '</div>';
@@ -1511,7 +1512,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     else if (b.dataset.opt) {
       if (b.dataset.opt === 'sound') { cfg.sound = b.dataset.v === 'on'; if (cfg.sound) musDuck = false; unlock(); }   // asking for sound while music plays wins
       else if (b.dataset.opt === 'view') { changeView(b.dataset.v); return; }
-      else if (b.dataset.opt === 'type') { cfg.singles = b.dataset.v === 'singles'; if (mode === 'demo' && !net.role) startDemo(true); }
+      else if (b.dataset.opt === 'type') { cfg.singles = b.dataset.v === 'singles'; if (cfg.singles && cfg.who === 'mixed') cfg.who = 'men'; if (mode === 'demo' && !net.role) startDemo(true); }
       else cfg[b.dataset.opt] = b.dataset.opt === 'target' ? +b.dataset.v : b.dataset.v;
       save(); buildSetup();
     }
