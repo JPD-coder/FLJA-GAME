@@ -58,7 +58,7 @@ body { background: var(--ink); color: var(--text); font: 15px/1.45 var(--body); 
 .bar h1 { color: #ffffff; display: flex; align-items: center; gap: 10px; min-width: 0; }
 .bar h1 b { font-weight: inherit; white-space: nowrap; }   /* the name never breaks onto two lines */
 .bar h1 img { height: 52px; width: auto; display: block; flex: none; }
-.bar h1 .markw { margin-left: 2px; }                            /* she closes the lockup, on the far side of the name */
+.bar h1 .markw { margin-left: -3px; }                           /* she closes the lockup; the pull-in makes up for the ponytail's thin edge, so both marks sit the same distance from the name */
 .bar h1 span { color: #ffffff; }
 .bar-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 .music { border: 0; cursor: pointer; }
@@ -3339,7 +3339,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   function cardGeo() {
     var BTN = u() * 3.2 + 56;                                       // PLAY FREE down to the foot of the buttons
     var mh = Math.max(u() * 8, Math.min(u() * 26, H * 0.26, (H - (u() * 33 + BTN + u() * 4 + 12)) / 2.3));
-    var gap = Math.max(u() * 1.5, mh * 0.16 - u() * 1.2);           // the gap he has above the name, kept under the buttons
+    var gap = Math.max(u() * 1.5, mh * 0.16 + u() * 0.78);          // exactly the gap he keeps above the name: his box ends 0.16 of its height above the line, and the caps start 0.78u below it
     var stack = mh * 1.16 + u() * 33 + BTN + gap + mh;
     var ax = Math.max(u() * 2 + mh * 1.16, (H - stack) / 2 + mh * 1.16);
     return { mh: mh, gap: gap, ax: ax, base: ax + u() * 33, her: ax + u() * 33 + BTN + gap };
