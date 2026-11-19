@@ -475,8 +475,9 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
 @media (max-height: 460px) and (min-width: 641px) { .bar { --u: calc((100vw - 32px) / 100); flex-wrap: nowrap; gap: 8px; } .bar h1 { font-size: min(14px, calc(var(--u) * 1.75)) !important; } .merch, .bet, .fan { font-size: min(12px, calc(var(--u) * 1.65)) !important; padding: 3px 6px; } .bet { padding: 1px 6px; } }
 @media (max-height: 460px) { .bar h1 img { height: 28px; } .pad button { height: 46px; } .ghost { padding: 3px 8px; font-size: 12px; } .merch { padding: 3px 7px; font-size: 12px; } .bet { padding: 1px 7px; font-size: 12px; } .pad-label { display: none; } .bar h1 { font-size: 14px; gap: 7px; } .app { gap: 6px; padding-block: 4px 6px; } }
 .comps.three { grid-template-columns: 1fr 1fr 1fr; }
-.comp.hvp { border-color: #ff7a1a; color: #ff7a1a; }
-.comp.hvp[aria-pressed="true"] { background: #ff7a1a; color: #2a1000; }
+.comp.hvp { background: #fff; border-color: #fff; color: #17171a; }
+.comp.hvp .ho { color: #f26a00; } .comp.hvp .pk { color: #e0202c; } .comp.hvp .vs2 { color: #17171a; }
+.comp.hvp[aria-pressed="true"] { border-color: #f26a00; box-shadow: 0 0 0 2px #e0202c, 0 0 14px rgba(255,122,26,.7); }
 body.hvp .pick-label, body.hvp .picker { display: none !important; }
 @media (max-width: 560px) { .comps.three { gap: 6px; } .comps.three .comp { font-size: 13px; letter-spacing: .02em; padding: 10px 3px; white-space: normal; } }
 </style>
@@ -1503,7 +1504,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var html = '', list = groupList(cfg.comp);
     $('comps').innerHTML = '<button type="button" id="compLeague" class="comp league" data-comp="league" aria-pressed="' + (cfg.comp === 'league') + '" aria-expanded="' + (cfg.comp === 'league') + '">League Play</button>' +
       '<button type="button" id="compWorld" class="comp world" data-comp="world" aria-pressed="' + (cfg.comp === 'world') + '" aria-expanded="' + (cfg.comp === 'world') + '">World Cup Play</button>' +
-      (MULTI && !window.FL_VIEW3 ? '<button type="button" id="compHvp" class="comp hvp" data-comp="hvp" aria-pressed="' + (cfg.comp === 'hvp') + '" aria-expanded="' + (cfg.comp === 'hvp') + '">Hoots vs Peaks</button>' : '');
+      (MULTI && !window.FL_VIEW3 ? '<button type="button" id="compHvp" class="comp hvp" data-comp="hvp" aria-pressed="' + (cfg.comp === 'hvp') + '" aria-expanded="' + (cfg.comp === 'hvp') + '" aria-label="Hoots vs Peaks"><span class="ho">Hoots</span> <span class="vs2">vs</span> <span class="pk">Peaks</span></button>' : '');
     $('comps').classList.toggle('three', MULTI && !window.FL_VIEW3);
     $('teams').hidden = !cfg.comp;
     for (var t = 0; t < 2; t++) {
