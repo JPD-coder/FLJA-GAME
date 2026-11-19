@@ -80,6 +80,20 @@ body { background: var(--ink); color: var(--text); font: 15px/1.45 var(--body); 
 #musicBox iframe { display: block; width: 100%; height: 152px; border: 0; }
 #musPlay { flex: none; width: 24px; height: 24px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #1db954; color: #04130a; border: 0; border-radius: 999px; padding: 0 0 0 1px; font: 700 11px/1 system-ui, sans-serif; cursor: pointer; }
 #musicBox .mus-top button#musPlay:hover { background: #17a74a; }
+/* the bar: Spotify's own slim player, right under Menu / Mode / Music / Pause, so a tap on its play button always plays */
+#musicBox.mbar { opacity: 1; pointer-events: auto; z-index: 70; height: 80px; border-radius: 12px; background: #121212; box-shadow: 0 8px 24px rgba(0,0,0,.55); }
+#musicBox.mbar .mus-top { display: none; }
+#musicBox.mbar .mus-wrap, #musicBox.mbar.open .mus-wrap { height: 80px; }
+#musicBox.mbar iframe { height: 80px; }
+#musicBox.mbar.away { visibility: hidden; }
+.mini .rec { display: inline-block; width: 1.25em; height: 1.25em; margin-right: .35em; vertical-align: -.28em; border-radius: 50%; flex: none;
+  background: radial-gradient(circle, var(--rec-label, #c9a55c) 0 31%, #111 32% 36%, #2a2a2a 37% 44%, #111 45% 52%, #2a2a2a 53% 60%, #111 61% 100%); background-size: cover;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.18); position: relative; }
+.mini .rec::after { content: ''; position: absolute; left: 50%; top: 50%; width: 12%; height: 12%; margin: -6% 0 0 -6%; border-radius: 50%; background: #0b0c0f; }
+.mini .rec.cover { background: radial-gradient(circle, transparent 0 33%, #111 34% 37%, #222 38% 46%, #111 47% 55%, #222 56% 64%, #111 65% 100%), var(--rec-art) center / 40% no-repeat, #111; }
+.mini.spinning .rec { animation: rec-spin 1.8s linear infinite; }
+@keyframes rec-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .mini.spinning .rec { animation: none; } }
 
 .links { display: flex; gap: 6px; align-items: center; flex: none; }
 .bet { background: #ffffff; color: #000000; border: 2px solid #000000; box-shadow: 0 0 0 1px #ffffff; border-radius: 4px; padding: 4px 11px; font: 800 15px/1.2 var(--display); letter-spacing: .08em; text-transform: uppercase; text-decoration: none; white-space: nowrap; }
@@ -1388,7 +1402,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var host = $('musEmbed'); if (!spApi || spCtl || !host || host.firstChild) return;
     var id = PLAY[MUSIC[view]]; if (!id) return;
     spUri = id.split('?')[0];
-    spApi.createController(host, { uri: 'spotify:playlist:' + spUri, width: '100%', height: 152 }, function (ctl) {
+    spApi.createController(host, { uri: 'spotify:playlist:' + spUri, width: '100%', height: 80 }, function (ctl) {
       spCtl = ctl;
       ctl.addListener('ready', function () { spReady = true; if (musicOn && !spLive) spKick(0); });   // the player can take orders now
       setTimeout(function () { if (!spReady) { spReady = true; if (musicOn && !spLive) spKick(0); } }, 1500);   // in case it never says so
@@ -1397,15 +1411,14 @@ if (typeof module !== 'undefined') module.exports = Core;
         var pb = $('musPlay'), on = !!(e && e.data && !e.data.isPaused); if (pb) { pb.textContent = on ? '\u23f8' : '\u25b6'; pb.setAttribute('aria-label', on ? 'Pause' : 'Play'); }
         spLive = on; if (on) clearTimeout(spTryT);                           // the player itself says whether a song is sounding: the button goes by that, never by a guess
         if (on) spPlayed = true;                                             // once it has played, a tap picks up where it left off
-        var mm = $('miniMusic'); if (mm) mm.classList.toggle('hot', on);     // the court button shows whether the music is playing
+        var mm = $('miniMusic'); if (mm) mm.classList.toggle('spinning', on);   // the record on the button turns while a song plays
       });
     });
   }
   function spFallback() {                                          // no API: show Spotify's own player and let them press play inside it
     var host = $('musEmbed'); if (spCtl || !host || host.firstChild) return;
     var id = PLAY[MUSIC[view]]; if (!id) return;
-    host.innerHTML = '<iframe title="Era playlist" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" src="https://open.spotify.com/embed/playlist/' + id + '"></iframe>';
-    var box = $('musicBox'); if (box) { box.classList.add('open'); $('musMin').textContent = '▲'; }
+    host.innerHTML = '<iframe title="Era playlist" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" src="https://open.spotify.com/embed/playlist/' + id + '" height="80"></iframe>';
     if ($('musPlay')) $('musPlay').hidden = true;
   }
   function musBuild() {                                            // the bar itself, made once and kept hidden until it is wanted
@@ -1418,7 +1431,7 @@ if (typeof module !== 'undefined') module.exports = Core;
         '<button type="button" id="musMin" aria-label="Show or hide the track list">▼</button>' +
         '<button type="button" id="musX" aria-label="Stop and close the player">×</button></div>' +
         '<div class="mus-wrap"><div id="musEmbed"></div></div>';
-      $('musicSlot').appendChild(box);
+      document.body.appendChild(box);                              // on the page itself, so no hidden section can hide the bar
       box.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
       $('musX').addEventListener('click', closeMusic);
       $('musMin').addEventListener('click', function () { $('musMin').textContent = box.classList.toggle('open') ? '▲' : '▼'; });
@@ -1432,7 +1445,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     clearTimeout(spTryT); if (!spCtl) return;
     if (!spReady || Date.now() < spLoadT) { spTryT = setTimeout(function () { if (musicOn && !spLive) spKick(n); }, 200); return; }   // wait for the player, or for a new playlist to load
     try { if (spPlayed && spCtl.resume) spCtl.resume(); else if (spCtl.play) spCtl.play(); else spCtl.togglePlay(); } catch (e) { try { spCtl.togglePlay(); } catch (x) { /* ignore */ } }
-    if (n < 6) spTryT = setTimeout(function () { if (musicOn && !spLive) { if (n >= 2) spPlayed = false; spKick(n + 1); } }, n ? 900 : 700);   // a resume that did nothing: start the playlist instead
+    // one request only: a phone that refuses it waits for a tap on the player's own play button, and repeated requests can switch it on and off
   }
   function spEnsure(id) {                                          // the player holds this era's playlist; a new one starts from its first song
     id = id.split('?')[0];
@@ -1465,21 +1478,46 @@ if (typeof module !== 'undefined') module.exports = Core;
   function musPause() {                                            // hold the song where it is; the next tap carries on from there
     clearTimeout(spTryT); spLive = false;
     if (spCtl) { try { spCtl.pause(); } catch (e) { /* the player is gone */ } }
-    var mm = $('miniMusic'); if (mm) mm.classList.remove('hot');
+    var mm = $('miniMusic'); if (mm) { mm.classList.remove('hot'); mm.classList.remove('spinning'); }
     musicOn = false; musDuck = false; unlock();                    // the game's own sound comes back
   }
-  function musToggle() {                                           // one tap on, one tap off: there is no player on screen to touch
-    var now = Date.now(); if (now - musTap < 400) return; musTap = now;   // one tap is one tap, however the browser reports it
-    if (musicOn && spCtl && !spLive) { spKick(0); return; }        // asked for but not sounding yet: this tap asks again, it never switches it off
-    if (musicOn) { musPause(); return; }
-    var cur = PLAY[MUSIC[view]]; if (spCtl && cur && spUri !== cur.split('?')[0]) { openMusic(true); return; }   // the era changed while it was off: its own playlist
-    if (spCtl && spPlayed) {                                       // already playing earlier in this match: carry on, never start over
-      musDuck = true; musicOn = true;
-      var mm = $('miniMusic'); if (mm) mm.classList.add('hot');
-      spKick(0);
-      return;
+  function musToggle() {                                           // one tap shows the slim Spotify player under the buttons (its play button always works); the next pauses and hides it
+    var now = Date.now(); if (now - musTap < 400) return; musTap = now;
+    if (musicOn) { musPause(); musBar(false); return; }
+    openMusic(true); musBar(true);
+  }
+  function musBar(on) {
+    var box = $('musicBox'); if (!box) return;
+    box.classList.toggle('mbar', !!on); box.hidden = !on && !spCtl;
+    if (on) musPlace();
+  }
+  function musPlace() {                                            // sit right under Menu / Mode / Music / Pause; above them when there is no room below
+    var box = $('musicBox'); if (!box || !box.classList.contains('mbar')) return;
+    var row = [].slice.call(document.querySelectorAll('.minis')).filter(function (m) { return m.offsetParent; })[0];
+    if (!row || mode !== 'match') { box.classList.add('away'); return; }
+    box.classList.remove('away');
+    var r = row.getBoundingClientRect(), pad = row.closest('.pad'), pr = pad ? pad.getBoundingClientRect() : r;
+    var below = pad && pad.classList.contains('tall') ? pr.bottom : r.bottom;   // upright: under the whole row of controls, so it covers none of them
+    var w = Math.min(innerWidth - 12, Math.max(r.width, 300), 380);
+    var left = Math.max(6, Math.min(innerWidth - w - 6, r.left + r.width / 2 - w / 2));
+    var top = below + 8; if (top + 80 > innerHeight - 4) top = Math.max(4, r.top - 86);   // sideways there is no room below: just above the buttons
+    box.style.left = Math.round(left) + 'px'; box.style.top = Math.round(top) + 'px'; box.style.bottom = 'auto'; box.style.width = Math.round(w) + 'px';
+  }
+  setInterval(function () { if (musicOn) musPlace(); }, 300);
+  window.addEventListener('resize', function () { if (musicOn) musPlace(); });
+  /* the record on the Music button wears the playlist's cover when Spotify will give it to us */
+  var recArt = {};
+  function recHTML() {
+    var id = (PLAY[MUSIC[view]] || '').split('?')[0], art = recArt[id];
+    if (id && art === undefined) {
+      recArt[id] = null;
+      try {
+        fetch('https://open.spotify.com/oembed?url=' + encodeURIComponent('https://open.spotify.com/playlist/' + id)).then(function (r) { return r.json(); }).then(function (j) {
+          if (j && j.thumbnail_url) { recArt[id] = j.thumbnail_url; var b = $('miniMusic'); if (b && (PLAY[MUSIC[view]] || '').split('?')[0] === id) { var rc = b.querySelector('.rec'); rc.classList.add('cover'); rc.style.setProperty('--rec-art', 'url("' + j.thumbnail_url + '")'); } }
+        }).catch(function () { /* the plain gold label it is */ });
+      } catch (e) { /* no fetch */ }
     }
-    openMusic(true);
+    return art ? '<span class="rec cover" aria-hidden="true" style="--rec-art:url(&quot;' + art + '&quot;)"></span>' : '<span class="rec" aria-hidden="true"></span>';
   }
   function closeMusic() {                                          // a full stop: the era changed, or the match is over
     spPlayed = false; spLive = false; clearTimeout(spTryT);
@@ -1491,7 +1529,8 @@ if (typeof module !== 'undefined') module.exports = Core;
       else if ($('musEmbed')) { $('musEmbed').innerHTML = ''; box.removeAttribute('data-id'); }
       if ($('musPlay')) { $('musPlay').textContent = '\u25b6'; $('musPlay').setAttribute('aria-label', 'Play'); }
     }
-    var mm = $('miniMusic'); if (mm) mm.classList.remove('hot');
+    var mm = $('miniMusic'); if (mm) { mm.classList.remove('hot'); mm.classList.remove('spinning'); }
+    if (box) box.classList.remove('mbar');
     musicOn = false; musDuck = false; unlock();                    // the game's own sound comes back
   }
 
@@ -1756,7 +1795,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       var box = function (only) { return '<div class="shotbox" data-box="' + only + '"><div class="shots">' + four(only) + '</div><div class="shot-label">' + (cfg.singles ? 'Singles' : only % 2 ? 'Back Court' : 'Front Court') + '</div></div>'; };
       var minis = '<div class="minis"><button type="button" class="mini" data-mini="menu" aria-label="New match">Menu</button>' +
         (MULTI && !window.FL_VIEW3 ? '<button type="button" class="mini" data-mini="view" aria-label="Change the mode and camera">Mode</button>' : '') +
-        (window.FL_MUSIC && MUSIC[view] ? '<button type="button" class="mini' + (musicOn && spLive ? ' hot' : '') + '" id="miniMusic" data-mini="music" aria-label="Era music: on or off">\u266a Music</button>' : '') +
+        (window.FL_MUSIC && MUSIC[view] ? '<button type="button" class="mini' + (musicOn ? ' hot' : '') + (spLive ? ' spinning' : '') + '" id="miniMusic" data-mini="music" aria-label="Era music: show or hide the player">' + recHTML() + 'Music</button>' : '') +
         '<button type="button" class="mini" id="miniPause" data-mini="pause"' + (net.role === 'guest' ? ' hidden' : '') + '>Pause</button></div>';
       // one player, either way up: the shots stand in a column on the left, movement and the serve on the right,
       // and the small controls sit under the court bar between them. Sideways they flank the court; upright they sit under it.
