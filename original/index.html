@@ -25,6 +25,7 @@ window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 <style>
 /* Layout: the fronton is the page. A thin title bar, the court at full width, then either the match setup or the touch pads. */
 :root {
+  --sc: min(68px, 12vh);     /* every round control takes this size; the court's margins are measured from it */
   --ink: #07080a;        /* arena black */
   --panel: #111318;      /* raised surfaces */
   --line: #2b2e37;       /* hairlines */
@@ -64,7 +65,7 @@ body { background: var(--ink); color: var(--text); font: 15px/1.45 var(--body); 
 .bar-actions { margin-left: auto; }
 .merch, .music { flex: none; }
 .musicslot { display: flex; justify-content: center; padding: 0 10px; }
-#musicBox { width: min(460px, 100%); margin: 8px 0 4px; background: #0b0c0f; border: 1px solid #2a2e37; border-radius: 10px; overflow: hidden; z-index: 7; box-shadow: 0 10px 30px rgba(0,0,0,.6); }
+#musicBox { position: fixed; left: 0; bottom: 0; width: 320px; height: 90px; opacity: .001; pointer-events: none; overflow: hidden; z-index: -1; }   /* the player stays on the page so the sound keeps running, but nobody sees or touches it: the Music button is the whole control */
 #musicBox .mus-top { display: flex; align-items: center; gap: 10px; padding: 5px 6px 3px 10px; font: 700 11px/1.4 system-ui, sans-serif; letter-spacing: .09em; text-transform: uppercase; color: var(--gold); }
 #musicBox .mus-top span { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #musicBox .mus-top a { flex: none; width: 24px; height: 24px; display: block; line-height: 0; border-radius: 6px; overflow: hidden; }
@@ -119,18 +120,16 @@ body.sides .bar { display: none; }
 body.sides .app { padding-top: 4px; padding-bottom: 4px; gap: 4px; max-width: none; }
 body.sides .pads { position: relative; z-index: 3; }
 /* sideways the hands sit either side of the court, so the court is given those margins to itself */
-body.sides .stage { margin-left: 86px; margin-right: 96px; }
-body.sides .pads { padding-left: 86px; padding-right: 96px; }      /* the shots line up with the court, clear of both hands */
-@media (max-height: 400px) { body.sides .stage { margin-left: 78px; margin-right: 88px; }
-  body.sides .pads { padding-left: 78px; padding-right: 88px; } }
+body.sides .stage { margin-left: calc(var(--sc) + 6px); margin-right: calc(var(--sc) * 1.14 + 8px); }
+body.sides .pads { padding-left: calc(var(--sc) + 6px); padding-right: calc(var(--sc) * 1.14 + 8px); }   /* the court keeps everything the hands don't need */
 .pad.land { flex-direction: row; align-items: stretch; gap: 8px; }
 .pad.land .runs { flex: 0 0 24%; }
 .pad.land .runs button { height: 100%; }
 /* sideways: the small controls become a block of circles down the left */
 /* sideways: the shots are a column of circles under the left hand, keeping each its own colour */
-.pad.land .shots.round { position: fixed; left: max(5px, env(safe-area-inset-left, 0px)); top: 50%; transform: translateY(-50%);
+.pad.land .shots.round { position: fixed; left: max(3px, env(safe-area-inset-left, 0px)); top: 50%; transform: translateY(-50%);
   display: flex; flex-direction: column; gap: 6px; padding: 0; z-index: 6; }
-.pad.land { --sc: min(72px, 15.4vh); }
+
 .pad.land .shots.round button { width: var(--sc); height: var(--sc); min-height: 0; padding: 0 4px; border-radius: 50%;
   font-size: calc(var(--sc) * .16) !important; letter-spacing: 0; line-height: 1.03; }
 /* the language switch sits under the stack, in the shape of a chip rather than a shot */
@@ -141,8 +140,8 @@ body.sides .pads { padding-left: 86px; padding-right: 96px; }      /* the shots 
 .pad .shots.round button.langbtn:hover { color: var(--text); border-color: var(--muted); }
 
 /* and the small controls go back under the court bar */
-.pad.land .minis { flex: none; display: flex; flex-direction: row; gap: 4px; padding: 4px; border-top: 1px solid var(--line); }
-.pad.land .minis button { flex: 1; height: auto; min-height: 28px; padding: 2px 8px; font-size: 11px !important; letter-spacing: .06em; }
+.pad.land .minis { flex: none; display: flex; flex-direction: row; gap: 4px; padding: 2px 2px 0; border-top: 0; }
+.pad.land .minis button { flex: 1; height: auto; min-height: 26px; padding: 1px 6px; font-size: 11px !important; letter-spacing: .05em; }
                                  /* room for the circles that sit beside the court */
 /* upright: the same three parts as sideways — shots left, court bar and small controls between, joystick and serve right */
 .pad.tall { display: flex; flex-direction: row; align-items: center; gap: 10px; padding: 6px 2px; }
@@ -150,8 +149,8 @@ body.sides .pads { padding-left: 86px; padding-right: 96px; }      /* the shots 
 .pad.tall { --sc: min(72px, 9.2vh); }
 .pad.tall .shots.round button { width: var(--sc); height: var(--sc); min-height: 0; padding: 0 4px; border-radius: 50%;
   font-size: calc(var(--sc) * .16) !important; letter-spacing: 0; line-height: 1.03; }
-.pad.tall .shotbox { flex: 1; min-width: 0; align-self: center; background: #0b0c0f; }
-.pad.tall .minis { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; padding: 4px; border-top: 1px solid var(--line); }
+.pad.tall .shotbox { flex: 1; min-width: 0; align-self: flex-end; background: #0b0c0f; border: 0; }
+.pad.tall .minis { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; padding: 2px; border-top: 0; }
 .pad.tall .minis button { flex: 1 1 44%; min-width: 0; height: auto; min-height: 30px; padding: 2px 4px; font-size: 11px !important; letter-spacing: .05em; }
 .pad.tall .shot-label { font-size: 11px; padding: 3px 2px; }
 .pad.tall .righthand { gap: 14px; }
@@ -162,7 +161,7 @@ body.sides .pads { padding-left: 86px; padding-right: 96px; }      /* the shots 
 /* the serve has a ball of its own, under the joystick, in the hand that throws it */
 .righthand { flex: none; display: flex; flex-direction: column; align-items: center; gap: 18px; }   /* the serve ball keeps clear of the joystick */
 /* sideways both hands sit beside the court, in the black either side of it, so the court keeps its height */
-.pad.land .righthand { position: fixed; right: max(6px, env(safe-area-inset-right, 0px)); top: 50%; transform: translateY(-50%); z-index: 6; margin: 0; gap: 16px; }
+.pad.land .righthand { position: fixed; right: max(3px, env(safe-area-inset-right, 0px)); top: 50%; transform: translateY(-50%); z-index: 6; margin: 0; gap: 16px; }
 
 .pad .righthand .throw.ball { width: 124px; height: 124px; min-width: 0; border-radius: 50%; padding: 0;
   background: #f2efe6; border-color: #f2efe6; color: #0b0c0f; font-size: 15px !important; letter-spacing: .06em !important;
@@ -172,7 +171,7 @@ body.sides .pads { padding-left: 86px; padding-right: 96px; }      /* the shots 
 .pad.land .righthand .throw.ball { width: var(--sc); height: var(--sc); font-size: calc(var(--sc) * .17) !important; }   /* the same disc as a shot circle */
 .pad.land .stick { flex: 0 0 auto; width: calc(var(--sc) * 1.14); height: calc(var(--sc) * 1.14); margin: 0; align-self: center; }
 .pad.land .stick .stick-knob { width: calc(var(--sc) * .67); height: calc(var(--sc) * .67); margin: calc(var(--sc) * -.335) 0 0 calc(var(--sc) * -.335); }
-.pad.land .shotbox { flex: 1; background: #0b0c0f; align-self: center; }
+.pad.land .shotbox { flex: 1; background: #0b0c0f; align-self: flex-end; border: 0; }   /* the small controls sit as low as the pad goes */
 /* small screens: everything a notch down — these come last so they win over the sizes above */
 @media (max-height: 400px) { .pad.land .shots.round { gap: 5px; } }
 @media (max-width: 370px) { .pad.tall { --sc: min(64px, 9.2vh); } }
@@ -1266,8 +1265,8 @@ if (typeof module !== 'undefined') module.exports = Core;
     spLoad(); spMake();
     if (play) startPlay();
   }
-  function musToggle() {                                           // the Music button: first tap starts the song, the next one stops it
-    if (!musicOn) openMusic(true); else if (spCtl) { try { spCtl.togglePlay(); } catch (e) { closeMusic(); } } else closeMusic();
+  function musToggle() {                                           // one tap on, one tap off: there is no player on screen to touch
+    if (musicOn) closeMusic(); else openMusic(true);
   }
   function closeMusic() {
     var box = $('musicBox');
@@ -1509,7 +1508,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       if (sidesOn || hs.length === 1) {
         html += '<div class="pad ' + (sidesOn ? 'land' : 'tall') + ' t' + (s >> 1) + '">' +
           '<div class="shots round">' + four(-1) + '</div>' +
-          '<div class="shotbox"><div class="shot-label" id="sideLab">Front Court</div>' + minis + '</div>' +
+          '<div class="shotbox">' + minis + '</div>' +
           '<div class="righthand">' + moveR + serveBall(-1) + '</div></div>';
         return;
       }
