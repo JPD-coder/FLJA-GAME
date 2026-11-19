@@ -2065,7 +2065,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     cv.style.width = cw + 'px'; cv.style.height = (cw / RATIO) + 'px';
     var pw = Math.round(cw * dpr), ph = Math.round(cw / RATIO * dpr);
     if (cv.width !== pw || cv.height !== ph) { cv.width = pw; cv.height = ph; }
-    cssScale = cw / C.W;
+    if (cw > 0) cssScale = cw / C.W;                              // a hidden court (setup screen) keeps its last size, never zero
   }
   function onResize() { if (wantSides() !== sidesOn) show(); else layout(); }
   window.addEventListener('resize', onResize);
@@ -3005,6 +3005,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
 
   function draw() {
+    if (document.body.classList.contains('pv-setup')) return;     // nothing to draw while the court is hidden behind the setup screen
     var sc = cv.width / C.W, shx = 0, shy = 0, z = 1, amt = 0;
     if (fx.shake > 0.3) { shx = (Math.random() - 0.5) * fx.shake * 2; shy = (Math.random() - 0.5) * fx.shake * 2; }
     if (fx.slow > 0) { amt = Math.sin(Math.PI * Math.min(1, fx.slow / fx.slowLen)); z = 1 + 0.14 * amt; }
