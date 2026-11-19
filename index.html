@@ -58,6 +58,7 @@ body { background: var(--ink); color: var(--text); font: 15px/1.45 var(--body); 
 .bar h1 { color: #ffffff; display: flex; align-items: center; gap: 10px; min-width: 0; }
 .bar h1 b { font-weight: inherit; white-space: nowrap; }   /* the name never breaks onto two lines */
 .bar h1 img { height: 52px; width: auto; display: block; flex: none; }
+.bar h1 .markw { margin-right: -4px; }                          /* the two pelotaris stand together at the head of the page */
 .bar h1 span { color: #ffffff; }
 .bar-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 .music { border: 0; cursor: pointer; }
@@ -485,7 +486,7 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
 <div id="film"><canvas id="filmCv"></canvas><div class="film-btns"><button id="filmSound" type="button">Sound on</button><button id="filmSkip" type="button">Skip</button></div><div id="filmGo" hidden><button id="goPC" type="button">Play PC</button><button id="goMob" type="button">Play Mobile</button></div></div>
 <div class="app">
   <header class="bar" id="bar">
-    <h1><img src="brand.png" alt=""><b>Fantasy League <span>Jai Alai</span></b></h1>
+    <h1><img class="markw" src="brand-w.png" alt=""><img src="brand.png" alt=""><b>Fantasy League <span>Jai Alai</span></b></h1>
     <div class="bar-actions">
       <button class="ghost" id="btnView" type="button" hidden>Mode</button>
       <button class="ghost" id="btnPause" type="button" hidden>Pause</button>
@@ -3214,7 +3215,8 @@ if (typeof module !== 'undefined') module.exports = Core;
 (function () {
   'use strict';
   var root = document.getElementById('film');
-  if (!root || /[?&]nofilm/.test(location.search)) { if (root) root.remove(); return; }
+  if (!root) return;
+  var NOFILM = /[?&]nofilm/.test(location.search);                  // the film can be skipped; the door cannot
 
   var cv = document.getElementById('filmCv'), ctx = cv.getContext('2d');
   var W = 0, H = 0, DPR = 1, RUN = 9.4, t0 = 0, done = false, raf = 0;
@@ -3229,6 +3231,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   load('aer', 'aerial-view.jpg');
   load('spr', 'sprites.png');
   load('mark', 'brand.png');
+  load('markW', 'brand-w.png');
   var ROSTER = window.FL_ROSTER || [];
   var CLUBS = ROSTER.slice(0, 6), LANDS = ROSTER.slice(6, 12);
   for (var ri = 0; ri < ROSTER.length; ri++) load('r' + ri, ROSTER[ri].logo);
@@ -3338,10 +3341,10 @@ if (typeof module !== 'undefined') module.exports = Core;
     ctx.fillStyle = '#05060a'; ctx.fillRect(0, 0, W, H);
     ctx.save(); ctx.globalAlpha = 0.3; cover(art.court, 620, 300, 860, 385); ctx.restore();
     vignette();
-    var pop = lerp(1.5, 1, land), ax = H * 0.42;
+    var pop = lerp(1.5, 1, land), ax = H * 0.33;   // the lockup sits higher now: she closes the card underneath it
     ctx.save(); ctx.translate(W / 2, ax); ctx.scale(pop, pop); ctx.translate(-W / 2, -ax);
     if (ok(art.mark)) {
-      var mh = Math.min(H * 0.34, u() * 32), mw = mh * art.mark.naturalWidth / art.mark.naturalHeight;
+      var mh = Math.min(H * 0.26, u() * 26), mw = mh * art.mark.naturalWidth / art.mark.naturalHeight;   // smaller, so the card holds both of them
       ctx.globalAlpha = land; ctx.drawImage(art.mark, W / 2 - mw / 2, ax - mh * 1.16, mw, mh);
     }
     title('FANTASY LEAGUE', W / 2, ax + u() * 5.4, u() * 6.6, '800', 0.24, GOLD, land, W * 0.86);
@@ -3349,6 +3352,13 @@ if (typeof module !== 'undefined') module.exports = Core;
     ctx.globalAlpha = land; ctx.fillStyle = GOLD;
     ctx.fillRect(W / 2 - u() * 21, ax + u() * 26, u() * 42, Math.max(3, u() * 0.55));
     ctx.restore();
+    if (ok(art.markW)) {                                            // she closes the card, at the foot of the frame
+      var room = H - (ax + u() * 36.2 + 56) - u() * 1.5;            // she stands clear of the Play buttons
+      var wh = Math.max(u() * 9, Math.min(u() * 22, room)), ww = wh * art.markW.naturalWidth / art.markW.naturalHeight;
+      ctx.globalAlpha = land * fadeIn(s, 0.25, 0.4);
+      ctx.drawImage(art.markW, W / 2 - ww / 2, H - wh - u() * 1.5, ww, wh);
+      ctx.globalAlpha = 1;
+    }
     if (s < 0.35) { ctx.fillStyle = 'rgba(255,255,255,' + ((0.35 - s) * 0.9).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
   }
 
@@ -3469,7 +3479,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   var ended = false, goBox = document.getElementById('filmGo');
   function holdFrame() {                                            // the last frame of the film, held: name card + PLAY FREE
     draw(9.3);
-    var base = H * 0.42 + u() * 33;
+    var base = H * 0.33 + u() * 33;
     title('PLAY FREE', W / 2, base, u() * 5, '700', 0.3, CHALK, 1, W * 0.8);
     goBox.style.top = Math.round(base + u() * 3.2) + 'px';          // the buttons sit right under that line
     goBox.style.bottom = 'auto';
@@ -3519,6 +3529,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   window.addEventListener('resize', relayout);
   window.addEventListener('orientationchange', function () { setTimeout(relayout, 120); });
   function roll() {                                                 // the film starts once the door is open
+    if (NOFILM) { document.body.classList.remove('filming'); if (root.parentNode) root.remove(); return; }
     document.body.classList.add('filming');
     size();
     raf = requestAnimationFrame(frame);
