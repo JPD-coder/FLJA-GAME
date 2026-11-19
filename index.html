@@ -1133,7 +1133,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     return (mode === 'match' && solo === t ? 'YOU' : cfg.names[t].toUpperCase()) + ': ';
   }
   var STORE = 'fronton-doubles';
-  var cfg = { comp: 'league', pick: [0, 1], names: ['Squared Groupers', 'Peloteros'], seats: [1, 1, 0, 0], sv: 2, target: 15, level: 'normal', pace: 'standard', sound: true, singles: false, view: 'aerial', lang: 'es', who: 'men' };
+  var cfg = { comp: 'league', pick: [0, 1], names: ['Squared Groupers', 'Peloteros'], seats: [1, 1, 0, 0], sv: 2, target: 15, level: 'normal', pace: 'standard', sound: true, singles: false, view: 'aerial', lang: 'es', who: 'men', whoT: ['men', 'men'] };
   try {
     var saved = JSON.parse(localStorage.getItem(STORE) || 'null');
     if (saved && saved.seats && saved.names) for (var k in cfg) if (saved[k] != null) cfg[k] = saved[k];
@@ -1144,7 +1144,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     cfg.sv = 2;
     cfg.target = 15; cfg.level = 'normal'; cfg.pace = 'standard';     // these always start here; they can be changed in Play Settings for the session
     cfg.comp = 'league'; cfg.pick = [0, 1];                       // every visit opens on Squared Groupers vs Peloteros
-    cfg.who = 'men';                                               // and with men playing; Women or Mixed is a choice for that visit
+    cfg.who = 'men'; cfg.whoT = ['men', 'men'];                    // and with men playing; each team picks Men, Women or Mixed for that visit
     if (cfg.names[0] === 'Green') cfg.names[0] = 'Squared Groupers';
     if (cfg.names[1] === 'Blue') cfg.names[1] = 'Peloteros';
   } catch (e) { /* storage unavailable: defaults */ }
@@ -1294,8 +1294,9 @@ if (typeof module !== 'undefined') module.exports = Core;
     }
   }
   function inkFor(hex) { var n = parseInt(hex.slice(1), 16); return 0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255) > 150 ? '#0b0c0f' : '#ffffff'; }
-  function isWoman(p) {                                            // Women: all four. Mixed: one of each per team
-    var g = cfg.who || 'men';
+  function whoOf(t) { var w = cfg.whoT && cfg.whoT[t]; return w === 'women' || w === 'mixed' ? w : 'men'; }   // each team has its own Men, Women or Mixed
+  function isWoman(p) {                                            // Women: both players. Mixed: one of each on that team
+    var g = whoOf(p.team);
     if (HVP) return false;
     if (g === 'women') return true;
     if (g !== 'mixed') return false;
@@ -1334,7 +1335,8 @@ if (typeof module !== 'undefined') module.exports = Core;
     HVT = [ROSTER[p[0]].hv || null, ROSTER[p[1]].hv || null]; HVP = !!(MULTI && HVT[0] && HVT[1]);
     document.body.classList.toggle('hvp', HVP);
     if (HVP && view !== 'aerial' && view !== 'side') { setView('aerial'); cfg.view = view; trail = []; }
-    if (cfg.singles && cfg.who === 'mixed') cfg.who = 'men';      // nobody to mix with in singles
+    if (!cfg.whoT || cfg.whoT.length !== 2) cfg.whoT = ['men', 'men'];
+    for (var wt = 0; wt < 2; wt++) if (cfg.singles && cfg.whoT[wt] === 'mixed') cfg.whoT[wt] = 'men';   // nobody to mix with in singles
     if ([9, 15, 21].indexOf(cfg.target) < 0) cfg.target = 15;      // older saved setups used 5, 7 or 10
     for (var t = 0; t < 2; t++) {
       var r = ROSTER[p[t]];
@@ -1596,8 +1598,8 @@ if (typeof module !== 'undefined') module.exports = Core;
           '<div class="seg"><button type="button" id="seat' + si + 'h" data-pseat="' + si + '" data-v="1" aria-pressed="' + onS + '">' + who + '</button>' +
           '<button type="button" id="seat' + si + 'c" data-pseat="' + si + '" data-v="0" aria-pressed="' + !onS + '">CPU</button></div></div>';
       }
-      var WHO = cfg.singles ? [['men', 'Men'], ['women', 'Women']] : [['men', 'Men'], ['women', 'Women'], ['mixed', 'Mixed']], wh = '';   // one choice, shown on both cards; mixed needs a pair
-      for (var wi = 0; wi < WHO.length; wi++) wh += '<button type="button" id="who' + t + '-' + WHO[wi][0] + '" data-opt="who" data-v="' + WHO[wi][0] + '" aria-pressed="' + (cfg.who === WHO[wi][0]) + '">' + WHO[wi][1] + '</button>';
+      var WHO = cfg.singles ? [['men', 'Men'], ['women', 'Women']] : [['men', 'Men'], ['women', 'Women'], ['mixed', 'Mixed']], wh = '';   // each team its own choice, so men can play women; mixed needs a pair
+      for (var wi = 0; wi < WHO.length; wi++) wh += '<button type="button" id="who' + t + '-' + WHO[wi][0] + '" data-who="' + t + '" data-v="' + WHO[wi][0] + '" aria-pressed="' + (whoOf(t) === WHO[wi][0]) + '">' + WHO[wi][1] + '</button>';
       if (!HVP) html += '<div class="seat"><span class="seat-pos">Players</span><div class="seg" role="group" aria-label="Men, women or mixed">' + wh + '</div></div>';
       if (!cfg.singles && (cfg.seats[t * 2] ? 1 : 0) + (cfg.seats[t * 2 + 1] ? 1 : 0) === 1) html += '<p class="seat-note">The CPU plays the ' + (cfg.seats[t * 2] ? 'back' : 'front') + '-court partner.</p>';
       if (t && (cfg.seats[2] || cfg.seats[3]) && (cfg.seats[0] || cfg.seats[1])) html += '<p class="seat-note">Two people, one phone: each gets their own buttons.</p>';
@@ -1638,10 +1640,11 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (b.dataset.comp) { if (b.dataset.comp === 'hvp' && !hvpOpen()) hvpAsk(); else setComp(b.dataset.comp); }
     else if (b.dataset.pick != null) { cfg.pick[+b.dataset.pick] = +b.dataset.v; applyTeams(); save(); buildSetup(); }
     else if (b.dataset.pseat != null) { cfg.seats[+b.dataset.pseat] = +b.dataset.v; save(); buildSetup(); }
+    else if (b.dataset.who != null) { cfg.whoT[+b.dataset.who] = b.dataset.v; save(); buildSetup(); }
     else if (b.dataset.opt) {
       if (b.dataset.opt === 'sound') { cfg.sound = b.dataset.v === 'on'; if (cfg.sound) musDuck = false; unlock(); }   // asking for sound while music plays wins
       else if (b.dataset.opt === 'view') { changeView(b.dataset.v); return; }
-      else if (b.dataset.opt === 'type') { cfg.singles = b.dataset.v === 'singles'; if (cfg.singles && cfg.who === 'mixed') cfg.who = 'men'; if (mode === 'demo' && !net.role) startDemo(true); }
+      else if (b.dataset.opt === 'type') { cfg.singles = b.dataset.v === 'singles'; if (cfg.singles) cfg.whoT = cfg.whoT.map(function (w) { return w === 'mixed' ? 'men' : w; }); if (mode === 'demo' && !net.role) startDemo(true); }
       else cfg[b.dataset.opt] = b.dataset.opt === 'target' ? +b.dataset.v : b.dataset.v;
       save(); buildSetup();
     }
@@ -1883,7 +1886,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   if (POSTER) document.body.classList.add('poster-on');
   var POSTERS = { '0m': 'poster-0-m.jpg?v=4', '1m': 'poster-1-m.jpg?v=4', '2m': 'poster-2-m.jpg?v=4', '3m': 'poster-3-m.jpg?v=4', '4m': 'poster-4-m.jpg?v=4', '5m': 'poster-5-m.jpg?v=4', '0w': 'poster-0-w.jpg?v=1', '1w': 'poster-1-w.jpg?v=1', '2w': 'poster-2-w.jpg?v=1', '3w': 'poster-3-w.jpg?v=1', '4w': 'poster-4-w.jpg?v=1', '5w': 'poster-5-w.jpg?v=1' };   // roster index + m/w. Each half faces right; missing ones fall back to the team badge
   function posterHalf(el, t, side) {                              // mixed: a man on the left, a woman on the right
-    var r = ROSTER[t], g = cfg.who === 'women' || (cfg.who === 'mixed' && side) ? 'w' : 'm', src = POSTERS[t + g] || POSTERS[t + 'm'];
+    var r = ROSTER[t], wt = whoOf(side), g = wt === 'women' || (wt === 'mixed' && side) ? 'w' : 'm', src = POSTERS[t + g] || POSTERS[t + 'm'];
     el.innerHTML = ''; el.style.backgroundImage = '';
     if (src) { el.style.backgroundImage = 'url("' + src + '")'; return; }
     var c = r.ui || '#888';
@@ -2111,7 +2114,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     ctx.fillStyle = '#23262e'; ctx.fillRect(x + 16, y + 208, w - 32, 2);
     var showRally = game.rally > 1 && game.phase === 'rally';              // the rally count takes the place of "play to" while a rally is on
     ctx.font = '700 25px ' + DISPLAY; ctx.fillStyle = MUTED; ctx.textAlign = 'left';
-    var whoTag = HVP ? '' : cfg.who === 'women' ? "WOMEN'S  " : cfg.who === 'mixed' ? 'MIXED  ' : '';
+    var w0 = whoOf(0), w1 = whoOf(1), whoTag = HVP ? '' : w0 !== w1 ? (w0 === 'men' ? 'MEN' : w0 === 'women' ? 'WOMEN' : 'MIXED') + ' V ' + (w1 === 'men' ? 'MEN' : w1 === 'women' ? 'WOMEN' : 'MIXED') + '  ' : w0 === 'women' ? "WOMEN'S  " : w0 === 'mixed' ? 'MIXED  ' : '';
     ctx.fillText((cfg.comp === 'hvp' ? 'HOOTS VS PEAKS  ·  ' : cfg.comp === 'world' ? 'WORLD CUP  ·  ' : cfg.comp === 'league' ? 'LEAGUE PLAY  ·  ' : '') + whoTag + (game.cfg.singles ? 'SINGLES' : 'DOUBLES') + (showRally ? '' : '  \u00b7  PLAY TO ' + cfg.target), x + 22, y + 231);
     ctx.textAlign = 'right';
     if (showRally) ctx.fillText('RALLY ' + game.rally, x + w - 22, y + 231);
