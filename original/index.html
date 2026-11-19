@@ -3335,30 +3335,35 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   function scene2(t) { lineup(CLUBS, 0, 'OUR LEAGUE TEAMS', t - 3.0, 2.5); }
   function scene3(t) { lineup(LANDS, 6, 'OUR WORLD COUNTRIES', t - 5.5, 2.5); }
+  /* the name card, laid out as one block: his mark, the name, PLAY FREE, the buttons, then hers the same size */
+  function cardGeo() {
+    var BTN = u() * 3.2 + 56;                                       // PLAY FREE down to the foot of the buttons
+    var mh = Math.max(u() * 8, Math.min(u() * 26, H * 0.26, (H - (u() * 33 + BTN + u() * 4 + 12)) / 2.3));
+    var gap = Math.max(u() * 1.5, mh * 0.16 - u() * 1.2);           // the gap he has above the name, kept under the buttons
+    var stack = mh * 1.16 + u() * 33 + BTN + gap + mh;
+    var ax = Math.max(u() * 2 + mh * 1.16, (H - stack) / 2 + mh * 1.16);
+    return { mh: mh, gap: gap, ax: ax, base: ax + u() * 33, her: ax + u() * 33 + BTN + gap };
+  }
   function scene4(t) {                                              // 8.0-9.4  the name
     var s = t - 8.0, land = ease(Math.min(1, s / 0.35));
     ctx.fillStyle = '#05060a'; ctx.fillRect(0, 0, W, H);
     ctx.save(); ctx.globalAlpha = 0.3; cover(art.court, 620, 300, 860, 385); ctx.restore();
     vignette();
-    var pop = lerp(1.5, 1, land), ax = H * 0.33;   // the lockup sits higher now: she closes the card underneath it
+    var g = cardGeo(), ax = g.ax, pop = lerp(1.5, 1, land);
     ctx.save(); ctx.translate(W / 2, ax); ctx.scale(pop, pop); ctx.translate(-W / 2, -ax);
     if (ok(art.mark)) {
-      var mh = Math.min(H * 0.26, u() * 26), mw = mh * art.mark.naturalWidth / art.mark.naturalHeight;   // smaller, so the card holds both of them
-      ctx.globalAlpha = land; ctx.drawImage(art.mark, W / 2 - mw / 2, ax - mh * 1.16, mw, mh);
+      var mw = g.mh * art.mark.naturalWidth / art.mark.naturalHeight;
+      ctx.globalAlpha = land; ctx.drawImage(art.mark, W / 2 - mw / 2, ax - g.mh * 1.16, mw, g.mh);
     }
     title('FANTASY LEAGUE', W / 2, ax + u() * 5.4, u() * 6.6, '800', 0.24, GOLD, land, W * 0.86);
     title('JAI ALAI', W / 2, ax + u() * 22, u() * 19, '900', 0.05, CHALK, land, W * 0.9);
     ctx.globalAlpha = land; ctx.fillStyle = GOLD;
     ctx.fillRect(W / 2 - u() * 21, ax + u() * 26, u() * 42, Math.max(3, u() * 0.55));
     ctx.restore();
-    if (ok(art.markW)) {                                            // she closes the card, right under the Play buttons
-      var mh2 = Math.min(H * 0.26, u() * 26);                       // the same gap she has as the mark above the name
-      var gap = Math.max(u() * 1.5, mh2 * 0.16 - u() * 1.2);
-      var top = ax + u() * 36.2 + 56 + gap;                         // the foot of the buttons, then that gap
-      var wh = Math.max(u() * 8, Math.min(u() * 22, H - top - u() * 1.5));
-      var ww = wh * art.markW.naturalWidth / art.markW.naturalHeight;
+    if (ok(art.markW)) {                                            // she closes the card under the Play buttons, the same size as he is
+      var ww = g.mh * art.markW.naturalWidth / art.markW.naturalHeight;
       ctx.globalAlpha = land * fadeIn(s, 0.25, 0.4);
-      ctx.drawImage(art.markW, W / 2 - ww / 2, top, ww, wh);
+      ctx.drawImage(art.markW, W / 2 - ww / 2, g.her, ww, g.mh);
       ctx.globalAlpha = 1;
     }
     if (s < 0.35) { ctx.fillStyle = 'rgba(255,255,255,' + ((0.35 - s) * 0.9).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
@@ -3481,7 +3486,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   var ended = false, goBox = document.getElementById('filmGo');
   function holdFrame() {                                            // the last frame of the film, held: name card + PLAY FREE
     draw(9.3);
-    var base = H * 0.33 + u() * 33;
+    var base = cardGeo().base;
     title('PLAY FREE', W / 2, base, u() * 5, '700', 0.3, CHALK, 1, W * 0.8);
     goBox.style.top = Math.round(base + u() * 3.2) + 'px';          // the buttons sit right under that line
     goBox.style.bottom = 'auto';
