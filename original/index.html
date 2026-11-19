@@ -1070,7 +1070,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     return (mode === 'match' && solo === t ? 'YOU' : cfg.names[t].toUpperCase()) + ': ';
   }
   var STORE = 'fronton-doubles';
-  var cfg = { comp: 'league', pick: [0, 1], names: ['Squared Groupers', 'Peloteros'], seats: [1, 1, 0, 0], sv: 2, target: 9, level: 'easy', pace: 'relaxed', sound: true, singles: false, view: 'aerial', lang: 'es', who: 'men' };
+  var cfg = { comp: 'league', pick: [0, 1], names: ['Squared Groupers', 'Peloteros'], seats: [1, 1, 0, 0], sv: 2, target: 15, level: 'normal', pace: 'standard', sound: true, singles: false, view: 'aerial', lang: 'es', who: 'men' };
   try {
     var saved = JSON.parse(localStorage.getItem(STORE) || 'null');
     if (saved && saved.seats && saved.names) for (var k in cfg) if (saved[k] != null) cfg[k] = saved[k];
@@ -1079,7 +1079,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       cfg.seats[st * 2] = cfg.seats[st * 2] ? 1 : 0; cfg.seats[st * 2 + 1] = cfg.seats[st * 2 + 1] ? 1 : 0;
     }
     cfg.sv = 2;
-    cfg.target = 9; cfg.level = 'easy'; cfg.pace = 'relaxed';     // these always start here; they can be changed in Play Settings for the session
+    cfg.target = 15; cfg.level = 'normal'; cfg.pace = 'standard';     // these always start here; they can be changed in Play Settings for the session
     cfg.comp = 'league'; cfg.pick = [0, 1];                       // every visit opens on Squared Groupers vs Peloteros
     cfg.who = 'men';                                               // and with men playing; Women or Mixed is a choice for that visit
     if (cfg.names[0] === 'Green') cfg.names[0] = 'Squared Groupers';
@@ -1266,7 +1266,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     document.body.classList.toggle('hvp', HVP);
     if (HVP && view !== 'aerial' && view !== 'side') { setView('aerial'); cfg.view = view; trail = []; }
     if (cfg.singles && cfg.who === 'mixed') cfg.who = 'men';      // nobody to mix with in singles
-    if ([9, 15, 21].indexOf(cfg.target) < 0) cfg.target = 9;      // older saved setups used 5, 7 or 10
+    if ([9, 15, 21].indexOf(cfg.target) < 0) cfg.target = 15;      // older saved setups used 5, 7 or 10
     for (var t = 0; t < 2; t++) {
       var r = ROSTER[p[t]];
       TEAM[t] = { ui: r.ui, legs: r.kit.sash, flag: r.flag || null, flagImg: !!r.flagImg }; KIT[t] = r.kit; cfg.names[t] = r.name;
