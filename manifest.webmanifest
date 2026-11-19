@@ -1,0 +1,29 @@
+{
+ "name": "Fantasy League Jai Alai",
+ "short_name": "FL Jai Alai",
+ "description": "Two-on-two jai alai on the fronton: League Play, World Cup Play and Hoots vs Peaks.",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "any",
+ "background_color": "#0b0c0f",
+ "theme_color": "#0b0c0f",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
