@@ -513,7 +513,9 @@ body.poster-on #tapPlay { display: block; position: sticky; bottom: calc(10px + 
 body.poster-on #a2hs { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
 #poster { position: fixed; inset: 0; z-index: 9500; background: #05060a; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 16px; opacity: 0; transition: opacity .35s ease; }
 #poster.on { opacity: 1; }
-#poster .pz { position: relative; display: flex; height: min(72vh, calc((100vw - 32px) * 1.094)); aspect-ratio: 1199 / 1312; max-width: 100%; border-radius: 16px; overflow: hidden; box-shadow: 0 14px 44px rgba(0,0,0,.7); }
+#poster .pz { position: relative; display: flex; height: min(72vh, calc((100vw - 32px) * 1.025)); aspect-ratio: 1120 / 1148; max-width: 100%; border-radius: 16px; overflow: hidden; box-shadow: 0 14px 44px rgba(0,0,0,.7); }
+#poster .pz::after { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 18%; transform: translateX(-50%); pointer-events: none; z-index: 1;
+  background: linear-gradient(90deg, transparent, rgba(5,6,10,.55) 50%, transparent); }   /* the two halves meet in shadow, not a hard line */
 #poster .ph { position: relative; flex: 1 1 50%; min-width: 0; background-size: cover; background-position: center top; }
 #poster .ph.r { transform: scaleX(-1); }                                  /* every half is drawn facing right; the right-hand team is turned to face it */
 #poster .ph .fb { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
@@ -1875,7 +1877,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   /* ---------- matchup poster (preview build only): a still court, a Tap to Play button, then the poster while the match loads ---------- */
   var POSTER = !!window.FL_POSTER;
   if (POSTER) document.body.classList.add('poster-on');
-  var POSTERS = { '0m': 'poster-0-m.jpg', '1m': 'poster-1-m.jpg' };   // roster index + m/w. Each half faces right; missing ones fall back to the team badge
+  var POSTERS = { '0m': 'poster-0-m.jpg?v=2', '1m': 'poster-1-m.jpg?v=2' };   // roster index + m/w. Each half faces right; missing ones fall back to the team badge
   function posterHalf(el, t) {
     var r = ROSTER[t], key = t + (cfg.who === 'women' ? 'w' : 'm'), src = POSTERS[key] || (cfg.who === 'mixed' ? POSTERS[t + 'm'] : null);
     el.innerHTML = ''; el.style.backgroundImage = '';
