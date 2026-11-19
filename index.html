@@ -530,6 +530,8 @@ body.hvp .pick-label, body.hvp .picker { display: none !important; }
 #a2hs .a2-x { flex: none; width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; }
 /* matchup poster (preview): a still court, a Tap to Play button, then the two teams face off while the match loads */
 [hidden] { display: none !important; }
+#arenaLink { display: block; margin: 14px auto 18px; max-width: 420px; text-align: center; text-decoration: none; padding: 13px 16px; border-radius: 14px; border: 1px solid #c9a55c; color: #c9a55c; font: 800 15px/1.2 var(--body); letter-spacing: .14em; text-transform: uppercase; }
+#arenaLink span { display: block; margin-top: 4px; font: 500 12.5px/1.3 var(--body); letter-spacing: .02em; text-transform: none; color: var(--muted); }
 #tapPlay { display: none; }
 #moveTip { position: fixed; inset: 0; z-index: 9400; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(5,6,10,.55); }
 #moveTip .mt-card { position: relative; width: min(420px, 100%); background: #15171d; border: 1px solid var(--gold); border-radius: 16px; padding: 20px 20px 16px; box-shadow: 0 14px 40px rgba(0,0,0,.6); color: var(--text); font: 500 15px/1.5 var(--body); }
@@ -668,6 +670,7 @@ body.poster-on #tapPlay { display: block; position: sticky; bottom: calc(26px + 
       <div class="opt-label">Play a friend online</div>
       <div id="onlineBody"></div>
     </div>
+    <a id="arenaLink" href="arena.html">View the Arena <span>walk through the MLJ fronton in 3D</span></a>
   <button type="button" id="tapPlay">Tap to Play</button>
   </section>
 

@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MLJ Arena</title>
+<style>
+:root{--gold:#c9a55c;--bg:#07080b;--panel:rgba(10,11,15,.82);--fg:#f2efe6;--muted:#a9a69c;--line:#2c2f3a}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
+*{box-sizing:border-box}[hidden]{display:none!important}
+#view{position:fixed;inset:0;touch-action:none}#view canvas{display:block;width:100%;height:100%}
+.top{position:fixed;inset:0 0 auto 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:10px max(12px,env(safe-area-inset-right,0px)) 10px max(12px,env(safe-area-inset-left,0px));pointer-events:none;z-index:5}
+.top>*{pointer-events:auto}
+.brand{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-size:13px}
+.acts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+button,select,a.btn{font:700 13px system-ui,sans-serif;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:9px 13px;cursor:pointer;text-decoration:none}
+button[aria-pressed=true]{background:var(--gold);color:#0b0c0f;border-color:var(--gold)}
+#hint{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:12.5px;color:var(--muted);z-index:5;white-space:nowrap;max-width:94vw;overflow:hidden;text-overflow:ellipsis}
+#stick{position:fixed;left:calc(18px + env(safe-area-inset-left,0px));bottom:calc(56px + env(safe-area-inset-bottom,0px));width:104px;height:104px;border-radius:50%;border:2px solid rgba(242,239,230,.5);background:rgba(10,11,15,.45);z-index:6;touch-action:none}
+#stick i{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px;border-radius:50%;background:var(--gold)}
+#welcome{position:fixed;inset:0;z-index:20;background:radial-gradient(circle at 50% 40%,rgba(201,165,92,.18),rgba(5,6,10,.96) 60%);display:flex;align-items:center;justify-content:center;padding:20px}
+#welcome .card{max-width:440px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+#welcome img{width:96px}
+#welcome small{letter-spacing:.3em;text-transform:uppercase;color:var(--gold);font-weight:700}
+#welcome h1{margin:0;font:900 40px/1 system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase}
+#welcome p{margin:0;color:var(--muted)}
+#welcome button{background:var(--gold);color:#0b0c0f;border:0;font-size:16px;letter-spacing:.14em;text-transform:uppercase;padding:14px 26px}
+</style></head><body>
+<div id="view"></div>
+<div class="top"><div class="brand">MLJ Arena &amp; Lounge</div>
+<div class="acts">
+<button id="mWalk" aria-pressed="true">Walk Through View</button><button id="mDoll" aria-pressed="false">Dollhouse View</button><button id="mAir" aria-pressed="false">Aerial View</button>
+<select id="goto" aria-label="Go to"><option value="">Go to…</option><option value="entry">Main entrance</option><option value="food">Food court &amp; bars</option><option value="merch">Merch store</option><option value="rest">Restrooms</option><option value="doors">Fronton doors</option><option value="sharks">Shark tank bars</option><option value="seats">Seats</option><option value="vip">VIP couches</option><option value="court">On the court</option></select>
+<a class="btn" href="./" id="back">Back to the game</a></div></div>
+<div id="stick" hidden><i></i></div>
+<div id="hint"></div>
+<div id="welcome"><div class="card"><img src="brand.png" alt=""><small>Major League Jai Alai Media presents</small><h1>The MLJ Arena</h1>
+<p>Walk in through the concourse: food court and bars on your left, the merch store and restrooms on your right, and the double doors ahead open onto the fronton.</p>
+<button id="go">Enter the arena</button></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+var T=THREE, el=document.getElementById('view');
+var renderer=new T.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio||1,2)); el.appendChild(renderer.domElement);
+var scene=new T.Scene(); scene.background=new T.Color(0x05060a);
+var cam=new T.PerspectiveCamera(68,1,0.3,900);
+/* ---- the plan, in feet. x runs along the court from the front wall (0) to the back wall (168). z runs from the long side wall (0) across the court,
+   over the wood strip, up through the VIP couches and the seats to the bar terrace, then through the double doors into the concourse and out the entrance. ---- */
+var L=168,COURT=40,WOOD=52,VIP0=54,SEAT0=83,TER0=105.6,DOORZ=128,END=182,HALLH=44,CONH=30,TERY=12.5,CX=84,DOORW=6;
+function floorY(x,z){ if(z<VIP0) return 0; if(z<SEAT0) return 1+1.5*Math.min(2,Math.floor((z-VIP0)/9.67)); if(z<TER0) return 5.5+1.2*Math.min(5,Math.max(0,Math.floor((z-84)/3.6))); return TERY; }
+function mat(c,o){ o=o||{}; o.color=c; return new T.MeshLambertMaterial(o); }
+function box(w,h,d,x,y,z,m,parent){ var g=new T.Mesh(new T.BoxGeometry(w,h,d),typeof m==='number'?mat(m):m); g.position.set(x,y,z); (parent||scene).add(g); return g; }
+function canvasTex(w,h,draw){ var c=document.createElement('canvas'); c.width=w; c.height=h; draw(c.getContext('2d'),w,h); var t=new T.CanvasTexture(c); t.anisotropy=4; return t; }
+function sign(text,w,h,x,y,z,ry,o){ o=o||{}; var lines=String(text).split('\n');
+  var t=canvasTex(1024,Math.round(1024*h/w),function(c,W,H){ c.fillStyle=o.bg||'#0b0c0f'; c.fillRect(0,0,W,H); if(o.border!==false){c.strokeStyle=o.fg2||'#c9a55c'; c.lineWidth=14; c.strokeRect(10,10,W-20,H-20);}
+    c.fillStyle=o.fg||'#f2efe6'; c.textAlign='center'; c.textBaseline='middle'; var fs=Math.min(H/(lines.length*1.25),W/(Math.max.apply(null,lines.map(function(l){return l.length}))*0.6)); c.font='900 '+fs+'px system-ui,Arial,sans-serif';
+    lines.forEach(function(l,i){ c.fillText(l,W/2,H/2+(i-(lines.length-1)/2)*fs*1.15); }); });
+  var m=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({map:t})); m.position.set(x,y,z); m.rotation.y=ry||0; scene.add(m); return m; }
+var loader=new T.TextureLoader();
+function banner(src,w,h,x,y,z,ry,bg){ var g=new T.Group(); g.position.set(x,y,z); g.rotation.y=ry||0; scene.add(g);
+  g.add(new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({color:bg||0x0b0c0f})));
+  var fr=new T.Mesh(new T.PlaneGeometry(w+0.8,h+0.8),new T.MeshBasicMaterial({color:0xc9a55c})); fr.position.z=-0.05; g.add(fr);
+  loader.load(src,function(t){ var a=t.image.width/t.image.height, s=Math.min(w*0.86,h*0.86*a); var m=new T.Mesh(new T.PlaneGeometry(s,s/a),new T.MeshBasicMaterial({map:t,transparent:true})); m.position.z=0.06; g.add(m); });
+  return g; }
+var roof=new T.Group(); scene.add(roof);
+/* ---- lights ---- */
+scene.add(new T.AmbientLight(0xffffff,0.95)); var hemi=new T.HemisphereLight(0xfff2d8,0x20222a,0.45); scene.add(hemi);
+[[30,40,25],[84,40,25],[138,40,25],[40,34,80],[128,34,80],[84,26,150],[30,26,155],[138,26,155]].forEach(function(p){ var l=new T.PointLight(0xfff0d0,0.8,170,1.4); l.position.set(p[0],p[1],p[2]); scene.add(l); });
+/* ---- the court ---- */
+var BLK=0x101114, GOLD=0xc9a55c;
+box(L,0.4,COURT,L/2,-0.2,COURT/2,canvasTex(2048,512,function(c,W,H){ c.fillStyle='#3a3c42'; c.fillRect(0,0,W,H); for(var i=0;i<900;i++){c.fillStyle='rgba(255,255,255,'+(Math.random()*0.035)+')'; c.fillRect(Math.random()*W,Math.random()*H,30,2);} c.fillStyle='#f2efe6'; for(var n=1;n<=14;n++){ c.fillRect(n*12/L*W-3,0,6,H);} c.fillStyle='rgba(224,57,44,.9)'; [4,7].forEach(function(n){c.fillRect(n*12/L*W-5,0,10,H);}); }) && new T.MeshLambertMaterial({map:canvasTex(2048,512,function(c,W,H){ c.fillStyle='#3a3c42'; c.fillRect(0,0,W,H); for(var i=0;i<900;i++){c.fillStyle='rgba(255,255,255,'+(Math.random()*0.035)+')'; c.fillRect(Math.random()*W,Math.random()*H,30,2);} c.fillStyle='#f2efe6'; for(var n=1;n<=14;n++){ c.fillRect(n*12/L*W-3,0,6,H);} c.fillStyle='rgba(224,57,44,.95)'; [4,7].forEach(function(n){c.fillRect(n*12/L*W-5,0,10,H);}); })}));
+box(L,0.4,WOOD-COURT,L/2,-0.2,(COURT+WOOD)/2,new T.MeshLambertMaterial({map:canvasTex(1024,128,function(c,W,H){ for(var y=0;y<H;y+=16){ for(var x=0;x<W;x+=90){ var k=150+Math.random()*50; c.fillStyle='rgb('+k+','+Math.round(k*0.55)+','+Math.round(k*0.2)+')'; c.fillRect(x+(y%32?45:0),y,89,15);} } })}));
+box(L+4,HALLH,2,L/2,HALLH/2,-1,BLK);                                  // the long side wall
+box(2,HALLH,COURT+2,-1,HALLH/2,COURT/2-1,BLK);                         // front wall
+box(2,HALLH,COURT+2,L+1,HALLH/2,COURT/2-1,BLK);                        // back wall
+box(1.2,HALLH,1.2,-0.4,HALLH/2,COURT,GOLD); box(1.2,HALLH,1.2,L+0.4,HALLH/2,COURT,GOLD);
+box(0.3,1.6,COURT,0.2,3.2,COURT/2,0xe0392c);                           // the low red line on the front wall
+(function(){ var t=canvasTex(4096,96,function(c,W,H){ c.clearRect(0,0,W,H); c.fillStyle='#f2efe6'; c.font='900 70px Arial'; c.textAlign='center'; c.textBaseline='middle'; for(var n=1;n<=14;n++){ c.fillRect(n*12/L*W-4,0,8,H*0.25); c.fillText(n,n*12/L*W-(n===14?46:0),H*0.64);} });
+  var m=new T.Mesh(new T.PlaneGeometry(L,4),new T.MeshBasicMaterial({map:t,transparent:true})); m.position.set(L/2,6.4,0.06); scene.add(m); })();
+box(L,1.2,0.3,L/2,38.6,0.2,GOLD);
+banner('brand.png',26,14,L/2,24,0.12,0,0x0b0c0f);
+['team-a.png','team-b.png','logo-booties.png'].forEach(function(s,i){ banner(s,13,13,18+i*19,24,0.12,0); });
+['logo-skunk-apes.png','logo-don-juans.png','logo-seamen.png'].forEach(function(s,i){ banner(s,13,13,112+i*19,24,0.12,0); });
+banner('usa-crest.png',12,12,0.12,26,20,Math.PI/2);
+sign('MAJOR LEAGUE\nJAI ALAI',20,8,L-0.1,26,20,-Math.PI/2);
+/* the net: thin black mesh on the inside edge of the wood, so the ball stays in */
+(function(){ var t=canvasTex(256,256,function(c,W,H){ c.clearRect(0,0,W,H); c.strokeStyle='rgba(10,10,12,.85)'; c.lineWidth=3; for(var i=0;i<=W;i+=32){ c.beginPath(); c.moveTo(i,0); c.lineTo(i,H); c.stroke(); c.beginPath(); c.moveTo(0,i); c.lineTo(W,i); c.stroke(); } }); t.wrapS=t.wrapT=T.RepeatWrapping; t.repeat.set(L/2,HALLH/2);
+  var m=new T.Mesh(new T.PlaneGeometry(L,HALLH),new T.MeshBasicMaterial({map:t,transparent:true,side:T.DoubleSide,depthWrite:false})); m.position.set(L/2,HALLH/2,COURT+0.3); scene.add(m); box(L,0.5,0.5,L/2,HALLH-0.3,COURT+0.3,0x18181c); })();
+/* ---- hall end walls and the stepped floor ---- */
+box(2,HALLH,DOORZ-COURT,-1,HALLH/2,(COURT+DOORZ)/2,0x15161b); box(2,HALLH,DOORZ-COURT,L+1,HALLH/2,(COURT+DOORZ)/2,0x15161b);
+var MARB=new T.MeshLambertMaterial({map:canvasTex(512,512,function(c,W,H){ c.fillStyle='#121318'; c.fillRect(0,0,W,H); c.strokeStyle='rgba(255,255,255,.16)'; for(var i=0;i<26;i++){ c.lineWidth=Math.random()*2+0.4; c.beginPath(); var x=Math.random()*W,y=Math.random()*H; c.moveTo(x,y); for(var k=0;k<5;k++){ x+=Math.random()*120-40; y+=Math.random()*120-40; c.lineTo(x,y);} c.stroke(); } })});
+MARB.map.wrapS=MARB.map.wrapT=T.RepeatWrapping;
+function slab(z0,z1,y){ var m=MARB.clone(); m.map=MARB.map.clone(); m.map.needsUpdate=true; m.map.repeat.set(L/24,(z1-z0)/24); box(L,y+0.4,z1-z0,L/2,(y-0.4)/2,(z0+z1)/2,m); }
+slab(WOOD,VIP0,0); for(var r=0;r<3;r++) slab(VIP0+r*9.67,VIP0+(r+1)*9.67,1+1.5*r);
+slab(SEAT0,84,5.5); for(var s=0;s<6;s++) slab(84+s*3.6,84+(s+1)*3.6,5.5+1.2*s); slab(TER0,DOORZ,TERY);
+box(L,0.25,0.25,L/2,5.6,SEAT0-0.4,0xb01822);                           // the red rail between VIP and the seats
+/* ---- VIP couches: two rows of love seats with gold tables, then a long sofa, in three gold-framed sections ---- */
+var SECT=[[10,56],[61,107],[112,158]], COUCH=mat(0xbdb9ae), TABLE=new T.MeshLambertMaterial({color:0xd8b24a,emissive:0x3a2a05});
+function couch(x,y,z,w){ box(w,1.4,3,x,y+0.7,z,COUCH); box(w,1.5,0.9,x,y+2.1,z+1.3,COUCH); box(0.8,2.2,3,x-w/2+0.4,y+1.1,z,COUCH); box(0.8,2.2,3,x+w/2-0.4,y+1.1,z,COUCH); }
+SECT.forEach(function(sx){ var mid=(sx[0]+sx[1])/2;
+  for(var r=0;r<2;r++){ var z=VIP0+r*9.67+4.6, y=1+1.5*r; couch(mid-11,y,z,10); couch(mid+11,y,z,10); box(4,1.6,3,mid,y+0.8,z,TABLE); }
+  var z2=VIP0+2*9.67+4.6; couch(mid-12.5,4,z2,19); couch(mid+12.5,4,z2,19); box(4,1.6,3,mid,4.8,z2,TABLE);
+  box(0.35,3.2,SEAT0-VIP0,sx[0]-1.6,3.4,(VIP0+SEAT0)/2,GOLD); box(0.35,3.2,SEAT0-VIP0,sx[1]+1.6,3.4,(VIP0+SEAT0)/2,GOLD); });
+/* ---- 350 seats, six rising rows, with the wheelchair bay cut from the middle section's top row ---- */
+(function(){ var pos=[]; SECT.forEach(function(sx,si){ for(var r=0;r<6;r++){ for(var i=0;i<20;i++){ if(si===1&&r===5&&i>=5&&i<15) continue; pos.push([sx[0]+2+i*2.2,5.5+1.2*r,84+r*3.6+1.9]); } } });
+  var seat=new T.InstancedMesh(new T.BoxGeometry(1.9,0.5,1.8),mat(0x2a2b31),pos.length), back=new T.InstancedMesh(new T.BoxGeometry(1.9,2.2,0.45),mat(0x33343b),pos.length), m=new T.Matrix4();
+  pos.forEach(function(p,i){ m.makeTranslation(p[0],p[1]+1.5,p[2]); seat.setMatrixAt(i,m); m.makeTranslation(p[0],p[1]+2.6,p[2]+0.9); back.setMatrixAt(i,m); });
+  scene.add(seat); scene.add(back); window.__seats=pos.length;
+  sign('♿',6,4,CX,TERY-1.7,84+5*3.6-0.05,Math.PI,{bg:'#1b1c22',border:false}); })();
+/* ---- the bar terrace: two bars whose tops are fish tanks, with sharks swimming in them ---- */
+var sharks=[];
+function sharkBar(x,z){ box(26,3.6,7,x,TERY+1.8,z,new T.MeshLambertMaterial({map:MARB.map,color:0xdfe4ea}));
+  box(26.4,0.3,7.4,x,TERY+3.7,z,0x0b0c0f);
+  var tank=new T.Mesh(new T.BoxGeometry(25.4,2.6,6.4),new T.MeshLambertMaterial({color:0x1d8fd6,transparent:true,opacity:0.42,emissive:0x0a3f6e})); tank.position.set(x,TERY+5.15,z); scene.add(tank);
+  box(26.4,0.3,7.4,x,TERY+6.6,z,new T.MeshLambertMaterial({color:0x9fd8ff,transparent:true,opacity:0.35}));
+  for(var i=0;i<4;i++){ var g=new T.Group(), sm=mat(0x8fa3b4);
+    var b=new T.Mesh(new T.SphereGeometry(0.5,10,8),sm); b.scale.set(3.2,0.9,0.8); g.add(b);
+    var tl=new T.Mesh(new T.ConeGeometry(0.55,1.2,4),sm); tl.rotation.z=Math.PI/2; tl.position.x=-1.9; tl.scale.z=0.25; g.add(tl);
+    var f=new T.Mesh(new T.ConeGeometry(0.35,0.9,4),sm); f.position.set(0.1,0.6,0); f.scale.z=0.2; g.add(f);
+    scene.add(g); sharks.push({g:g,x:x,z:z,y:TERY+4.6+(i%2)*0.9,ph:i*1.57,sp:0.45+i*0.07}); }
+  for(var k=0;k<9;k++){ box(1.3,0.3,1.3,x-11+k*2.75,TERY+2.4,z+5,0x0b0c0f); box(0.25,2.3,0.25,x-11+k*2.75,TERY+1.15,z+5,GOLD); } }
+sharkBar(42,115); sharkBar(126,115);
+sign('SHARK TANK BAR',14,2.4,42,TERY+9.2,111.4,Math.PI); sign('SHARK TANK BAR',14,2.4,126,TERY+9.2,111.4,Math.PI);
+/* ---- the wall between the fronton and the concourse, with the double doors in the middle ---- */
+var WALLC=0x16171d;
+box(CX-DOORW,HALLH-TERY,1.2,(CX-DOORW)/2,TERY+(HALLH-TERY)/2,DOORZ,WALLC); box(L-(CX+DOORW),HALLH-TERY,1.2,(CX+DOORW+L)/2,TERY+(HALLH-TERY)/2,DOORZ,WALLC);
+box(DOORW*2,HALLH-TERY-10,1.2,CX,TERY+10+(HALLH-TERY-10)/2,DOORZ,WALLC);
+[-1,1].forEach(function(sd){ var d=box(DOORW,10,0.3,CX+sd*(DOORW*1.5-0.4),TERY+5,DOORZ+sd*0+0.0,new T.MeshLambertMaterial({color:0x2a2118})); d.rotation.y=sd*-1.25; d.position.set(CX+sd*(DOORW+1.0),TERY+5,DOORZ+2.9); box(0.3,10,0.3,CX+sd*DOORW,TERY+5,DOORZ,GOLD); });
+sign('FRONTON',12,2.6,CX,TERY+11.8,DOORZ+0.7,0); sign('WELCOME TO THE MLJ ARENA',40,4.4,CX,TERY+16,DOORZ+0.7,0);
+sign('ENJOY THE MATCH',16,2.4,CX,TERY+11.8,DOORZ-0.7,Math.PI);
+/* ---- the concourse: food court and bars to the left as you walk in, merch store and restrooms to the right ---- */
+(function(){ var m=MARB.clone(); m.map=MARB.map.clone(); m.map.needsUpdate=true; m.map.repeat.set(7,2.2); m.color=new T.Color(0x9a9aa2); box(L,0.4,END-DOORZ,L/2,TERY-0.2,(DOORZ+END)/2,m); })();
+box(2,CONH,END-DOORZ,-1,TERY+CONH/2,(DOORZ+END)/2,WALLC); box(2,CONH,END-DOORZ,L+1,TERY+CONH/2,(DOORZ+END)/2,WALLC);
+box(CX-8,CONH,1.2,(CX-8)/2,TERY+CONH/2,END,WALLC); box(L-CX-8,CONH,1.2,(CX+8+L)/2,TERY+CONH/2,END,WALLC); box(16,CONH-11,1.2,CX,TERY+11+(CONH-11)/2,END,WALLC);
+box(16,11,0.2,CX,TERY+5.5,END,new T.MeshLambertMaterial({color:0x9fd8ff,transparent:true,opacity:0.18}));
+sign('FANTASY LEAGUE JAI ALAI',34,4,CX,TERY+16,END-0.7,Math.PI);
+banner('brand.png',9,9,CX-27,TERY+15,END-0.7,Math.PI); banner('brand.png',9,9,CX+27,TERY+15,END-0.7,Math.PI);
+// facing the fronton doors from the entrance, left is the low-x side
+var FOOD=[['CUBAN\nSANDWICHES',0xe0392c],['STONE CRAB\n& SEAFOOD',0x3cb5e4],['PINTXOS\n& TAPAS',0xc6ee32],['PIZZA',0xff8a1f]];
+FOOD.forEach(function(f,i){ var x=64-i*15.5; box(13,3.6,4,x,TERY+1.8,DOORZ+5,0x1c1d24); box(13,0.3,4.6,x,TERY+3.7,DOORZ+5,f[1]); box(13,9,1,x,TERY+4.5,DOORZ+1.3,0x23242c);
+  sign(f[0],12,3.4,x,TERY+11.4,DOORZ+0.75,0,{fg2:'#'+f[1].toString(16).padStart(6,'0')}); });
+sign('FOOD COURT',22,3.2,40,TERY+16.2,DOORZ+0.75,0);
+box(30,3.8,5,30,TERY+1.9,END-6,0x1c1d24); box(30.6,0.35,5.8,30,TERY+3.95,END-6,GOLD); box(30,10,1.2,30,TERY+5,END-1.6,0x0e0f13);
+for(var bi=0;bi<18;bi++){ box(0.8,2.2,0.8,43-bi*1.55,TERY+7.2+(bi%3)*1.3,END-2.4,[0x3cb5e4,0xf52f9b,0xc6ee32,0xc9a55c][bi%4]); }
+for(var st=0;st<10;st++){ box(1.3,0.3,1.3,43-st*2.9,TERY+2.4,END-10.5,0x0b0c0f); box(0.25,2.3,0.25,43-st*2.9,TERY+1.15,END-10.5,GOLD); }
+sign('THE CESTA BAR',18,3,30,TERY+13.4,END-0.75,Math.PI);
+for(var ti=0;ti<8;ti++){ var tx=60-(ti%4)*14, tz=DOORZ+17+Math.floor(ti/4)*11; box(4,0.3,4,tx,TERY+2.6,tz,0xdad6cc); box(0.4,2.5,0.4,tx,TERY+1.25,tz,0x0b0c0f);
+  [[-3,0],[3,0],[0,-3],[0,3]].forEach(function(o){ box(1.5,1.5,1.5,tx+o[0],TERY+0.75,tz+o[1],0x2a2b31); }); }
+// merch store
+box(60,12,1,134,TERY+6,DOORZ+24,new T.MeshLambertMaterial({color:0x9fd8ff,transparent:true,opacity:0.14}));
+box(1,12,24,104,TERY+6,DOORZ+12,new T.MeshLambertMaterial({color:0x9fd8ff,transparent:true,opacity:0.14})).scale.z=0.55;
+sign('MERCH STORE',22,3.2,134,TERY+14,DOORZ+24.1,0); sign('OFFICIAL TEAM GEAR',22,2,134,TERY+16.8,DOORZ+0.75,0);
+var TC=[0xa8e22a,0x3bb4e6,0xa23cf2,0xff5a3c,0xf2f2f2,0x3aa0ff], TL=['team-a.png','team-b.png','logo-booties.png','logo-skunk-apes.png','logo-don-juans.png','logo-seamen.png'];
+TL.forEach(function(s,i){ var x=159-i*10; banner(s,6.5,6.5,x,TERY+10.5,DOORZ+0.75,0);
+  box(7,0.3,1.2,x,TERY+6.2,DOORZ+1.4,GOLD); for(var k=0;k<3;k++){ box(1.9,2.6,0.5,x-2.2+k*2.2,TERY+4.6,DOORZ+1.5,0x101114); box(1.9,0.35,0.55,x-2.2+k*2.2,TERY+5.4,DOORZ+1.5,TC[i]); }
+  box(7,1.2,2.4,x,TERY+0.6,DOORZ+2,0x1c1d24); for(var c=0;c<3;c++) box(1.4,0.7,1.4,x-2.2+c*2.2,TERY+1.55,DOORZ+2,TC[i]); });
+for(var rk=0;rk<3;rk++){ var rx=154-rk*18; box(10,0.25,0.25,rx,TERY+5.2,DOORZ+12,GOLD); box(0.25,5.2,0.25,rx-5,TERY+2.6,DOORZ+12,GOLD); box(0.25,5.2,0.25,rx+5,TERY+2.6,DOORZ+12,GOLD);
+  for(var sh=0;sh<8;sh++) box(1,3,0.3,rx-4.2+sh*1.2,TERY+3.6,DOORZ+12,sh%2?0x101114:TC[(rk*2+sh)%6]); }
+box(10,3.4,3,112,TERY+1.7,DOORZ+19,0x1c1d24); box(10.4,0.3,3.4,112,TERY+3.5,DOORZ+19,GOLD); sign('CHECKOUT',6,1.3,112,TERY+2,DOORZ+20.6,0,{border:false});
+// restrooms
+box(52,14,1,138,TERY+7,DOORZ+38,WALLC); box(1,14,16,112,TERY+7,DOORZ+46,WALLC); box(1,14,16,164,TERY+7,DOORZ+46,WALLC);
+[[146,'MEN',0x3cb5e4],[130,'WOMEN',0xf52f9b]].forEach(function(q){ box(5,9,0.4,q[0],TERY+4.5,DOORZ+37.4,0x2a2118); sign(q[1],7,2,q[0],TERY+11,DOORZ+37.4,Math.PI,{fg2:'#'+q[2].toString(16)}); });
+sign('RESTROOMS',16,2.6,138,TERY+15.6,DOORZ+37.4,Math.PI);
+sign('← FOOD COURT & BARS        MERCH & RESTROOMS →',46,2.6,CX,TERY+22,DOORZ+0.75,0);
+/* ---- roofs (lifted off for the dollhouse and aerial views) ---- */
+var rm=mat(0x0c0d11,{side:T.DoubleSide}); var r1=new T.Mesh(new T.BoxGeometry(L+4,1,DOORZ+2),rm); r1.position.set(L/2,HALLH+0.5,DOORZ/2-1); roof.add(r1);
+var r2=new T.Mesh(new T.BoxGeometry(L+4,1,END-DOORZ+1),rm); r2.position.set(L/2,TERY+CONH+0.5,(DOORZ+END)/2+0.5); roof.add(r2);
+for(var li=0;li<6;li++){ var lamp=new T.Mesh(new T.BoxGeometry(6,0.4,2.4),new T.MeshBasicMaterial({color:0xfff3d6})); lamp.position.set(18+li*26.4,HALLH-0.4,22); roof.add(lamp); }
+box(L+40,0.2,END+60,L/2,-0.6,END/2,0x0a0b0e); box(L+40,TERY,40,L/2,TERY/2-0.25,END+20,0x0d0e12);
+/* ---- moving around ---- */
+var pos=new T.Vector3(CX,0,END-6), yaw=0, pitch=-0.03, mode='walk', keys={}, joy={x:0,y:0}, started=false;
+var orbit={a:0.55,e:0.8,d:185}, SPOTS={entry:[CX,END-6,0],food:[62,DOORZ+24,0.75],merch:[112,DOORZ+30,-0.75],rest:[138,DOORZ+25.6,Math.PI],doors:[CX,DOORZ+12,0],sharks:[70,121,1.1],seats:[CX+25,100,0],vip:[CX,72,0],court:[70,20,Math.PI/2]};
+function zone(x,z){ return z<COURT?0:z<DOORZ?1:2; }
+function tryMove(nx,nz){ nx=Math.max(1.5,Math.min(L-1.5,nx)); var z0=zone(pos.x,pos.z);
+  if(z0===0) nz=Math.max(1.5,Math.min(COURT-1.2,nz)); else if(z0===1){ nz=Math.max(COURT+1.4,nz); if(nz>DOORZ-1.6&&Math.abs(nx-CX)>DOORW-1) nz=DOORZ-1.6; }
+  else { if(nz<DOORZ+1.6&&Math.abs(nx-CX)>DOORW-1) nz=DOORZ+1.6; nz=Math.min(END-2,nz); }
+  pos.x=nx; pos.z=nz; }
+function setMode(m){ mode=m; [['mWalk','walk'],['mDoll','doll'],['mAir','air']].forEach(function(q){ document.getElementById(q[0]).setAttribute('aria-pressed',String(q[1]===m)); });
+  roof.visible=m==='walk'; document.getElementById('stick').hidden=!(m==='walk'&&touch&&started);
+  document.getElementById('hint').textContent=m==='walk'?(touch?'Thumb circle to walk · drag to look around':'W A S D or arrow keys to walk · drag to look around'):m==='doll'?'Drag to turn · pinch or scroll to zoom':'The whole arena from above · pinch or scroll to zoom'; }
+var touch=('ontouchstart' in window)||navigator.maxTouchPoints>0;
+function size(){ var w=el.clientWidth,h=el.clientHeight; renderer.setSize(w,h,false); cam.aspect=w/h; cam.updateProjectionMatrix(); }
+addEventListener('resize',size); size();
+addEventListener('keydown',function(e){ keys[e.key.toLowerCase()]=1; }); addEventListener('keyup',function(e){ keys[e.key.toLowerCase()]=0; });
+var drag=null, pinch=0, pts={};
+el.addEventListener('pointerdown',function(e){ pts[e.pointerId]=[e.clientX,e.clientY]; drag=[e.clientX,e.clientY]; el.setPointerCapture(e.pointerId); });
+el.addEventListener('pointermove',function(e){ if(!pts[e.pointerId]) return; var ids=Object.keys(pts);
+  if(ids.length===2){ pts[e.pointerId]=[e.clientX,e.clientY]; var a=pts[ids[0]],b=pts[ids[1]],d=Math.hypot(a[0]-b[0],a[1]-b[1]); if(pinch){ orbit.d=Math.max(60,Math.min(420,orbit.d*pinch/d)); } pinch=d; return; }
+  var dx=e.clientX-drag[0], dy=e.clientY-drag[1]; drag=[e.clientX,e.clientY]; pts[e.pointerId]=drag;
+  if(mode==='walk'){ yaw-=dx*0.005; pitch=Math.max(-1.2,Math.min(1.2,pitch-dy*0.004)); } else if(mode==='doll'){ orbit.a-=dx*0.006; orbit.e=Math.max(0.25,Math.min(1.45,orbit.e+dy*0.005)); } });
+function up(e){ delete pts[e.pointerId]; pinch=0; } el.addEventListener('pointerup',up); el.addEventListener('pointercancel',up);
+el.addEventListener('wheel',function(e){ if(mode!=='walk'){ orbit.d=Math.max(60,Math.min(420,orbit.d*(1+e.deltaY*0.001))); e.preventDefault(); } },{passive:false});
+(function(){ var s=document.getElementById('stick'), k=s.firstElementChild, id=null;
+  function mv(e){ var r=s.getBoundingClientRect(), x=(e.clientX-r.left-r.width/2)/(r.width/2), y=(e.clientY-r.top-r.height/2)/(r.height/2), m=Math.hypot(x,y); if(m>1){x/=m;y/=m;} joy.x=x; joy.y=y; k.style.transform='translate('+x*30+'px,'+y*30+'px)'; }
+  s.addEventListener('pointerdown',function(e){ id=e.pointerId; s.setPointerCapture(id); mv(e); e.stopPropagation(); });
+  s.addEventListener('pointermove',function(e){ if(e.pointerId===id) mv(e); });
+  function end(e){ if(e.pointerId===id){ id=null; joy.x=joy.y=0; k.style.transform=''; } } s.addEventListener('pointerup',end); s.addEventListener('pointercancel',end); })();
+document.getElementById('mWalk').onclick=function(){ setMode('walk'); }; document.getElementById('mDoll').onclick=function(){ setMode('doll'); }; document.getElementById('mAir').onclick=function(){ setMode('air'); };
+document.getElementById('goto').onchange=function(){ var s=SPOTS[this.value]; this.value=''; if(!s) return; pos.x=s[0]; pos.z=s[1]; yaw=s[2]; pitch=-0.05; setMode('walk'); };
+document.getElementById('go').onclick=function(){ document.getElementById('welcome').hidden=true; started=true; setMode('walk'); };
+setMode('walk');
+var last=performance.now();
+function frame(now){ var dt=Math.min(0.05,(now-last)/1000); last=now;
+  if(mode==='walk'){ var f=(keys.w||keys.arrowup?1:0)-(keys.s||keys.arrowdown?1:0)-joy.y, sd=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0)+joy.x, sp=(keys.shift?34:17)*dt;
+    if(f||sd){ var sx=Math.sin(yaw), cz=Math.cos(yaw); tryMove(pos.x-(sx*f-cz*sd)*sp, pos.z-(cz*f+sx*sd)*sp); }
+    var ty=floorY(pos.x,pos.z)+5.6; pos.y+=(ty-pos.y)*Math.min(1,dt*10);
+    cam.position.copy(pos); cam.rotation.order='YXZ'; cam.rotation.set(pitch,yaw,0); }
+  else if(mode==='doll'){ var c=new T.Vector3(L/2,8,END/2-6); cam.position.set(c.x+Math.sin(orbit.a)*Math.cos(orbit.e)*orbit.d, c.y+Math.sin(orbit.e)*orbit.d, c.z+Math.cos(orbit.a)*Math.cos(orbit.e)*orbit.d); cam.lookAt(c); }
+  else { cam.position.set(L/2,Math.max(150,orbit.d*1.0),END/2+0.01); cam.rotation.order='YXZ'; cam.rotation.set(-Math.PI/2,0,0); }
+  var t=now/1000; sharks.forEach(function(s){ var a=t*s.sp+s.ph; s.g.position.set(s.x+Math.cos(a)*10.4,s.y+Math.sin(a*2.3)*0.25,s.z+Math.sin(a)*2.1); s.g.rotation.y=-a-Math.PI/2; });
+  renderer.render(scene,cam); requestAnimationFrame(frame); }
+pos.y=TERY+5.6; requestAnimationFrame(frame);
+window.__arena={pos:pos,setMode:setMode,go:function(k){ var s=SPOTS[k]; pos.x=s[0]; pos.z=s[1]; yaw=s[2]; pitch=-0.05; },look:function(y,p){ yaw=y; pitch=p||0; }};
+})();
+</script></body></html>
