@@ -1901,10 +1901,10 @@ if (typeof module !== 'undefined') module.exports = Core;
     p.querySelector('.pn').innerHTML = '<span style="color:' + (TEAM[0].ui || '#fff') + '">' + esc(cfg.names[0]) + '</span><i>vs</i><span style="color:' + (TEAM[1].ui || '#fff') + '">' + esc(cfg.names[1]) + '</span>';
     unlock(); p.hidden = false; void p.offsetWidth; p.classList.add('on');
     clearTimeout(posterT);
-    posterT = setTimeout(function () {                             // about two and a half seconds, then the match opens behind it and the poster fades
+    posterT = setTimeout(function () {                             // five seconds, then the match opens behind it and the poster fades
       tryStart();
       p.classList.remove('on'); setTimeout(function () { p.hidden = true; }, 380);
-    }, 2600);
+    }, 5000);
   }
   if ($('tapPlay')) $('tapPlay').addEventListener('click', posterGo);
   function startDemo(keepNet) {
