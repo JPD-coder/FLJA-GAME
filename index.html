@@ -130,16 +130,16 @@ body.sides .pads { padding-left: 86px; padding-right: 96px; }      /* the shots 
 /* sideways: the shots are a column of circles under the left hand, keeping each its own colour */
 .pad.land .shots.round { position: fixed; left: max(5px, env(safe-area-inset-left, 0px)); top: 50%; transform: translateY(-50%);
   display: flex; flex-direction: column; gap: 6px; padding: 0; z-index: 6; }
-.pad.land .shots.round button { width: 72px; height: 72px; min-height: 0; padding: 0 4px; border-radius: 50%;
-  font-size: 12px !important; letter-spacing: 0; line-height: 1.03; }
+.pad.land { --sc: min(72px, 15.4vh); }
+.pad.land .shots.round button { width: var(--sc); height: var(--sc); min-height: 0; padding: 0 4px; border-radius: 50%;
+  font-size: calc(var(--sc) * .16) !important; letter-spacing: 0; line-height: 1.03; }
 /* the language switch sits under the stack, in the shape of a chip rather than a shot */
 .pad.land .shots.round button.langbtn, .pad.tall .shots.round button.langbtn, .pad .shots.round button.langbtn {
-  width: 72px; height: auto; min-height: 24px; padding: 3px 4px; border-radius: 12px;
+  width: var(--sc, 72px); height: auto; min-height: min(24px, 3.6vh); padding: 3px 4px; border-radius: 12px;
   background: var(--panel); border: 1px solid var(--line); color: var(--muted);
-  font: 800 11px/1.1 var(--display) !important; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+  font: 800 max(9px, calc(var(--sc, 72px) * .145))/1.1 var(--display) !important; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; }
 .pad .shots.round button.langbtn:hover { color: var(--text); border-color: var(--muted); }
-@media (max-height: 400px) { .pad.land .shots.round button.langbtn { width: 64px; } }
-@media (max-width: 370px) { .pad.tall .shots.round button.langbtn { width: 64px; } }
+
 /* and the small controls go back under the court bar */
 .pad.land .minis { flex: none; display: flex; flex-direction: row; gap: 4px; padding: 4px; border-top: 1px solid var(--line); }
 .pad.land .minis button { flex: 1; height: auto; min-height: 28px; padding: 2px 8px; font-size: 11px !important; letter-spacing: .06em; }
@@ -147,17 +147,18 @@ body.sides .pads { padding-left: 86px; padding-right: 96px; }      /* the shots 
 /* upright: the same three parts as sideways — shots left, court bar and small controls between, joystick and serve right */
 .pad.tall { display: flex; flex-direction: row; align-items: center; gap: 10px; padding: 6px 2px; }
 .pad.tall .shots.round { display: flex; flex-direction: column; gap: 6px; padding: 0; }
-.pad.tall .shots.round button { width: 72px; height: 72px; min-height: 0; padding: 0 4px; border-radius: 50%;
-  font-size: 12px !important; letter-spacing: 0; line-height: 1.03; }
+.pad.tall { --sc: min(72px, 9.2vh); }
+.pad.tall .shots.round button { width: var(--sc); height: var(--sc); min-height: 0; padding: 0 4px; border-radius: 50%;
+  font-size: calc(var(--sc) * .16) !important; letter-spacing: 0; line-height: 1.03; }
 .pad.tall .shotbox { flex: 1; min-width: 0; align-self: center; background: #0b0c0f; }
 .pad.tall .minis { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; padding: 4px; border-top: 1px solid var(--line); }
 .pad.tall .minis button { flex: 1 1 44%; min-width: 0; height: auto; min-height: 30px; padding: 2px 4px; font-size: 11px !important; letter-spacing: .05em; }
 .pad.tall .shot-label { font-size: 11px; padding: 3px 2px; }
 .pad.tall .righthand { gap: 14px; }
-.pad.tall .stick { width: 82px; height: 82px; margin: 0; }
-.pad.tall .stick .stick-knob { width: 48px; height: 48px; margin: -24px 0 0 -24px; }
+.pad.tall .stick { width: calc(var(--sc) * 1.14); height: calc(var(--sc) * 1.14); margin: 0; }
+.pad.tall .stick .stick-knob { width: calc(var(--sc) * .67); height: calc(var(--sc) * .67); margin: calc(var(--sc) * -.335) 0 0 calc(var(--sc) * -.335); }
 .pad.tall .stick .stick-base .arw { width: 13px; height: 13px; }
-.pad.tall .righthand .throw.ball { width: 64px; height: 64px; font-size: 12px !important; }   /* 64 plus its 4px ring matches a shot circle */
+.pad.tall .righthand .throw.ball { width: var(--sc); height: var(--sc); font-size: calc(var(--sc) * .17) !important; }   /* the same disc as a shot circle */
 /* the serve has a ball of its own, under the joystick, in the hand that throws it */
 .righthand { flex: none; display: flex; flex-direction: column; align-items: center; gap: 18px; }   /* the serve ball keeps clear of the joystick */
 /* sideways both hands sit beside the court, in the black either side of it, so the court keeps its height */
@@ -168,15 +169,13 @@ body.sides .pads { padding-left: 86px; padding-right: 96px; }      /* the shots 
   box-shadow: 0 0 0 4px #e0392c, 0 3px 12px rgba(0,0,0,.5); }                  /* a red ring, the same rim as the joystick above it */
 .pad .righthand .throw.ball.idle { opacity: .4; }
 
-.pad.land .righthand .throw.ball { width: 64px; height: 64px; font-size: 12px !important; }   /* 64 plus its 4px ring: the same circle as a shot */
-.pad.land .stick { flex: 0 0 auto; width: 82px; height: 82px; margin: 0; align-self: center; }
-.pad.land .stick .stick-knob { width: 48px; height: 48px; margin: -24px 0 0 -24px; }
+.pad.land .righthand .throw.ball { width: var(--sc); height: var(--sc); font-size: calc(var(--sc) * .17) !important; }   /* the same disc as a shot circle */
+.pad.land .stick { flex: 0 0 auto; width: calc(var(--sc) * 1.14); height: calc(var(--sc) * 1.14); margin: 0; align-self: center; }
+.pad.land .stick .stick-knob { width: calc(var(--sc) * .67); height: calc(var(--sc) * .67); margin: calc(var(--sc) * -.335) 0 0 calc(var(--sc) * -.335); }
 .pad.land .shotbox { flex: 1; background: #0b0c0f; align-self: center; }
 /* small screens: everything a notch down — these come last so they win over the sizes above */
-@media (max-height: 400px) { .pad.land .shots.round { gap: 5px; } .pad.land .shots.round button { width: 64px; height: 64px; font-size: 11px !important; }
-  .pad.land .stick { width: 74px; height: 74px; } .pad.land .righthand .throw.ball { width: 56px; height: 56px; font-size: 11px !important; } }
-@media (max-width: 370px) { .pad.tall .shots.round button { width: 64px; height: 64px; font-size: 11px !important; }
-  .pad.tall .stick { width: 74px; height: 74px; } .pad.tall .righthand .throw.ball { width: 56px; height: 56px; font-size: 11px !important; } }
+@media (max-height: 400px) { .pad.land .shots.round { gap: 5px; } }
+@media (max-width: 370px) { .pad.tall { --sc: min(64px, 9.2vh); } }
    /* hugs its buttons: no empty box under the court bar */
 .pad.land .shots { grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 4px; }
 .pad.land .shots button { grid-column: auto; }
