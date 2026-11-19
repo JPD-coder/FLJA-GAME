@@ -276,7 +276,7 @@ body:not(.filming) .setup { animation: setup-in .4s ease-out; }
 .guide dd { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
 .guide .sw { flex: none; width: 14px; height: 14px; border-radius: 3px; background: var(--text); }
 .guide .sw.sv { background: var(--team-a, var(--gold)); }
-.guide .sw.s1 { background: #22c55e; } .guide .sw.s2 { background: var(--vice-pink); } .guide .sw.s3 { background: var(--vice-aqua); } .guide .sw.s4 { background: #ff8a1f; }
+.guide .sw.s1 { background: #22c55e; } .guide .sw.s2 { background: var(--vice-pink); } .guide .sw.s3 { background: var(--vice-aqua); } .guide .sw.s4 { background: #fcfc04; }
 @media (max-width: 520px) { .guide dl > div { grid-template-columns: 1fr; } }
 .type-row .seg button { padding-inline: 14px; }
 #optView { flex-wrap: nowrap; flex: 1 1 auto; min-width: 0; }
@@ -411,7 +411,7 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
 .pad .throw.s1, .side .throw.s1 { background: var(--vice-aqua); border-color: var(--vice-aqua); color: #04201f; }
 .pad .throw.s2, .side .throw.s2 { background: var(--vice-pink); border-color: var(--vice-pink); color: #24000f; }
 .pad .throw.s3, .side .throw.s3 { background: var(--vice-purple); border-color: var(--vice-purple); color: #f6efff; }
-.pad .throw.s4, .side .throw.s4 { background: #ff8a1f; border-color: #ff8a1f; color: #2a1000; }
+.pad .throw.s4, .side .throw.s4 { background: #fcfc04; border-color: #fcfc04; color: #2a2a00; }   /* the yellow in the Squared Groupers logo */
 /* a shot that can be played right now breathes; the serve ball glows inside its red ring */
 @keyframes shot-ready { 0%, 100% { box-shadow: 0 0 0 0 rgba(242,239,230,.55), 0 2px 10px rgba(0,0,0,.45); transform: scale(1); }
   50% { box-shadow: 0 0 0 9px rgba(242,239,230,0), 0 2px 10px rgba(0,0,0,.45); transform: scale(1.045); } }
@@ -536,7 +536,7 @@ body.hvp .pick-label, body.hvp .picker { display: none !important; }
       <li><b>Who you play.</b> Under each team, Played by has a switch for the front-court player and one for the back-court player: set each to Player 1 or CPU. Set both to Player 1 and the game hands you whichever player can reach the ball. Set one to CPU and you stay on that position while the CPU plays your partner.</li>
       <li><b>Score.</b> Every throw must hit the front wall above the low red line, and the wall is good all the way up to the gold line at its top. A ball that goes over the top of the front or back wall is out. Miss, or let the ball bounce twice, and the other team scores.</li>
       <li><b>Run and catch.</b> Push the joystick under your right thumb to run: a nudge walks, a full push runs. In Amateur and the throwback modes, push right to run toward the front wall and left toward the back wall. In Pro the camera is behind you, so up runs toward the front wall, down toward the back wall, and left and right step across the court toward the side wall or the open side. You can also hold a finger on the court to run to that spot, or use the arrow keys on a keyboard. Any ball that passes one of your players is caught, from the floor up to a full stretch overhead, on the fly or after one bounce; only a ball well over his head goes by. In Pro you also have to be across the court to the ball to catch it. In doubles the front courter plays from the front wall back to line 10 and the back courter from line 7 to the back wall.</li>
-      <li><b>Shots.</b> Saque (Serve) starts the point: it must bounce between the two red lines on the floor at lines 4 and 7, or it is a fault. In play, Pelotazo (Throw) is the normal throw, straight to the front wall. Rebota (Rebound) carries long, to come off the back wall. Cortada (Cut) goes low and hard into the front wall first, then comes back into the side wall around line 3 and kicks across the court. Dos Paredes (Two-Wall) takes the side wall first and then the front wall, and dies short at a sharp angle. Costado (Side Wall) is a backhand off the side wall up by line 2, then the front wall, and comes back deep and low. Amateur, 90s Throwback, 80s Retro and 50s Vintage give you Pelotazo, Rebota and Costado; Pro adds Cortada and Dos Paredes, and holding left or right on the joystick as you throw sends the ball to that side. When the pelota (ball) comes off the back wall and one of your players catches it, it must go back to the front wall in one motion: you have three seconds at Slow pace, two at Normal and one at Fast to press a shot button, or the ball drops and the other team scores. Each shot draws its own path on court; a red path is a fault. The button under the stack switches every name between Spanish and English.</li>
+      <li><b>Shots.</b> Saque (Serve) starts the point: it must bounce between the two red lines on the floor at lines 4 and 7, or it is a fault. In play, Pelotazo (Throw) is the normal throw, straight to the front wall. Rebota (Rebound) carries long, to come off the back wall. Cortada (Cut) goes low and hard into the front wall first, then comes back into the side wall around line 3 and kicks across the court. Dos Paredes (Two-Wall) takes the side wall first and then the front wall, and dies short at a sharp angle. Costado (Side Wall) is a backhand off the side wall up by line 2, then the front wall, and comes back deep and low. Amateur, 90s Throwback, 80s Retro and 50s Vintage give you Pelotazo, Rebota and Dos Paredes; Pro adds Cortada and Costado, and holding left or right on the joystick as you throw sends the ball to that side. When the pelota (ball) comes off the back wall and one of your players catches it, it must go back to the front wall in one motion: you have three seconds at Slow pace, two at Normal and one at Fast to press a shot button, or the ball drops and the other team scores. Each shot draws its own path on court; a red path is a fault. The button under the stack switches every name between Spanish and English.</li>
       <li><b>Music.</b> On the hosted game the ♪ Music button in the Menu / Mode / Music / Pause row plays the playlist for the mode you are in: one tap starts it, the next pauses it, and the next carries on from the same spot. While it plays the ball and crowd sounds stand down so the music is clear.</li>
       </ul>
       <h3>Your buttons</h3>
@@ -545,8 +545,8 @@ body.hvp .pick-label, body.hvp .picker { display: none !important; }
         <div><dt><i class="sw"></i>Pelotazo &middot; Throw</dt><dd>A hard throw aimed high on the front wall, meant to drive the ball deep over your opponent's head. The safe way to keep a rally going.</dd></div>
         <div><dt><i class="sw s1"></i>Rebota &middot; Rebound</dt><dd>The big throw: it comes off the front wall hard enough to carry all the way to the back wall. It is also the shot you use to save a ball played over your head, catching the carom off the back wall and sending it straight back in one motion.</dd></div>
         <div><dt><i class="sw s2"></i>Cortada &middot; Cut <small>(Pro)</small></dt><dd>Caught in the front of the court and thrown low and hard into the middle of the front wall. It bounces and tails sharply into the side wall, and the speed and tight angle make it very hard to reach.</dd></div>
-        <div><dt><i class="sw s3"></i>Dos Paredes &middot; Two-Wall <small>(Pro)</small></dt><dd>A kill shot. The ball hits the side wall first, around line 3, then the front wall. It comes off the front wall dead and drops short, first bouncing around lines 4 to 9, and angles away across the court toward the open side. Running it down is close to impossible. Where the Costado carries deep, the Dos Paredes dies short.</dd></div>
-        <div><dt><i class="sw s4"></i>Costado &middot; Side Wall</dt><dd>A stylish, difficult backhand. The ball hits the side wall first, high up the court by line 2, then the front wall. It kicks off the front wall and carries deep and low, first bouncing around lines 8 to 14 and often reaching the back wall, skidding along the floor down the side-wall half of the court. Where the Dos Paredes dies short, the Costado carries deep. It is the one side-wall shot in every mode.</dd></div>
+        <div><dt><i class="sw s3"></i>Dos Paredes &middot; Two-Wall</dt><dd>A kill shot. The ball hits the side wall first, around line 3, then the front wall. It comes off the front wall dead and drops short, first bouncing around lines 4 to 9, and angles away across the court toward the open side. Running it down is close to impossible. Where the Costado carries deep, the Dos Paredes dies short. It is the one side-wall shot in every mode.</dd></div>
+        <div><dt><i class="sw s4"></i>Costado &middot; Side Wall <small>(Pro)</small></dt><dd>A stylish, difficult backhand. The ball hits the side wall first, high up the court by line 2, then the front wall. It kicks off the front wall and carries deep and low, first bouncing around lines 8 to 14 and often reaching the back wall, skidding along the floor down the side-wall half of the court. Where the Dos Paredes dies short, the Costado carries deep.</dd></div>
       </dl>
       <h3>Calls you will see on court</h3>
       <dl>
@@ -1581,7 +1581,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   var SHOT_ES = ['Saque', 'Pelotazo', 'Rebota', 'Cortada', 'Dos Paredes', 'Costado'];
   var SHOT_EN = ['Serve', 'Throw', 'Rebound', 'Cut', 'Two-Wall', 'Side Wall'];
-  function shotSet() { return view === 'aerial' ? [0, 1, 2, 3, 4] : [0, 1, 4]; }   // core shots: Pro has all five; every other mode Pelotazo, Rebota and Costado
+  function shotSet() { return view === 'aerial' ? [0, 1, 2, 3, 4] : [0, 1, 3]; }   // core shots: Pro has all five; every other mode Pelotazo, Rebota and Dos Paredes
   function shotNames() { return cfg.lang === 'en' ? SHOT_EN : SHOT_ES; }
   function langBtn() {                                              // the other language waits under the stack, one tap away
     return '<button type="button" class="langbtn" data-mini="lang" aria-label="Switch the shot names">' + (cfg.lang === 'en' ? 'Espa\u00f1ol' : 'English') + '</button>';
@@ -2242,7 +2242,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     }
   }
 
-  var SHOTCOL = ['#fff', '#22c55e', '#ff2e97', '#1fd5d9', '#ff8a1f'];
+  var SHOTCOL = ['#fff', '#22c55e', '#ff2e97', '#1fd5d9', '#fcfc04'];
   function shotCall(k) { return (shotNames()[k + 1] || '').toUpperCase(); }   // shot 1-3 -> the name on its button
   function call(t, c, x, y) { fx.call = { t: t, c: c, x: Math.max(240, Math.min(C.W - 240, x)), y: y, life: 1 }; }
   function drawAim(p) {
