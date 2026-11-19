@@ -4,6 +4,7 @@ A browser jai alai game: singles and doubles, five shots (Saque, Pelotazo, Rebot
 
 - **Play:** open `index.html` (GitHub Pages serves it at the repository address).
 - **Views:** the setup screen has a View choice (Standard, Aerial, 90s Throwback, 80s Retro, 50s Vintage); the View button changes view during a match.
+- **Hoots vs Peaks:** a third game, Hooters vs Twin Peaks, with its own painted players and the Pro and Amateur modes only. It is in [`hoots-vs-peaks/`](hoots-vs-peaks/) and playable at `/hoots-vs-peaks/`.
 - **Original look:** the earlier version with the drawn players and first fronton is kept in [`original/`](original/) and is playable at `/original/`.
 
 ## Files
@@ -18,5 +19,6 @@ A browser jai alai game: singles and doubles, five shots (Saque, Pelotazo, Rebot
 | `sprites-back.png` | The player seen from behind, used by the Aerial view |
 | `brand.png`, `team-*.png`, `logo-*.png` | Game and club logos |
 | `original/` | The previous look, complete and self-contained |
+| `hoots-vs-peaks/` | Hoots vs Peaks, complete and self-contained (its own player sheets and team badges) |
 
 Online matches and the anonymous play counter use a small relay hosted on Railway; its address is set at the top of `index.html`.
