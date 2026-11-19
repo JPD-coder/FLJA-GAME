@@ -1994,9 +1994,9 @@ if (typeof module !== 'undefined') module.exports = Core;
   /* ---------- matchup poster (preview build only): a still court, a Tap to Play button, then the poster while the match loads ---------- */
   var POSTER = !!window.FL_POSTER;
   if (POSTER) document.body.classList.add('poster-on');
-  var POSTERS = { '0m': 'poster-0-m.jpg?v=5', '1m': 'poster-1-m.jpg?v=5', '2m': 'poster-2-m.jpg?v=5', '3m': 'poster-3-m.jpg?v=5', '4m': 'poster-4-m.jpg?v=5', '5m': 'poster-5-m.jpg?v=5', '0w': 'poster-0-w.jpg?v=1', '1w': 'poster-1-w.jpg?v=1', '2w': 'poster-2-w.jpg?v=1', '3w': 'poster-3-w.jpg?v=1', '4w': 'poster-4-w.jpg?v=1', '5w': 'poster-5-w.jpg?v=1' };   // roster index + m/w. Each half faces right; missing ones fall back to the team badge
+  var POSTERS = { '0m': 'poster-0-m.jpg?v=5', '1m': 'poster-1-m.jpg?v=5', '2m': 'poster-2-m.jpg?v=5', '3m': 'poster-3-m.jpg?v=5', '4m': 'poster-4-m.jpg?v=5', '5m': 'poster-5-m.jpg?v=5', '0w': 'poster-0-w.jpg?v=1', '1w': 'poster-1-w.jpg?v=1', '2w': 'poster-2-w.jpg?v=1', '3w': 'poster-3-w.jpg?v=1', '4w': 'poster-4-w.jpg?v=1', '5w': 'poster-5-w.jpg?v=1', '6m': 'poster-6-m.jpg?v=1' };   // roster index + m/w. Each half faces right; missing ones fall back to the team badge
   function posterHalf(el, t, side) {                              // mixed: a man on the left, a woman on the right
-    var r = ROSTER[t], wt = whoOf(side), g = wt === 'women' || (wt === 'mixed' && side) ? 'w' : 'm', src = POSTERS[t + g] || POSTERS[t + 'm'];
+    var r = ROSTER[t], wt = whoOf(side), g = wt === 'women' || (wt === 'mixed' && side) ? 'w' : 'm', src = POSTERS[t + g] || null;   // no picture for that side yet: its badge or flag
     el.innerHTML = ''; el.style.backgroundImage = '';
     if (src) { el.style.backgroundImage = 'url("' + src + '")'; return; }
     var c = r.ui || '#888';
