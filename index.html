@@ -1107,9 +1107,10 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (cfg.names[0] === 'Green') cfg.names[0] = 'Squared Groupers';
     if (cfg.names[1] === 'Blue') cfg.names[1] = 'Peloteros';
   } catch (e) { /* storage unavailable: defaults */ }
-  /* Hoots vs Peaks has a door of its own: its password, once given, is remembered on this device */
-  var HVP_PASS = 'boobs', HVP_KEY = 'flja-hvp-pass', hvpWant = false;
-  function hvpOpen() { try { return localStorage.getItem(HVP_KEY) === HVP_PASS; } catch (e) { return false; } }
+  /* Hoots vs Peaks has a door of its own. Unlike the main password it is never remembered: every tap on Hoots vs Peaks shows the poster and asks again */
+  var HVP_PASS = 'boobs', hvpWant = false;
+  try { localStorage.removeItem('flja-hvp-pass'); } catch (e) { /* nothing kept */ }
+  function hvpOpen() { return false; }
   if (window.FL_LOOK2 && /[?&]hvp\b/.test(location.search)) { if (hvpOpen()) { cfg.comp = 'hvp'; cfg.pick = [12, 13]; if (cfg.view !== 'side') cfg.view = 'aerial'; } else hvpWant = true; }   // a link straight to Hoots vs Peaks
   function save() { try { localStorage.setItem(STORE, JSON.stringify(cfg)); } catch (e) { /* ignore */ } }
 
@@ -1583,7 +1584,6 @@ if (typeof module !== 'undefined') module.exports = Core;
       e.preventDefault();
       var g = $('hvpGate');
       if ($('hvpPass').value.trim().toLowerCase() === HVP_PASS) {
-        try { localStorage.setItem(HVP_KEY, HVP_PASS); } catch (x) { /* this visit only */ }
         g.hidden = true; $('hvpPass').blur(); setComp('hvp');
       } else {
         $('hvpNo').textContent = 'Wrong password'; g.classList.remove('wrong'); void g.offsetWidth; g.classList.add('wrong'); $('hvpPass').select();
