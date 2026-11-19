@@ -1063,7 +1063,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     '90s': '0upBXHeACqExJ1LkyATsc4?utm_source=generator&si=bc91f17320d24ad1',
     '50s': '0lV2pWMdyZt7ojB7BPLF4a?utm_source=generator&si=c9dec9fc101e4486'
   };
-  var spApi = null, spCtl = null, spReq = false, spWant = false, spWait = 0;
+  var spApi = null, spCtl = null, spReq = false, spWant = false, spWait = 0, spPlayed = false, musTap = 0;
   var MUSIC = { side: '90s', aerial: '90s', retro: '80s', vintage: '90s', sixties: '50s' }, musicOn = false;
   var VIEWS = { sixties: '', retro: '', vintage: 'fronton5.jpg', side: 'fronton6.jpg', aerial: 'aerial-view.jpg' }, bgs = {}, RETRO = false;
   var view = window.FL_VIEW3 === 2 ? 'aerial' : window.FL_VIEW3 ? 'aerial' : (MULTI && VIEWS[cfg.view] != null ? cfg.view : MULTI ? 'aerial' : 'vintage');
@@ -1215,6 +1215,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       if (spWant) { spWant = false; clearTimeout(spWait); try { ctl.play ? ctl.play() : ctl.togglePlay(); } catch (e) { try { ctl.togglePlay(); } catch (x) { /* the browser wants a fresh tap */ } } }
       ctl.addListener('playback_update', function (e) {
         var pb = $('musPlay'), on = !!(e && e.data && !e.data.isPaused); if (pb) { pb.textContent = on ? '\u23f8' : '\u25b6'; pb.setAttribute('aria-label', on ? 'Pause' : 'Play'); }
+        if (on) spPlayed = true;                                             // once it has played, a tap picks up where it left off
         var mm = $('miniMusic'); if (mm) mm.classList.toggle('hot', on);     // the court button shows whether the music is playing
       });
     });
@@ -1262,13 +1263,28 @@ if (typeof module !== 'undefined') module.exports = Core;
     $('musOpen').href = 'https://open.spotify.com/playlist/' + id.split('?')[0];
     musDuck = true;                                                // the playlist takes over: no ball or crowd sound over the music
     box.hidden = false; musicOn = true;
+    var mmb = $('miniMusic'); if (mmb) mmb.classList.add('hot');
     spLoad(); spMake();
     if (play) startPlay();
   }
-  function musToggle() {                                           // one tap on, one tap off: there is no player on screen to touch
-    if (musicOn) closeMusic(); else openMusic(true);
+  function musPause() {                                            // hold the song where it is; the next tap carries on from there
+    if (spCtl) { try { spCtl.pause(); } catch (e) { /* the player is gone */ } }
+    var mm = $('miniMusic'); if (mm) mm.classList.remove('hot');
+    musicOn = false; musDuck = false; unlock();                    // the game's own sound comes back
   }
-  function closeMusic() {
+  function musToggle() {                                           // one tap on, one tap off: there is no player on screen to touch
+    var now = Date.now(); if (now - musTap < 400) return; musTap = now;   // one tap is one tap, however the browser reports it
+    if (musicOn) { musPause(); return; }
+    if (spCtl && spPlayed) {                                       // already playing earlier in this match: carry on, never start over
+      musDuck = true; musicOn = true;
+      var mm = $('miniMusic'); if (mm) mm.classList.add('hot');
+      try { spCtl.resume ? spCtl.resume() : spCtl.play(); } catch (e) { try { spCtl.togglePlay(); } catch (x) { /* ignore */ } }
+      return;
+    }
+    openMusic(true);
+  }
+  function closeMusic() {                                          // a full stop: the era changed, or the match is over
+    spPlayed = false;
     var box = $('musicBox');
     if (box) {
       box.hidden = true; box.classList.remove('open');
