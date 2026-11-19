@@ -510,6 +510,7 @@ body.hvp .pick-label, body.hvp .picker { display: none !important; }
 #a2hs .a2-go { flex: none; border: 0; border-radius: 999px; background: var(--gold); color: #0b0c0f; font: 800 13px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; padding: 11px 14px; cursor: pointer; }
 #a2hs .a2-x { flex: none; width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; }
 /* matchup poster (preview): a still court, a Tap to Play button, then the two teams face off while the match loads */
+[hidden] { display: none !important; }
 #tapPlay { display: none; }
 #moveTip { position: fixed; inset: 0; z-index: 9400; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(5,6,10,.55); }
 #moveTip .mt-card { position: relative; width: min(420px, 100%); background: #15171d; border: 1px solid var(--gold); border-radius: 16px; padding: 20px 20px 16px; box-shadow: 0 14px 40px rgba(0,0,0,.6); color: var(--text); font: 500 15px/1.5 var(--body); }
@@ -3429,7 +3430,6 @@ if (typeof module !== 'undefined') module.exports = Core;
 
   /* ---------- play full screen: help phone visitors put the game on their home screen (only on the hosted site, which has the app settings) ---------- */
   (function () {
-    if (!document.querySelector('link[rel="manifest"]')) return;
     var standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
     if (standalone) return;                                        // already playing from the home-screen icon
     var ua = navigator.userAgent || '', ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
@@ -3444,11 +3444,10 @@ if (typeof module !== 'undefined') module.exports = Core;
         deferred.prompt(); deferred.userChoice.then(function (c) { deferred = null; done(c && c.outcome === 'accepted'); }, function () { done(false); });
       }
     };
-    try { var t = +localStorage.getItem(KEY) || 0; if (Date.now() - t < WEEK) return; } catch (e) { /* show it */ }
+    try { localStorage.removeItem(KEY); } catch (e) { /* nothing kept */ }   // closing it hides it for this visit only; it is back on the next
     var SHARE = '<svg class="a2-share" viewBox="0 0 15 18" aria-hidden="true"><path d="M7.5 1v10M4 4.5 7.5 1 11 4.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 7H2.5v10h10V7h-2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>';
     function hide(remember) {
       if (box) { box.hidden = true; box.dataset.done = '1'; }     // closed: not again this visit
-      if (remember) { try { localStorage.setItem(KEY, String(Date.now())); } catch (e) { /* this visit only */ } }
     }
     function make() {
       if (box) return box;
