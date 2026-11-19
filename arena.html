@@ -25,20 +25,19 @@ button[aria-pressed=true]{background:var(--gold);color:#0b0c0f;border-color:var(
 #welcome button.ghost{background:transparent;color:var(--gold);border:1px solid var(--gold);margin-top:10px;font-size:14px;padding:11px 20px}
 #tour{position:fixed;inset:0;z-index:30;background:rgba(3,4,7,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:14px}
 #tour video{width:100%;max-width:1100px;max-height:78vh;border:1px solid var(--gold);border-radius:10px;background:#000}
-#tourBtn{border-color:var(--gold);color:var(--gold)}
 #welcome button{background:var(--gold);color:#0b0c0f;border:0;font-size:16px;letter-spacing:.14em;text-transform:uppercase;padding:14px 26px}
 </style></head><body>
 <div id="view"></div>
 <div class="top"><div class="brand">MLJ Arena &amp; Lounge</div>
 <div class="acts">
-<button id="tourBtn">&#9654; Watch the Tour</button><button id="mWalk" aria-pressed="true">Walk Through View</button><button id="mDoll" aria-pressed="false">Dollhouse View</button>
+<button id="mWalk" aria-pressed="true">Walk Through View</button><button id="mDoll" aria-pressed="false">Dollhouse View</button><button id="tourBtn">&#9654; Watch the Tour</button>
 <select id="goto" aria-label="Go to"><option value="">Go to…</option><option value="entry">Main entrance</option><option value="food">Food court &amp; bars</option><option value="merch">Merch store</option><option value="rest">Restrooms</option><option value="doors">Fronton doors</option><option value="sharks">Shark tank bars</option><option value="seats">Seats</option><option value="vip">VIP couches</option><option value="court">On the court</option><option value="valet">Valet circle</option><option value="vpark">Valet parking</option><option value="lot">Parking lot</option><option value="marina">Marina</option></select>
 <a class="btn" href="./" id="back">Back to the game</a></div></div>
 <div id="stick" hidden><i></i></div>
 <div id="hint"></div>
 <div id="welcome"><div class="card"><img src="brand.png" alt=""><small>Major League Jai Alai Media presents</small><h1>The MLJ Arena</h1>
 <p>Walk in through the concourse: food court and bars on your left, the merch store and restrooms on your right, and the double doors ahead open onto the fronton.</p>
-<button id="go">Enter the arena</button><button id="tourBtn2" class="ghost">&#9654; Watch the Tour</button></div></div>
+<button id="go">Enter the arena</button></div></div>
 <div id="tour" hidden><video id="tourV" src="arena-tour.mp4" controls playsinline preload="none" poster=""></video><button id="tourX" aria-label="Close the video">Close &times;</button></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -295,7 +294,7 @@ el.addEventListener('wheel',function(e){ if(mode!=='walk'){ orbit.d=Math.max(60,
 document.getElementById('mWalk').onclick=function(){ setMode('walk'); }; document.getElementById('mDoll').onclick=function(){ setMode('doll'); };
 document.getElementById('goto').onchange=function(){ var s=SPOTS[this.value]; this.value=''; if(!s) return; pos.x=s[0]; pos.z=s[1]; yaw=s[2]; pitch=-0.05; setMode('walk'); };
 (function(){ var box=document.getElementById('tour'), v=document.getElementById('tourV'); function open(){ box.hidden=false; try{ v.currentTime=0; var p=v.play(); if(p&&p.catch) p.catch(function(){}); }catch(e){} } function close(){ v.pause(); box.hidden=true; }
-  document.getElementById('tourBtn').onclick=open; document.getElementById('tourBtn2').onclick=open; document.getElementById('tourX').onclick=close; v.addEventListener('ended',close); })();
+  document.getElementById('tourBtn').onclick=open; document.getElementById('tourX').onclick=close; v.addEventListener('ended',close); })();
 document.getElementById('go').onclick=function(){ document.getElementById('welcome').hidden=true; started=true; setMode('walk'); };
 setMode('walk');
 
