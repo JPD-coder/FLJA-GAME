@@ -1098,7 +1098,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     '90s': '0upBXHeACqExJ1LkyATsc4?utm_source=generator&si=bc91f17320d24ad1',
     '50s': '0lV2pWMdyZt7ojB7BPLF4a?utm_source=generator&si=c9dec9fc101e4486'
   };
-  var spApi = null, spCtl = null, spReq = false, spWant = false, spWait = 0, spPlayed = false, musTap = 0;
+  var spApi = null, spCtl = null, spReq = false, spWant = false, spWait = 0, spPlayed = false, musTap = 0, spLive = false, spTryT = 0;
   var MUSIC = { side: '90s', aerial: '90s', retro: '80s', vintage: '90s', sixties: '50s' }, musicOn = false;
   var VIEWS = { sixties: '', retro: '', vintage: 'fronton5.jpg', side: 'fronton6.jpg', aerial: 'aerial-view.jpg' }, bgs = {}, RETRO = false;
   function viewOK(v) { return VIEWS[v] != null && (!HVP || v === 'aerial' || v === 'side'); }   // Hoots vs Peaks is played in Pro and Amateur only
@@ -1294,9 +1294,10 @@ if (typeof module !== 'undefined') module.exports = Core;
     var id = PLAY[MUSIC[view]]; if (!id) return;
     spApi.createController(host, { uri: 'spotify:playlist:' + id.split('?')[0], width: '100%', height: 152 }, function (ctl) {
       spCtl = ctl;
-      if (spWant) { spWant = false; clearTimeout(spWait); try { ctl.play ? ctl.play() : ctl.togglePlay(); } catch (e) { try { ctl.togglePlay(); } catch (x) { /* the browser wants a fresh tap */ } } }
+      if (spWant) { spWant = false; clearTimeout(spWait); spKick(0); }
       ctl.addListener('playback_update', function (e) {
         var pb = $('musPlay'), on = !!(e && e.data && !e.data.isPaused); if (pb) { pb.textContent = on ? '\u23f8' : '\u25b6'; pb.setAttribute('aria-label', on ? 'Pause' : 'Play'); }
+        spLive = on; if (on) clearTimeout(spTryT);                           // the player itself says whether a song is sounding: the button goes by that, never by a guess
         if (on) spPlayed = true;                                             // once it has played, a tap picks up where it left off
         var mm = $('miniMusic'); if (mm) mm.classList.toggle('hot', on);     // the court button shows whether the music is playing
       });
@@ -1328,8 +1329,14 @@ if (typeof module !== 'undefined') module.exports = Core;
     }
     return box;
   }
+  /* ask the player to play, and keep asking until it reports a song sounding: a phone often lets the first request go by, which used to cost a second and third tap */
+  function spKick(n) {
+    clearTimeout(spTryT); if (!spCtl) return;
+    try { if (spPlayed && spCtl.resume) spCtl.resume(); else if (spCtl.play) spCtl.play(); else spCtl.togglePlay(); } catch (e) { try { spCtl.togglePlay(); } catch (x) { /* ignore */ } }
+    if (n < 5) spTryT = setTimeout(function () { if (musicOn && !spLive) spKick(n + 1); }, n ? 900 : 650);
+  }
   function startPlay() {                                            // one tap plays: the music starts itself as soon as the player answers
-    if (spCtl) { try { spCtl.play ? spCtl.play() : spCtl.togglePlay(); } catch (e) { try { spCtl.togglePlay(); } catch (x) { /* ignore */ } } return; }
+    if (spCtl) { spKick(0); return; }
     spWant = true; spLoad(); spMake();                               // the player is a moment behind the tap: it starts the song itself when it arrives
     clearTimeout(spWait); spWait = setTimeout(function () { if (!spCtl) spFallback(); }, 2600);   // only if it never answers does Spotify's own player come up
   }
@@ -1350,23 +1357,25 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (play) startPlay();
   }
   function musPause() {                                            // hold the song where it is; the next tap carries on from there
+    clearTimeout(spTryT); spLive = false;
     if (spCtl) { try { spCtl.pause(); } catch (e) { /* the player is gone */ } }
     var mm = $('miniMusic'); if (mm) mm.classList.remove('hot');
     musicOn = false; musDuck = false; unlock();                    // the game's own sound comes back
   }
   function musToggle() {                                           // one tap on, one tap off: there is no player on screen to touch
     var now = Date.now(); if (now - musTap < 400) return; musTap = now;   // one tap is one tap, however the browser reports it
+    if (musicOn && spCtl && !spLive) { spKick(0); return; }        // asked for but not sounding yet: this tap asks again, it never switches it off
     if (musicOn) { musPause(); return; }
     if (spCtl && spPlayed) {                                       // already playing earlier in this match: carry on, never start over
       musDuck = true; musicOn = true;
       var mm = $('miniMusic'); if (mm) mm.classList.add('hot');
-      try { spCtl.resume ? spCtl.resume() : spCtl.play(); } catch (e) { try { spCtl.togglePlay(); } catch (x) { /* ignore */ } }
+      spKick(0);
       return;
     }
     openMusic(true);
   }
   function closeMusic() {                                          // a full stop: the era changed, or the match is over
-    spPlayed = false;
+    spPlayed = false; spLive = false; clearTimeout(spTryT);
     var box = $('musicBox');
     if (box) {
       box.hidden = true; box.classList.remove('open');
