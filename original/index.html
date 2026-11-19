@@ -474,8 +474,11 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
 @media (max-width: 420px) { .comp { font-size: 15px; letter-spacing: .04em; padding: 13px 4px; white-space: nowrap; } }
 @media (max-height: 460px) and (min-width: 641px) { .bar { --u: calc((100vw - 32px) / 100); flex-wrap: nowrap; gap: 8px; } .bar h1 { font-size: min(14px, calc(var(--u) * 1.75)) !important; } .merch, .bet, .fan { font-size: min(12px, calc(var(--u) * 1.65)) !important; padding: 3px 6px; } .bet { padding: 1px 6px; } }
 @media (max-height: 460px) { .bar h1 img { height: 28px; } .pad button { height: 46px; } .ghost { padding: 3px 8px; font-size: 12px; } .merch { padding: 3px 7px; font-size: 12px; } .bet { padding: 1px 7px; font-size: 12px; } .pad-label { display: none; } .bar h1 { font-size: 14px; gap: 7px; } .app { gap: 6px; padding-block: 4px 6px; } }
-body.hvp #comps, body.hvp .pick-label, body.hvp .picker { display: none !important; }
-body.hvp .bar h1 img, body.hvp #gate img { border-radius: 50%; }
+.comps.three { grid-template-columns: 1fr 1fr 1fr; }
+.comp.hvp { border-color: #ff7a1a; color: #ff7a1a; }
+.comp.hvp[aria-pressed="true"] { background: #ff7a1a; color: #2a1000; }
+body.hvp .pick-label, body.hvp .picker { display: none !important; }
+@media (max-width: 560px) { .comps.three { gap: 6px; } .comps.three .comp { font-size: 13px; letter-spacing: .02em; padding: 10px 3px; white-space: normal; } }
 </style>
 </head>
 <body>
@@ -1022,7 +1025,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   var elSetup = $('setup'), elPads = $('pads'), elAfter = $('after'), elBar = $('bar');
   var elApp = document.querySelector('.app'), sideL = $('sideL'), sideR = $('sideR'), sidesOn = false;
 
-  var HVP = !!window.FL_HVP;                                       // Hoots vs Peaks: two fixed teams with their own painted players, Pro and Amateur only
+  var HVP = false, HVT = [null, null];                                       // Hoots vs Peaks: two fixed teams with their own painted players, Pro and Amateur only
   // every team a side can pick: name, logo, uniform colours and the colour used for its score and controls
   var ROSTER = [
     { name: 'Squared Groupers', logo: 'team-a.png', ui: '#a8e22a', kit: { jersey: '#a8e22a', sash: '#1c4a0b', helm: '#f2e23a', num: '#12330a' } },
@@ -1039,11 +1042,10 @@ if (typeof module !== 'undefined') module.exports = Core;
     { name: 'Mexico', flagImg: true, logo: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='184' height='132' viewBox='0 0 46 33'%3E%3Cdefs%3E%3CclipPath id='c'%3E%3Crect width='46' height='33' rx='2.5'/%3E%3C/clipPath%3E%3C/defs%3E%3Cg clip-path='url(%23c)'%3E%3Crect width='15.34' height='33' fill='%23006847'/%3E%3Crect x='15.34' width='15.33' height='33' fill='%23fff'/%3E%3Crect x='30.67' width='15.33' height='33' fill='%23ce1126'/%3E%3C/g%3E%3Crect x='.5' y='.5' width='45' height='32' rx='2.5' fill='none' stroke='%23000' stroke-opacity='.35'/%3E%3C/svg%3E", ui: '#35c27c', kit: { jersey: '#f3f3f3', sash: '#0e8f55', helm: '#ce1126', num: '#0e6b40' } },
     { name: 'Philippines', flagImg: true, logo: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='184' height='132' viewBox='0 0 46 33'%3E%3Cdefs%3E%3CclipPath id='c'%3E%3Crect width='46' height='33' rx='2.5'/%3E%3C/clipPath%3E%3C/defs%3E%3Cg clip-path='url(%23c)'%3E%3Crect width='46' height='16.5' fill='%230038a8'/%3E%3Crect y='16.5' width='46' height='16.5' fill='%23ce1126'/%3E%3Cpath d='M0 0 L0 33 L19 16.5 Z' fill='%23fff'/%3E%3Ccircle cx='6.4' cy='16.5' r='2.6' fill='%23fcd116'/%3E%3Ccircle cx='2.2' cy='3.4' r='.85' fill='%23fcd116'/%3E%3Ccircle cx='2.2' cy='29.6' r='.85' fill='%23fcd116'/%3E%3Ccircle cx='15.6' cy='16.5' r='.85' fill='%23fcd116'/%3E%3C/g%3E%3Crect x='.5' y='.5' width='45' height='32' rx='2.5' fill='none' stroke='%23000' stroke-opacity='.35'/%3E%3C/svg%3E", ui: '#fcd116', kit: { jersey: '#0038a8', sash: '#ce1126', helm: '#fcd116', num: '#fcd116' } }
   ];
-  if (HVP) ROSTER = [
-    { name: 'Hooters', logo: 'hoots-crest.png', ui: '#ff7a1a', kit: { jersey: '#ffffff', sash: '#ff6a13', helm: '#ff6a13', num: '#ff6a13' } },
-    { name: 'Twin Peaks', logo: 'peaks-crest.png', ui: '#ff3b3b', kit: { jersey: '#17171a', sash: '#d81e2c', helm: '#17171a', num: '#d81e2c' } }
-  ];
-  if (HVP) document.body.classList.add('hvp');
+  ROSTER.push(                                                    // Hoots vs Peaks (roster 12-13): each side brings its own painted players
+    { name: 'Hooters', logo: 'hoots-crest.png', ui: '#ff7a1a', hv: 'hoots', kit: { jersey: '#ffffff', sash: '#ff6a13', helm: '#ff6a13', num: '#ff6a13' } },
+    { name: 'Twin Peaks', logo: 'peaks-crest.png', ui: '#ff3b3b', hv: 'peaks', kit: { jersey: '#17171a', sash: '#d81e2c', helm: '#17171a', num: '#d81e2c' } }
+  );
   window.FL_ROSTER = ROSTER;                                      // the opening film shows the same crests and flags
   var TEAM = [{ ui: '#a8e22a', legs: '#1c4a0b' }, { ui: '#3bb4e6', legs: '#ef1a8c' }];
   var GOLD = '#c9a55c', CHALK = '#f2efe6', MUTED = '#9b9ca6', RED = '#ff5a4d';
@@ -1065,7 +1067,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var t = m.ev === 'chula' ? m.winner : 1 - m.winner;
     return (mode === 'match' && solo === t ? 'YOU' : cfg.names[t].toUpperCase()) + ': ';
   }
-  var STORE = HVP ? 'hoots-vs-peaks' : 'fronton-doubles';
+  var STORE = 'fronton-doubles';
   var cfg = { comp: 'league', pick: [0, 1], names: ['Squared Groupers', 'Peloteros'], seats: [1, 1, 0, 0], sv: 2, target: 9, level: 'easy', pace: 'relaxed', sound: true, singles: false, view: 'aerial', lang: 'es', who: 'men' };
   try {
     var saved = JSON.parse(localStorage.getItem(STORE) || 'null');
@@ -1080,7 +1082,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (cfg.names[0] === 'Green') cfg.names[0] = 'Squared Groupers';
     if (cfg.names[1] === 'Blue') cfg.names[1] = 'Peloteros';
   } catch (e) { /* storage unavailable: defaults */ }
-  if (HVP) { cfg.who = 'men'; cfg.comp = 'league'; cfg.pick = [0, 1]; if (cfg.view !== 'side') cfg.view = 'aerial'; }
+  if (window.FL_LOOK2 && /[?&]hvp\b/.test(location.search)) { cfg.comp = 'hvp'; cfg.pick = [12, 13]; if (cfg.view !== 'side') cfg.view = 'aerial'; }   // a link straight to Hoots vs Peaks
   function save() { try { localStorage.setItem(STORE, JSON.stringify(cfg)); } catch (e) { /* ignore */ } }
 
   var seatsNow = null, solo = -1, soloBoth = [false, false], mode = 'demo', game = null, paused = false, cssScale = 0.5, trail = [];
@@ -1098,7 +1100,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   var spApi = null, spCtl = null, spReq = false, spWant = false, spWait = 0, spPlayed = false, musTap = 0;
   var MUSIC = { side: '90s', aerial: '90s', retro: '80s', vintage: '90s', sixties: '50s' }, musicOn = false;
   var VIEWS = { sixties: '', retro: '', vintage: 'fronton5.jpg', side: 'fronton6.jpg', aerial: 'aerial-view.jpg' }, bgs = {}, RETRO = false;
-  if (HVP) VIEWS = { side: 'fronton6.jpg', aerial: 'aerial-view.jpg' };
+  function viewOK(v) { return VIEWS[v] != null && (!HVP || v === 'aerial' || v === 'side'); }   // Hoots vs Peaks is played in Pro and Amateur only
   var view = window.FL_VIEW3 === 2 ? 'aerial' : window.FL_VIEW3 ? 'aerial' : (MULTI && VIEWS[cfg.view] != null ? cfg.view : MULTI ? 'aerial' : 'vintage');
   var VIEW3 = false, AER = false, CROWD_H = 0.125, sprSide = null, sprBack = null;
   function setView(v) {
@@ -1107,8 +1109,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     Core.setCourt(LOOK2);                                           // the vintage fronton keeps its own lines and painted top line
     if (!bgs[view]) { bgs[view] = new Image(); if (VIEWS[view]) bgs[view].src = VIEWS[view]; }     // each view's pictures load the first time it is chosen
     img.bg = bgs[view];
-    if (HVP) sprImg = null;
-    else if (VIEW3) { if (!sprBack) { sprBack = new Image(); sprBack.src = 'sprites-back.png'; } sprImg = sprBack; }
+    if (VIEW3) { if (!sprBack) { sprBack = new Image(); sprBack.src = 'sprites-back.png'; } sprImg = sprBack; }
     else if (LOOK2) { if (!sprSide) { sprSide = new Image(); sprSide.src = 'sprites.png'; } sprImg = sprSide; }
     document.body.classList.toggle('look2', LOOK2); document.body.classList.toggle('view3', VIEW3); document.body.classList.toggle('aer', AER); document.body.classList.toggle('retro', RETRO); document.body.classList.toggle('sixties', SIX);
     musicUI();
@@ -1116,13 +1117,13 @@ if (typeof module !== 'undefined') module.exports = Core;
   var SPRB = {"ready": {"x": 4, "y": 4, "w": 298, "h": 375, "ax": 108.0, "hy": 43, "jx": 108.0, "jy": 109.0, "jw": 142, "jh": 104}, "run1": {"x": 310, "y": 4, "w": 182, "h": 405, "ax": 89.5, "hy": 44, "jx": 89.5, "jy": 109.0, "jw": 129, "jh": 102}, "run2": {"x": 500, "y": 4, "w": 173, "h": 397, "ax": 87.5, "hy": 42, "jx": 87.5, "jy": 103.5, "jw": 127, "jh": 99}, "windup": {"x": 681, "y": 4, "w": 336, "h": 398, "ax": 108.5, "hy": 44, "jx": 108.5, "jy": 116.5, "jw": 127, "jh": 113}, "release": {"x": 1025, "y": 4, "w": 294, "h": 436, "ax": 82.5, "hy": 77, "jx": 82.5, "jy": 141.5, "jw": 133, "jh": 129}, "catch": {"x": 1327, "y": 4, "w": 238, "h": 542, "ax": 124.0, "hy": 168, "jx": 124.0, "jy": 230.5, "jw": 136, "jh": 133}, "backhand": {"x": 1573, "y": 4, "w": 350, "h": 368, "ax": 130.0, "hy": 46, "jx": 130.0, "jy": 110.0, "jw": 120, "jh": 110}, "jump": {"x": 1931, "y": 4, "w": 215, "h": 413, "ax": 83.0, "hy": 140, "jx": 83.0, "jy": 199.0, "jw": 132, "jh": 124}};
   var SPR = {"ready": {"x": 4, "y": 4, "w": 390, "h": 430, "ax": 121.6, "hx": 172.5, "hy": 44, "hw": 67}, "run1": {"x": 402, "y": 4, "w": 337, "h": 415, "ax": 213.9, "hx": 270.5, "hy": 48, "hw": 69}, "run2": {"x": 747, "y": 4, "w": 332, "h": 415, "ax": 211.0, "hx": 260.0, "hy": 47, "hw": 68}, "windup": {"x": 1087, "y": 4, "w": 543, "h": 407, "ax": 313.6, "hx": 301.0, "hy": 50, "hw": 64}, "release": {"x": 1638, "y": 4, "w": 468, "h": 457, "ax": 206.3, "hx": 209.5, "hy": 84, "hw": 65}, "catch": {"x": 2114, "y": 4, "w": 333, "h": 485, "ax": 153.5, "hx": 164.0, "hy": 92, "hw": 68}, "backhand": {"x": 2455, "y": 4, "w": 472, "h": 407, "ax": 262.3, "hx": 230.0, "hy": 54, "hw": 68}, "jump": {"x": 2935, "y": 4, "w": 381, "h": 392, "ax": 121.9, "hx": 125.5, "hy": 85, "hw": 67}};
   var sprImg = null, sprSheets = {};
-  var HV = HVP ? {"hoots-side":{"ready":{"x":4,"y":4,"w":390,"h":430,"ax":101.5,"hx":160.4,"hy":26,"hw":64,"jx":160.4,"jy":137.6,"jw":120,"jh":100,"px":350,"py":172},"run1":{"x":402,"y":4,"w":328,"h":439,"ax":160.5,"hx":187.8,"hy":37,"hw":64,"jx":187.8,"jy":140.5,"jw":120,"jh":100},"run2":{"x":738,"y":4,"w":320,"h":447,"ax":22.5,"hx":193.4,"hy":33,"hw":64,"jx":193.4,"jy":143.0,"jw":120,"jh":100},"windup":{"x":1066,"y":4,"w":533,"h":440,"ax":288.0,"hx":342.6,"hy":26,"hw":64,"jx":342.6,"jy":140.8,"jw":120,"jh":100},"release":{"x":1607,"y":4,"w":456,"h":487,"ax":185.5,"hx":189.1,"hy":67,"hw":64,"jx":189.1,"jy":155.8,"jw":120,"jh":100},"catch":{"x":2071,"y":4,"w":333,"h":449,"ax":130.0,"hx":143.7,"hy":60,"hw":64,"jx":143.7,"jy":143.7,"jw":120,"jh":100,"px":290,"py":58},"backhand":{"x":2412,"y":4,"w":487,"h":386,"ax":196.5,"hx":259.9,"hy":23,"hw":64,"jx":259.9,"jy":123.5,"jw":120,"jh":100},"jump":{"x":2907,"y":4,"w":371,"h":376,"ax":120.2,"hx":106.2,"hy":50,"hw":64,"jx":106.2,"jy":120.3,"jw":120,"jh":100}},"hoots-back":{"ready":{"x":4,"y":4,"w":291,"h":375,"ax":119.5,"hx":120.4,"hy":22,"hw":64,"jx":120.4,"jy":120.0,"jw":120,"jh":100,"px":268,"py":236},"run1":{"x":303,"y":4,"w":176,"h":410,"ax":75.0,"hx":87.9,"hy":24,"hw":64,"jx":87.9,"jy":131.2,"jw":120,"jh":100},"run2":{"x":487,"y":4,"w":173,"h":392,"ax":71.5,"hx":95.6,"hy":23,"hw":64,"jx":95.6,"jy":125.4,"jw":120,"jh":100},"windup":{"x":668,"y":4,"w":313,"h":389,"ax":146.5,"hx":143.5,"hy":23,"hw":64,"jx":143.5,"jy":124.5,"jw":120,"jh":100},"release":{"x":989,"y":4,"w":293,"h":426,"ax":110.0,"hx":87.4,"hy":49,"hw":64,"jx":87.4,"jy":136.3,"jw":120,"jh":100},"catch":{"x":1290,"y":4,"w":224,"h":523,"ax":93.5,"hx":106.4,"hy":149,"hw":64,"jx":106.4,"jy":167.4,"jw":120,"jh":100,"px":184,"py":44},"backhand":{"x":1522,"y":4,"w":343,"h":352,"ax":149.0,"hx":142.0,"hy":21,"hw":64,"jx":142.0,"jy":112.6,"jw":120,"jh":100},"jump":{"x":1873,"y":4,"w":205,"h":402,"ax":73.5,"hx":76.4,"hy":121,"hw":64,"jx":76.4,"jy":128.6,"jw":120,"jh":100}},"peaks-side":{"ready":{"x":4,"y":4,"w":322,"h":430,"ax":113.0,"hx":144.6,"hy":26,"hw":64,"jx":144.6,"jy":137.6,"jw":120,"jh":100,"px":287,"py":168},"run1":{"x":334,"y":4,"w":322,"h":430,"ax":113.0,"hx":144.6,"hy":26,"hw":64,"jx":144.6,"jy":137.6,"jw":120,"jh":100,"px":287,"py":168},"run2":{"x":664,"y":4,"w":322,"h":430,"ax":113.0,"hx":144.6,"hy":26,"hw":64,"jx":144.6,"jy":137.6,"jw":120,"jh":100,"px":287,"py":168},"windup":{"x":994,"y":4,"w":391,"h":431,"ax":183.0,"hx":177.7,"hy":44,"hw":64,"jx":177.7,"jy":137.9,"jw":120,"jh":100},"release":{"x":1393,"y":4,"w":462,"h":427,"ax":179.0,"hx":193.8,"hy":28,"hw":64,"jx":193.8,"jy":136.6,"jw":120,"jh":100},"catch":{"x":1863,"y":4,"w":375,"h":378,"ax":27.5,"hx":177.7,"hy":22,"hw":64,"jx":177.7,"jy":121.0,"jw":120,"jh":100,"px":350,"py":162},"backhand":{"x":2246,"y":4,"w":337,"h":364,"ax":30.0,"hx":122.4,"hy":28,"hw":64,"jx":122.4,"jy":116.5,"jw":120,"jh":100},"jump":{"x":2591,"y":4,"w":357,"h":395,"ax":167.5,"hx":152.5,"hy":23,"hw":64,"jx":152.5,"jy":126.4,"jw":120,"jh":100,"px":287,"py":168}},"peaks-back":{"ready":{"x":4,"y":4,"w":229,"h":392,"ax":114.0,"hx":119.7,"hy":23,"hw":64,"jx":119.7,"jy":125.4,"jw":120,"jh":100,"px":206,"py":160},"run1":{"x":241,"y":4,"w":268,"h":391,"ax":101.5,"hx":146.3,"hy":23,"hw":64,"jx":146.3,"jy":125.1,"jw":120,"jh":100},"run2":{"x":517,"y":4,"w":197,"h":388,"ax":77.5,"hx":98.9,"hy":23,"hw":64,"jx":98.9,"jy":124.2,"jw":120,"jh":100},"windup":{"x":722,"y":4,"w":248,"h":414,"ax":105.5,"hx":148.1,"hy":47,"hw":64,"jx":148.1,"jy":132.5,"jw":120,"jh":100},"release":{"x":978,"y":4,"w":309,"h":402,"ax":82.5,"hx":120.4,"hy":41,"hw":64,"jx":120.4,"jy":128.6,"jw":120,"jh":100},"catch":{"x":1295,"y":4,"w":309,"h":402,"ax":82.5,"hx":120.4,"hy":41,"hw":64,"jx":120.4,"jy":128.6,"jw":120,"jh":100,"px":272,"py":30},"backhand":{"x":1612,"y":4,"w":236,"h":342,"ax":117.5,"hx":122.7,"hy":20,"hw":64,"jx":122.7,"jy":109.4,"jw":120,"jh":100},"jump":{"x":1856,"y":4,"w":309,"h":402,"ax":82.5,"hx":120.4,"hy":41,"hw":64,"jx":120.4,"jy":128.6,"jw":120,"jh":100,"px":272,"py":30}}} : null, hvImgs = {};
+  var HV = {"hoots-side":{"ready":{"x":4,"y":4,"w":390,"h":430,"ax":101.5,"hx":160.4,"hy":26,"hw":64,"jx":160.4,"jy":137.6,"jw":120,"jh":100,"px":350,"py":172},"run1":{"x":402,"y":4,"w":328,"h":439,"ax":160.5,"hx":187.8,"hy":37,"hw":64,"jx":187.8,"jy":140.5,"jw":120,"jh":100},"run2":{"x":738,"y":4,"w":320,"h":447,"ax":22.5,"hx":193.4,"hy":33,"hw":64,"jx":193.4,"jy":143.0,"jw":120,"jh":100},"windup":{"x":1066,"y":4,"w":533,"h":440,"ax":288.0,"hx":342.6,"hy":26,"hw":64,"jx":342.6,"jy":140.8,"jw":120,"jh":100},"release":{"x":1607,"y":4,"w":456,"h":487,"ax":185.5,"hx":189.1,"hy":67,"hw":64,"jx":189.1,"jy":155.8,"jw":120,"jh":100},"catch":{"x":2071,"y":4,"w":333,"h":449,"ax":130.0,"hx":143.7,"hy":60,"hw":64,"jx":143.7,"jy":143.7,"jw":120,"jh":100,"px":290,"py":58},"backhand":{"x":2412,"y":4,"w":487,"h":386,"ax":196.5,"hx":259.9,"hy":23,"hw":64,"jx":259.9,"jy":123.5,"jw":120,"jh":100},"jump":{"x":2907,"y":4,"w":371,"h":376,"ax":120.2,"hx":106.2,"hy":50,"hw":64,"jx":106.2,"jy":120.3,"jw":120,"jh":100}},"hoots-back":{"ready":{"x":4,"y":4,"w":291,"h":375,"ax":119.5,"hx":120.4,"hy":22,"hw":64,"jx":120.4,"jy":120.0,"jw":120,"jh":100,"px":268,"py":236},"run1":{"x":303,"y":4,"w":176,"h":410,"ax":75.0,"hx":87.9,"hy":24,"hw":64,"jx":87.9,"jy":131.2,"jw":120,"jh":100},"run2":{"x":487,"y":4,"w":173,"h":392,"ax":71.5,"hx":95.6,"hy":23,"hw":64,"jx":95.6,"jy":125.4,"jw":120,"jh":100},"windup":{"x":668,"y":4,"w":313,"h":389,"ax":146.5,"hx":143.5,"hy":23,"hw":64,"jx":143.5,"jy":124.5,"jw":120,"jh":100},"release":{"x":989,"y":4,"w":293,"h":426,"ax":110.0,"hx":87.4,"hy":49,"hw":64,"jx":87.4,"jy":136.3,"jw":120,"jh":100},"catch":{"x":1290,"y":4,"w":224,"h":523,"ax":93.5,"hx":106.4,"hy":149,"hw":64,"jx":106.4,"jy":167.4,"jw":120,"jh":100,"px":184,"py":44},"backhand":{"x":1522,"y":4,"w":343,"h":352,"ax":149.0,"hx":142.0,"hy":21,"hw":64,"jx":142.0,"jy":112.6,"jw":120,"jh":100},"jump":{"x":1873,"y":4,"w":205,"h":402,"ax":73.5,"hx":76.4,"hy":121,"hw":64,"jx":76.4,"jy":128.6,"jw":120,"jh":100}},"peaks-side":{"ready":{"x":4,"y":4,"w":322,"h":430,"ax":113.0,"hx":144.6,"hy":26,"hw":64,"jx":144.6,"jy":137.6,"jw":120,"jh":100,"px":287,"py":168},"run1":{"x":334,"y":4,"w":322,"h":430,"ax":113.0,"hx":144.6,"hy":26,"hw":64,"jx":144.6,"jy":137.6,"jw":120,"jh":100,"px":287,"py":168},"run2":{"x":664,"y":4,"w":322,"h":430,"ax":113.0,"hx":144.6,"hy":26,"hw":64,"jx":144.6,"jy":137.6,"jw":120,"jh":100,"px":287,"py":168},"windup":{"x":994,"y":4,"w":391,"h":431,"ax":183.0,"hx":177.7,"hy":44,"hw":64,"jx":177.7,"jy":137.9,"jw":120,"jh":100},"release":{"x":1393,"y":4,"w":462,"h":427,"ax":179.0,"hx":193.8,"hy":28,"hw":64,"jx":193.8,"jy":136.6,"jw":120,"jh":100},"catch":{"x":1863,"y":4,"w":375,"h":378,"ax":27.5,"hx":177.7,"hy":22,"hw":64,"jx":177.7,"jy":121.0,"jw":120,"jh":100,"px":350,"py":162},"backhand":{"x":2246,"y":4,"w":337,"h":364,"ax":30.0,"hx":122.4,"hy":28,"hw":64,"jx":122.4,"jy":116.5,"jw":120,"jh":100},"jump":{"x":2591,"y":4,"w":357,"h":395,"ax":167.5,"hx":152.5,"hy":23,"hw":64,"jx":152.5,"jy":126.4,"jw":120,"jh":100,"px":287,"py":168}},"peaks-back":{"ready":{"x":4,"y":4,"w":229,"h":392,"ax":114.0,"hx":119.7,"hy":23,"hw":64,"jx":119.7,"jy":125.4,"jw":120,"jh":100,"px":206,"py":160},"run1":{"x":241,"y":4,"w":268,"h":391,"ax":101.5,"hx":146.3,"hy":23,"hw":64,"jx":146.3,"jy":125.1,"jw":120,"jh":100},"run2":{"x":517,"y":4,"w":197,"h":388,"ax":77.5,"hx":98.9,"hy":23,"hw":64,"jx":98.9,"jy":124.2,"jw":120,"jh":100},"windup":{"x":722,"y":4,"w":248,"h":414,"ax":105.5,"hx":148.1,"hy":47,"hw":64,"jx":148.1,"jy":132.5,"jw":120,"jh":100},"release":{"x":978,"y":4,"w":309,"h":402,"ax":82.5,"hx":120.4,"hy":41,"hw":64,"jx":120.4,"jy":128.6,"jw":120,"jh":100},"catch":{"x":1295,"y":4,"w":309,"h":402,"ax":82.5,"hx":120.4,"hy":41,"hw":64,"jx":120.4,"jy":128.6,"jw":120,"jh":100,"px":272,"py":30},"backhand":{"x":1612,"y":4,"w":236,"h":342,"ax":117.5,"hx":122.7,"hy":20,"hw":64,"jx":122.7,"jy":109.4,"jw":120,"jh":100},"jump":{"x":1856,"y":4,"w":309,"h":402,"ax":82.5,"hx":120.4,"hy":41,"hw":64,"jx":120.4,"jy":128.6,"jw":120,"jh":100,"px":272,"py":30}}}, hvImgs = {};
   function hvSheet(team) {                                         // each side has its own painted sheet for each camera; nothing is recolored
-    var k = (team ? 'peaks' : 'hoots') + (VIEW3 ? '-back' : '-side'), im = hvImgs[k];
+    var k = HVT[team] + (VIEW3 ? '-back' : '-side'), im = hvImgs[k];
     if (!im) { im = hvImgs[k] = new Image(); im.src = k + '.png'; }
     return im.complete && im.naturalWidth ? im : null;
   }
-  function frameOf(p, name, back) { return HVP ? HV[(p.team ? 'peaks' : 'hoots') + (back ? '-back' : '-side')][name] : (back ? SPRB : SPR)[name]; }
+  function frameOf(p, name, back) { return HVP ? HV[HVT[p.team] + (back ? '-back' : '-side')][name] : (back ? SPRB : SPR)[name]; }
   setView(view);
   function rgbOf(hex) { var n = parseInt(hex.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
   /* one tinted copy of the sprite sheet per kit: the green jersey and helmet take the team's colors */
@@ -1187,7 +1188,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     }
     ctx.restore();
     if (!refl) {
-      var pk = HVP ? (f.px != null ? [f.px, f.py] : [HV[(p.team ? 'peaks' : 'hoots') + '-side'].ready.px - 0, f.h * 0.4]) : (POCKET[name] || POCKET.ready);
+      var pk = HVP ? (f.px != null ? [f.px, f.py] : [HV[HVT[p.team] + '-side'].ready.px, f.h * 0.4]) : (POCKET[name] || POCKET.ready);
       p._tip = { x: p.x - p.face * 24 + p.face * (pk[0] - f.ax) * k, y: baseY + (pk[1] - f.h) * k };
       if (st.mine) {
         var fs = Math.max(28, 12 / cssScale), ty = baseY - f.h * k - 14 - (faceFor(p) ? 150 : 0);
@@ -1257,7 +1258,10 @@ if (typeof module !== 'undefined') module.exports = Core;
   function applyTeams() {
     var p = cfg.pick;
     if (!p || !ROSTER[p[0]] || !ROSTER[p[1]] || p[0] === p[1]) p = cfg.pick = [0, 1];
-    if (cfg.comp !== 'league' && cfg.comp !== 'world') cfg.comp = 'league';
+    if (cfg.comp !== 'league' && cfg.comp !== 'world' && cfg.comp !== 'hvp') cfg.comp = 'league';
+    HVT = [ROSTER[p[0]].hv || null, ROSTER[p[1]].hv || null]; HVP = !!(MULTI && HVT[0] && HVT[1]);
+    document.body.classList.toggle('hvp', HVP);
+    if (HVP && view !== 'aerial' && view !== 'side') { setView('aerial'); cfg.view = view; trail = []; }
     if (cfg.singles && cfg.who === 'mixed') cfg.who = 'men';      // nobody to mix with in singles
     if ([9, 15, 21].indexOf(cfg.target) < 0) cfg.target = 9;      // older saved setups used 5, 7 or 10
     for (var t = 0; t < 2; t++) {
@@ -1424,12 +1428,15 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   // League Play is the six clubs (roster 0-5); World Cup Play is the six national sides (roster 6-11)
-  function groupList(comp) { return HVP ? [0, 1] : comp === 'world' ? [6, 7, 8, 9, 10, 11] : [0, 1, 2, 3, 4, 5]; }
+  function groupList(comp) { return comp === 'hvp' ? [12, 13] : comp === 'world' ? [6, 7, 8, 9, 10, 11] : [0, 1, 2, 3, 4, 5]; }
   function setComp(comp) {
     cfg.comp = comp;
     var list = groupList(comp);
     if (list.indexOf(cfg.pick[0]) < 0 || list.indexOf(cfg.pick[1]) < 0) cfg.pick = [list[0], list[1]];
-    applyTeams(); save(); buildSetup(); layout();
+    var v0 = view; applyTeams();
+    for (var i = 0; game && i < 4; i++) { game.players[i]._pose = null; game.players[i]._tip = null; game.players[i]._tipS = null; }
+    if (view !== v0) { v3trail.length = 0; v3hits.length = 0; lastHolder = -99; sidesOn = null; }
+    save(); buildSetup(); layout(); if (view !== v0) show();
   }
   function badge(r) { return r.logo ? '<img' + (r.flagImg ? ' class="flagimg"' : '') + ' src="' + r.logo + '" alt="">' : '<span class="flag" aria-hidden="true">' + r.flag + '</span>'; }
   /* anonymous play counter: only the standalone (GitHub) copy sets FL_STATS; a random id in this browser stands for one player */
@@ -1477,7 +1484,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   function changeView(v) {                                         // same match, different camera: allowed at any moment
     if (!MULTI) return;
-    var order = ['aerial', 'side', 'vintage', 'retro', 'sixties'].filter(function (m) { return VIEWS[m] != null; }); if (!v) v = order[(order.indexOf(view) + 1) % order.length];
+    var order = ['aerial', 'side', 'vintage', 'retro', 'sixties'].filter(viewOK); if (!v) v = order[(order.indexOf(view) + 1) % order.length];
     setView(v); cfg.view = view; save(); trail = []; v3trail.length = 0; v3hits.length = 0;
     for (var i = 0; game && i < 4; i++) { game.players[i]._pose = null; game.players[i]._tip = null; game.players[i]._tipS = null; }
     lastHolder = -99; sidesOn = null; buildSetup(); show();
@@ -1485,7 +1492,9 @@ if (typeof module !== 'undefined') module.exports = Core;
   function buildSetup() {
     var html = '', list = groupList(cfg.comp);
     $('comps').innerHTML = '<button type="button" id="compLeague" class="comp league" data-comp="league" aria-pressed="' + (cfg.comp === 'league') + '" aria-expanded="' + (cfg.comp === 'league') + '">League Play</button>' +
-      '<button type="button" id="compWorld" class="comp world" data-comp="world" aria-pressed="' + (cfg.comp === 'world') + '" aria-expanded="' + (cfg.comp === 'world') + '">World Cup Play</button>';
+      '<button type="button" id="compWorld" class="comp world" data-comp="world" aria-pressed="' + (cfg.comp === 'world') + '" aria-expanded="' + (cfg.comp === 'world') + '">World Cup Play</button>' +
+      (MULTI && !window.FL_VIEW3 ? '<button type="button" id="compHvp" class="comp hvp" data-comp="hvp" aria-pressed="' + (cfg.comp === 'hvp') + '" aria-expanded="' + (cfg.comp === 'hvp') + '">Hoots vs Peaks</button>' : '');
+    $('comps').classList.toggle('three', MULTI && !window.FL_VIEW3);
     $('teams').hidden = !cfg.comp;
     for (var t = 0; t < 2; t++) {
       var tm = ROSTER[cfg.pick[t]];
@@ -1519,7 +1528,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     seg($('optLevel'), [['easy', 'Easy'], ['normal', 'Normal'], ['hard', 'Hard']], cfg.level, 'level');
     seg($('optPace'), [['relaxed', 'Slow'], ['standard', 'Normal'], ['pro', 'Fast']], cfg.pace, 'pace');
     seg($('optSound'), [['on', 'On'], ['off', 'Off']], cfg.sound ? 'on' : 'off', 'sound');
-    $('optViewRow').hidden = !MULTI || !!window.FL_VIEW3; if (MULTI) seg($('optView'), [['aerial', 'Pro'], ['side', 'Amateur'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', '50s Vintage']].filter(function (m) { return VIEWS[m[0]] != null; }), view, 'view');
+    $('optViewRow').hidden = !MULTI || !!window.FL_VIEW3; if (MULTI) seg($('optView'), [['aerial', 'Pro'], ['side', 'Amateur'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', '50s Vintage']].filter(function (m) { return viewOK(m[0]); }), view, 'view');
     if (MULTI) { var SHORT = { aerial: 'Pro', side: 'Amateur', vintage: '90s', retro: '80s', sixties: '50s' }; [].forEach.call($('optView').querySelectorAll('button'), function (vb) { vb.innerHTML = '<span class="vlong">' + esc(vb.textContent) + '</span><span class="vshort">' + SHORT[vb.dataset.v] + '</span>'; }); }
     seg($('optType'), [['doubles', 'Doubles'], ['singles', 'Singles']], cfg.singles ? 'singles' : 'doubles', 'type');
     $('faceBox').hidden = !cfg.singles; faceUI();
@@ -1972,7 +1981,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var showRally = game.rally > 1 && game.phase === 'rally';              // the rally count takes the place of "play to" while a rally is on
     ctx.font = '700 25px ' + DISPLAY; ctx.fillStyle = MUTED; ctx.textAlign = 'left';
     var whoTag = cfg.who === 'women' ? "WOMEN'S  " : cfg.who === 'mixed' ? 'MIXED  ' : '';
-    ctx.fillText((cfg.comp === 'world' ? 'WORLD CUP  ·  ' : cfg.comp === 'league' ? 'LEAGUE PLAY  ·  ' : '') + whoTag + (game.cfg.singles ? 'SINGLES' : 'DOUBLES') + (showRally ? '' : '  \u00b7  PLAY TO ' + cfg.target), x + 22, y + 231);
+    ctx.fillText((cfg.comp === 'hvp' ? 'HOOTS VS PEAKS  ·  ' : cfg.comp === 'world' ? 'WORLD CUP  ·  ' : cfg.comp === 'league' ? 'LEAGUE PLAY  ·  ' : '') + whoTag + (game.cfg.singles ? 'SINGLES' : 'DOUBLES') + (showRally ? '' : '  \u00b7  PLAY TO ' + cfg.target), x + 22, y + 231);
     ctx.textAlign = 'right';
     if (showRally) ctx.fillText('RALLY ' + game.rally, x + w - 22, y + 231);
   }
@@ -2966,7 +2975,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (key === net.lobbyKey) return false;
     net.lobbyKey = key;
     if (f.pick && f.pick.length === 2) cfg.pick = [f.pick[0] | 0, f.pick[1] | 0];
-    if (f.comp === 'league' || f.comp === 'world') cfg.comp = f.comp;
+    if (f.comp === 'league' || f.comp === 'world' || f.comp === 'hvp') cfg.comp = f.comp;
     if ([9, 15, 21].indexOf(f.target) >= 0) cfg.target = f.target;
     if (PACE[f.pace]) cfg.pace = f.pace;
     cfg.singles = !!f.sg;
@@ -3052,7 +3061,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   var STANDALONE = !(window.claude && window.claude.use);        // true on your own site, false inside Claude
   var GAME_URL = STANDALONE ? location.href.split('#')[0].split('?')[0] : 'https://claude.ai/artifact/J2go4JLG1gzsF4YWZYcDux';
   function inviteText() {
-    return 'Play me in ' + (HVP ? 'Hoots vs Peaks' : 'Fantasy League Jai Alai') + '! Open ' + GAME_URL + (STANDALONE ? '' : ' (sign in to Claude with the email I invited)') +
+    return 'Play me in Fantasy League Jai Alai! Open ' + GAME_URL + (STANDALONE ? '' : ' (sign in to Claude with the email I invited)') +
       ', tap Join and enter code ' + net.code + '.';
   }
   function renderOnline() {
@@ -3244,16 +3253,16 @@ if (typeof module !== 'undefined') module.exports = Core;
   var W = 0, H = 0, DPR = 1, RUN = 9.4, t0 = 0, done = false, raf = 0;
   var DISPLAY = "'Big Shoulders Display','Arial Narrow',Impact,sans-serif";
   var GOLD = '#c9a55c', CHALK = '#f2efe6';
-  var LOOK2 = !!window.FL_LOOK2, HVP = !!window.FL_HVP;
+  var LOOK2 = !!window.FL_LOOK2;
 
   var art = {};                                                     // the game's own pictures, nothing generated
   function load(key, src) { var im = new Image(); im.src = src; art[key] = im; }
   load('court', LOOK2 ? 'fronton6.jpg' : 'fronton5.jpg');
   load('back', 'court-view.jpg');
   load('aer', 'aerial-view.jpg');
-  if (!HVP) load('spr', 'sprites.png');
-  load('mark', HVP ? 'hoots-crest.png' : 'brand.png');
-  load('markW', HVP ? 'peaks-crest.png' : 'brand-w.png');
+  load('spr', 'sprites.png');
+  load('mark', 'brand.png');
+  load('markW', 'brand-w.png');
   var ROSTER = window.FL_ROSTER || [];
   var CLUBS = ROSTER.slice(0, 6), LANDS = ROSTER.slice(6, 12);
   for (var ri = 0; ri < ROSTER.length; ri++) load('r' + ri, ROSTER[ri].logo);
@@ -3335,7 +3344,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     ctx.fillStyle = '#06070b'; ctx.fillRect(0, 0, W, H);
     ctx.save(); ctx.globalAlpha = 0.26; cover(art.aer, 760, 360, 760, 340); ctx.restore();
     vignette();
-    var wide = W > H * 1.1, cols = Math.min(wide ? 3 : 2, list.length), rows = Math.ceil(list.length / cols);
+    var wide = W > H * 1.1, cols = wide ? 3 : 2, rows = Math.ceil(list.length / cols);
     var topY = H * (wide ? 0.3 : 0.26), botY = H * 0.9;
     var cw = (W * (wide ? 0.78 : 0.86)) / cols, ch = (botY - topY) / rows;
     var box = Math.min(cw * 0.7, ch * 0.54), x0 = W / 2 - (cols - 1) * cw / 2;
@@ -3356,7 +3365,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     }
     if (s < 0.1) { ctx.fillStyle = 'rgba(255,255,255,' + (0.3 * (1 - s / 0.1)).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
   }
-  function scene2(t) { lineup(CLUBS, 0, HVP ? 'HOOTERS VS TWIN PEAKS' : 'OUR LEAGUE TEAMS', t - 3.0, HVP ? 5.0 : 2.5); }
+  function scene2(t) { lineup(CLUBS, 0, 'OUR LEAGUE TEAMS', t - 3.0, 2.5); }
   function scene3(t) { lineup(LANDS, 6, 'OUR WORLD COUNTRIES', t - 5.5, 2.5); }
   /* the name card, laid out as one block: his mark, the name, PLAY FREE, the buttons, then hers the same size */
   function cardGeo() {
@@ -3378,8 +3387,8 @@ if (typeof module !== 'undefined') module.exports = Core;
       var mw = g.mh * art.mark.naturalWidth / art.mark.naturalHeight;
       ctx.globalAlpha = land; ctx.drawImage(art.mark, W / 2 - mw / 2, ax - g.mh * 1.16, mw, g.mh);
     }
-    title(HVP ? 'FANTASY LEAGUE JAI ALAI' : 'FANTASY LEAGUE', W / 2, ax + u() * 5.4, u() * (HVP ? 5 : 6.6), '800', 0.24, GOLD, land, W * 0.86);
-    title(HVP ? 'HOOTS VS PEAKS' : 'JAI ALAI', W / 2, ax + u() * 22, u() * (HVP ? 13 : 19), '900', 0.05, CHALK, land, W * 0.9);
+    title('FANTASY LEAGUE', W / 2, ax + u() * 5.4, u() * 6.6, '800', 0.24, GOLD, land, W * 0.86);
+    title('JAI ALAI', W / 2, ax + u() * 22, u() * 19, '900', 0.05, CHALK, land, W * 0.9);
     ctx.globalAlpha = land; ctx.fillStyle = GOLD;
     ctx.fillRect(W / 2 - u() * 21, ax + u() * 26, u() * 42, Math.max(3, u() * 0.55));
     ctx.restore();
@@ -3396,7 +3405,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     ctx.fillStyle = '#05060a'; ctx.fillRect(0, 0, W, H);
     if (t < 3.0) scene1(t);
-    else if (t < (HVP ? 8.0 : 5.5)) scene2(t);
+    else if (t < 5.5) scene2(t);
     else if (t < 8.0) scene3(t);
     else scene4(t);                                                 // the name card is the last frame; PLAY FREE comes with the buttons
     ctx.fillStyle = 'rgba(255,255,255,.015)';                       // a touch of grain, so it reads as film
