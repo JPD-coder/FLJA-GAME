@@ -3629,7 +3629,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
 
   /* ---------- the door: a password, asked once and remembered in this browser ---------- */
-  var PASS = 'Bueno22', KEY = 'flja-pass';
+  var PASS = 'bueno22', KEY = 'flja-pass';                         // capital letters do not matter
   var gate = document.getElementById('gate');
   function letIn() {
     try { localStorage.setItem(KEY, PASS); } catch (e) { /* no storage: it asks again next visit */ }
@@ -3639,7 +3639,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   var known = '';
   try { known = localStorage.getItem(KEY) || ''; } catch (e) { known = ''; }
-  if (!gate || known === PASS) { roll(); }
+  if (!gate || (known && known.toLowerCase() === PASS)) { roll(); }   // devices that already said Bueno22 stay in
   else {
     document.body.classList.add('locked');
     gate.hidden = false;
@@ -3647,7 +3647,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     setTimeout(function () { try { inp.focus(); } catch (e) { /* ignore */ } }, 60);
     document.getElementById('gateForm').addEventListener('submit', function (e) {
       e.preventDefault();
-      if (inp.value.trim() === PASS) { letIn(); return; }
+      if (inp.value.trim().toLowerCase() === PASS) { letIn(); return; }
       no.textContent = 'That is not it. Try again.';
       gate.classList.remove('wrong'); void gate.offsetWidth; gate.classList.add('wrong');
       inp.value = ''; try { inp.focus(); } catch (x) { /* ignore */ }
