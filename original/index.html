@@ -58,7 +58,7 @@ body { background: var(--ink); color: var(--text); font: 15px/1.45 var(--body); 
 .bar h1 { color: #ffffff; display: flex; align-items: center; gap: 10px; min-width: 0; }
 .bar h1 b { font-weight: inherit; white-space: nowrap; }   /* the name never breaks onto two lines */
 .bar h1 img { height: 52px; width: auto; display: block; flex: none; }
-.bar h1 .markw { margin-right: -4px; }                          /* the two pelotaris stand together at the head of the page */
+.bar h1 .markw { margin-left: 2px; }                            /* she closes the lockup, on the far side of the name */
 .bar h1 span { color: #ffffff; }
 .bar-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 .music { border: 0; cursor: pointer; }
@@ -486,7 +486,7 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
 <div id="film"><canvas id="filmCv"></canvas><div class="film-btns"><button id="filmSound" type="button">Sound on</button><button id="filmSkip" type="button">Skip</button></div><div id="filmGo" hidden><button id="goPC" type="button">Play PC</button><button id="goMob" type="button">Play Mobile</button></div></div>
 <div class="app">
   <header class="bar" id="bar">
-    <h1><img class="markw" src="brand-w.png" alt=""><img src="brand.png" alt=""><b>Fantasy League <span>Jai Alai</span></b></h1>
+    <h1><img src="brand.png" alt=""><b>Fantasy League <span>Jai Alai</span></b><img class="markw" src="brand-w.png" alt=""></h1>
     <div class="bar-actions">
       <button class="ghost" id="btnView" type="button" hidden>Mode</button>
       <button class="ghost" id="btnPause" type="button" hidden>Pause</button>
@@ -3351,11 +3351,14 @@ if (typeof module !== 'undefined') module.exports = Core;
     ctx.globalAlpha = land; ctx.fillStyle = GOLD;
     ctx.fillRect(W / 2 - u() * 21, ax + u() * 26, u() * 42, Math.max(3, u() * 0.55));
     ctx.restore();
-    if (ok(art.markW)) {                                            // she closes the card, at the foot of the frame
-      var room = H - (ax + u() * 36.2 + 56) - u() * 1.5;            // she stands clear of the Play buttons
-      var wh = Math.max(u() * 9, Math.min(u() * 22, room)), ww = wh * art.markW.naturalWidth / art.markW.naturalHeight;
+    if (ok(art.markW)) {                                            // she closes the card, right under the Play buttons
+      var mh2 = Math.min(H * 0.26, u() * 26);                       // the same gap she has as the mark above the name
+      var gap = Math.max(u() * 1.5, mh2 * 0.16 - u() * 1.2);
+      var top = ax + u() * 36.2 + 56 + gap;                         // the foot of the buttons, then that gap
+      var wh = Math.max(u() * 8, Math.min(u() * 22, H - top - u() * 1.5));
+      var ww = wh * art.markW.naturalWidth / art.markW.naturalHeight;
       ctx.globalAlpha = land * fadeIn(s, 0.25, 0.4);
-      ctx.drawImage(art.markW, W / 2 - ww / 2, H - wh - u() * 1.5, ww, wh);
+      ctx.drawImage(art.markW, W / 2 - ww / 2, top, ww, wh);
       ctx.globalAlpha = 1;
     }
     if (s < 0.35) { ctx.fillStyle = 'rgba(255,255,255,' + ((0.35 - s) * 0.9).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
