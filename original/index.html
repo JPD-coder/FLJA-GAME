@@ -549,7 +549,8 @@ body.poster-on #tapPlay.wait { background: #2a2d36; color: var(--muted); animati
 @keyframes team-nudge { 0%, 100% { box-shadow: none; } 30%, 70% { box-shadow: 0 0 0 3px var(--gold), 0 0 24px rgba(201,162,74,.5); } }
 @media (prefers-reduced-motion: reduce) { .team-head.glow img, .team-head.glow .flag, .team-head.glow .team-name, .team.nudge { animation: none; } }
 body.pv-setup .stage { display: none !important; }
-body.poster-on #tapPlay { display: block; position: sticky; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 40; width: 100%; min-height: 58px; margin: 14px 0 6px;
+body.poster-on #tapPlay { display: block; position: sticky; bottom: calc(26px + env(safe-area-inset-bottom, 0px));   /* clear of the strip along the bottom edge where a phone's browser takes taps for its own toolbar */
+  z-index: 40; width: 100%; min-height: 58px; margin: 14px 0 6px;
   border: 0; border-radius: 999px; background: var(--gold); color: #0b0c0f; font: 900 20px/1 var(--display); letter-spacing: .2em; text-transform: uppercase; cursor: pointer;
   box-shadow: 0 8px 24px rgba(0,0,0,.55); animation: tp-breathe 1.8s ease-in-out infinite; }
 @keyframes tp-breathe { 50% { box-shadow: 0 8px 24px rgba(0,0,0,.55), 0 0 0 6px rgba(201,162,74,.25); } }
@@ -1704,6 +1705,10 @@ if (typeof module !== 'undefined') module.exports = Core;
   function hvpAsk() {
     var g = $('hvpGate'); if (!g) { setComp('hvp'); return; }
     g.hidden = false; $('hvpNo').textContent = ''; $('hvpPass').value = '';
+    if (!hvpAsk.pre) {                                             // fetch the players' pictures while the password is typed, so the match opens without a stall
+      hvpAsk.pre = ['hoots-side.png', 'hoots-back.png', 'peaks-side.png', 'peaks-back.png', 'hoots-side-blonde.png', 'hoots-back-blonde.png', 'peaks-side-blonde.png', 'peaks-back-blonde.png']
+        .map(function (s) { var im = new Image(); im.src = s; hvImgs[s.replace('.png', '')] = im; return im; });
+    }
     setTimeout(function () { try { $('hvpPass').focus(); } catch (e) { /* ignore */ } }, 30);
   }
   if ($('hvpForm')) {
