@@ -504,7 +504,7 @@ body.hvp .pick-label, body.hvp .picker { display: none !important; }
   width: min(440px, calc(100% - 24px)); display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 14px;
   background: #15171d; border: 1px solid var(--gold); border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.6);
   color: var(--text); font: 600 14px/1.35 var(--body); }
-#a2hs img { width: 40px; height: 40px; border-radius: 9px; flex: none; }
+#a2hs img { width: 40px; height: 40px; border-radius: 9px; flex: none; object-fit: contain; padding: 3px; background: #0b0c0f; }
 #a2hs .a2-txt { flex: 1; min-width: 0; } #a2hs .a2-txt b { display: block; font: 800 14px/1.2 var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--gold); }
 #a2hs .a2-share { display: inline-block; width: 15px; height: 18px; vertical-align: -3px; margin: 0 2px; }
 #a2hs .a2-go { flex: none; border: 0; border-radius: 999px; background: var(--gold); color: #0b0c0f; font: 800 13px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; padding: 11px 14px; cursor: pointer; }
@@ -3452,7 +3452,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     function make() {
       if (box) return box;
       box = document.createElement('div'); box.id = 'a2hs'; box.hidden = true; box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', 'Play full screen');
-      box.innerHTML = '<img src="icon-192.png" alt=""><div class="a2-txt"><b>Play full screen</b>' +
+      box.innerHTML = '<img src="brand.png" alt=""><div class="a2-txt"><b>Play full screen</b>' +
         (ios ? 'Tap Share ' + SHARE + ' in Safari, then <strong>Add to Home Screen</strong>.' : '<span class="a2-how">Tap <strong>\u22ee</strong> at the top, then <strong>Add to Home screen</strong>.</span>') + '</div>' +
         (ios ? '' : '<button type="button" class="a2-go" hidden>Install</button>') +
         '<button type="button" class="a2-x" aria-label="Close">\u00d7</button>';
@@ -3477,7 +3477,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       if (b.hidden === want) { b.hidden = !want; if (window.FL_RELAYOUT) window.FL_RELAYOUT(); }   // the title screen makes room for it
     }
     window.addEventListener('appinstalled', function () { hide(true); });
-    setTimeout(function () { tick(); setInterval(function () { if (box && box.dataset.done) return; tick(); }, 800); }, 2500);
+    tick(); setInterval(function () { if (box && box.dataset.done) return; tick(); }, 250);   // up with the title screen, no wait
   })();
   var hot = window.claude && window.claude.hot;
   if (hot && hot.snapshot) hot.snapshot(function () { return { cfg: cfg, mode: mode, score: game ? game.score : null }; });
