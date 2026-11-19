@@ -207,6 +207,9 @@ button.hot, button.hot:hover, .minis button.hot, .pad.land .minis button.hot {
   background: #c9a55c; color: #0b0c0f; font: 800 17px/1 var(--display); letter-spacing: .16em; text-transform: uppercase; cursor: pointer; }
 #filmGo button#goMob { background: transparent; color: #f2efe6; border-color: rgba(242,239,230,.6); }
 #filmGo button:hover { filter: brightness(1.08); }
+#filmGo button#goHome { order: 3; flex: 0 1 394px; min-height: 44px; background: transparent; color: #c9a55c; border: 1px dashed rgba(201,165,92,.75); font-size: 14px; letter-spacing: .14em; }
+#filmGo #homeTip { order: 4; flex: 0 1 394px; text-align: center; font: 600 14px/1.4 var(--body); color: #f2efe6; background: rgba(201,165,92,.12); border-radius: 12px; padding: 10px 14px; }
+#filmGo #homeTip b { color: #c9a55c; }
 @media (max-width: 430px) { #filmGo button { min-width: 148px; padding: 13px 12px; font-size: 15px; letter-spacing: .08em; } }
 #filmSound.wants { opacity: 1; border-color: rgba(201,165,92,.9); color: #c9a55c; animation: film-snd 1.6s ease-in-out infinite; }
 @keyframes film-snd { 0%, 100% { box-shadow: 0 0 0 0 rgba(201,165,92,.5); } 50% { box-shadow: 0 0 0 7px rgba(201,165,92,0); } }
@@ -559,7 +562,7 @@ body.poster-on #a2hs { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
 <input id="hvpPass" type="password" inputmode="text" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Hoots vs Peaks password" placeholder="Password">
 <button type="submit">Enter</button><button type="button" class="g-back" id="hvpBack">Back</button><div class="g-no" id="hvpNo" role="alert"></div></form></div>
 <div id="poster" hidden><div class="pz"><div class="ph l"></div><div class="ph r"></div><div class="vs">VS</div></div><div class="side-txt"><div class="pn"></div><div class="pload"><span class="spin"></span>Loading match</div></div></div>
-<div id="film"><canvas id="filmCv"></canvas><div class="film-btns"><button id="filmSound" type="button">Sound on</button><button id="filmSkip" type="button">Skip</button></div><div id="filmGo" hidden><button id="goPC" type="button">Play PC</button><button id="goMob" type="button">Play Mobile</button></div></div>
+<div id="film"><canvas id="filmCv"></canvas><div class="film-btns"><button id="filmSound" type="button">Sound on</button><button id="filmSkip" type="button">Skip</button></div><div id="filmGo" hidden><button id="goPC" type="button">Play PC</button><button id="goHome" type="button" hidden>Save to Home Screen</button><div id="homeTip" hidden></div><button id="goMob" type="button">Play Mobile</button></div></div>
 <div class="app">
   <header class="bar" id="bar">
     <h1><img src="brand.png" alt=""><b>Fantasy League <span>Jai Alai</span></b></h1>
@@ -3407,6 +3410,14 @@ if (typeof module !== 'undefined') module.exports = Core;
     var phone = ios || /Android/.test(ua);
     if (!phone) return;
     var KEY = 'flja-a2hs-hide', WEEK = 7 * 864e5, deferred = null, box = null;
+    window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; });
+    window.FL_A2HS = {                                              // the title screen's Save to Home Screen button uses this
+      ios: ios,
+      install: function (done) {
+        if (!deferred) { done(false); return; }
+        deferred.prompt(); deferred.userChoice.then(function (c) { deferred = null; done(c && c.outcome === 'accepted'); }, function () { done(false); });
+      }
+    };
     try { var t = +localStorage.getItem(KEY) || 0; if (Date.now() - t < WEEK) return; } catch (e) { /* show it */ }
     var SHARE = '<svg class="a2-share" viewBox="0 0 15 18" aria-hidden="true"><path d="M7.5 1v10M4 4.5 7.5 1 11 4.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 7H2.5v10h10V7h-2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>';
     function hide(remember) {
@@ -3441,7 +3452,6 @@ if (typeof module !== 'undefined') module.exports = Core;
       var want = ready() && free;
       if (b.hidden === want) b.hidden = !want;
     }
-    window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; });
     window.addEventListener('appinstalled', function () { hide(true); });
     setTimeout(function () { tick(); setInterval(function () { if (box && box.dataset.done) return; tick(); }, 800); }, 2500);
   })();
@@ -3727,11 +3737,23 @@ if (typeof module !== 'undefined') module.exports = Core;
   var ended = false, goBox = document.getElementById('filmGo');
   /* ---------- the title screen: no film. The name in the middle, the six league badges arched over it and the six countries under it, turning slowly ---------- */
   var RING = true, ringT0 = 0;
+  function homeOn() { var b = document.getElementById('goHome'), tp = document.getElementById('homeTip'); return (b && !b.hidden ? 1 : 0) + (tp && !tp.hidden ? 1.25 : 0); }
+  (function () {                                                    // Save to Home Screen, for phones on the hosted site
+    var b = document.getElementById('goHome'), tip = document.getElementById('homeTip'); if (!b || !RING) return;
+    var A = window.FL_A2HS; if (!A) return;
+    b.hidden = false;
+    b.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var show = function (html) { tip.innerHTML = html; tip.hidden = false; if (typeof relayout === 'function') relayout(); };
+      if (A.ios) { show('Tap <b>Share</b> in Safari, then <b>Add to Home Screen</b>.'); return; }
+      A.install(function (ok) { if (ok) { b.hidden = true; tip.hidden = true; relayout(); } else show('Tap <b>\u22ee</b> at the top of Chrome, then <b>Add to Home screen</b>.'); });
+    });
+  })();
   function ringGeo() {
-    var top = u() * 4 + 22, BTN = u() * 3.2 + 56, foot = u() * 10.4 + BTN + 14;    // the "presents" line above; PLAY FREE and the buttons below
+    var top = u() * 4 + 22, home = homeOn() * 58, BTN = u() * 3.2 + 56 + home, foot = u() * 10.4 + BTN + 14;   // the "presents" line above; PLAY FREE, the buttons and Save to Home Screen below
     var R = Math.min((W / 2 - 10) / 1.23, (H - top - foot) / 2.46);   // badges sit on the ring and never run off the screen
     var L = Math.min(R * 0.46, 132);                                // badge size: twelve round the ring, never touching
-    var block = 2 * R + L + foot, y0 = top + Math.max(0, (H - top - block) / 2) * 0.8;   // the whole card centred in what is left
+    var block = 2 * R + L + foot, y0 = top + Math.max(0, (H - top - block - 12) / 2);   // the whole card centred on the screen
     var cy = y0 + L / 2 + R;
     return { R: R, L: L, cx: W / 2, cy: cy, base: cy + R + L / 2 + u() * 7.2 };
   }
@@ -3749,7 +3771,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     gl.addColorStop(0, 'rgba(201,165,92,.20)'); gl.addColorStop(1, 'rgba(201,165,92,0)'); ctx.fillStyle = gl; ctx.fillRect(0, 0, W, H);
     ctx.strokeStyle = 'rgba(201,165,92,.28)'; ctx.lineWidth = Math.max(1, u() * 0.25);
     ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
-    title('MAJOR LEAGUE JAI ALAI MEDIA PRESENTS', W / 2, u() * 4 + 12, Math.max(10, u() * 2.1), '700', 0.32, GOLD, 0.9, W * 0.9);
+    title('MAJOR LEAGUE JAI ALAI MEDIA PRESENTS', W / 2, Math.max(u() * 4 + 12, g.cy - g.R - g.L / 2 - u() * 5), Math.max(10, u() * 2.1), '700', 0.32, GOLD, 0.9, W * 0.9);
     for (i = 0; i < 6; i++) {                                       // the league over the top, the countries underneath: they meet level with the middle of the name
       a = Math.PI + (i + 0.5) * Math.PI / 6 + spin;
       ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 10; badgeAt(art['r' + i], cx + Math.cos(a) * R, cy + Math.sin(a) * R, L, false); ctx.restore();
