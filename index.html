@@ -88,8 +88,9 @@ body { background: var(--ink); color: var(--text); font: 15px/1.45 var(--body); 
 #musicBox.overbtn { opacity: .011; pointer-events: auto; z-index: 80; border-radius: 8px; overflow: hidden; width: auto; height: auto; }
 #musicBox.overbtn .mus-top, #musicBox.overbtn .mus-lab { display: none; }
 #musicBox.overbtn .mus-wrap { position: absolute; inset: 0; height: auto; transition: none; }
-#musicBox.overbtn #musEmbed { position: absolute; width: 320px; height: 80px; }
-#musicBox.overbtn iframe { width: 320px; height: 80px; }
+#musicBox.overbtn { border-radius: 50%; }
+#musicBox.overbtn #musEmbed { position: absolute; width: 345px; height: 80px; }
+#musicBox.overbtn iframe { width: 345px; height: 80px; }
 #musicBox.mbar.away { visibility: hidden; }
 .mini .rec { display: inline-block; width: 1.25em; height: 1.25em; margin-right: .35em; vertical-align: -.28em; border-radius: 50%; flex: none;
   background: radial-gradient(circle, var(--rec-label, #c9a55c) 0 31%, #111 32% 36%, #2a2a2a 37% 44%, #111 45% 52%, #2a2a2a 53% 60%, #111 61% 100%); background-size: cover;
@@ -1498,11 +1499,12 @@ if (typeof module !== 'undefined') module.exports = Core;
     var box = $('musicBox'); if (!box) return;
     var btn = $('miniMusic'), live = spCtl || ($('musEmbed') && $('musEmbed').firstChild);
     if (!btn || !btn.offsetParent || mode !== 'match' || !live) { box.classList.remove('overbtn'); box.style.left = box.style.top = box.style.width = box.style.height = ''; return; }
-    var r = btn.getBoundingClientRect(), em = $('musEmbed');
+    var r = btn.getBoundingClientRect(), em = $('musEmbed'), S = 24;   // only a small circle, the size of Spotify's play button: nothing else of the player can be reached
+    var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
     box.classList.add('overbtn'); box.hidden = false;
-    box.style.left = Math.round(r.left) + 'px'; box.style.top = Math.round(r.top) + 'px'; box.style.bottom = 'auto';
-    box.style.width = Math.round(r.width) + 'px'; box.style.height = Math.round(r.height) + 'px';
-    if (em) { em.style.left = Math.round(r.width / 2 - 298) + 'px'; em.style.top = Math.round(r.height / 2 - 64) + 'px'; }   // Spotify's play button: 22px in from the right, 64px down
+    box.style.left = Math.round(cx - S / 2) + 'px'; box.style.top = Math.round(cy - S / 2) + 'px'; box.style.bottom = 'auto';
+    box.style.width = S + 'px'; box.style.height = S + 'px';
+    if (em) { em.style.left = Math.round(S / 2 - 320) + 'px'; em.style.top = Math.round(S / 2 - 66) + 'px'; }   // at 345px wide Spotify's play button sits 25px in from the right, 66px down (measured on JP's iPhone)
   }
   setInterval(musPlace, 250);
   window.addEventListener('resize', musPlace);
