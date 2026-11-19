@@ -498,7 +498,7 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
 .comp.hvp[aria-pressed="true"] .ho { color: #f26a00; } .comp.hvp[aria-pressed="true"] .pk { color: #e0202c; } .comp.hvp[aria-pressed="true"] .vs2 { color: #17171a; }
 body.hvp .pick-label, body.hvp .picker { display: none !important; }
 @media (max-width: 560px) { .comps.three { gap: 6px; } .comps.three .comp { font-size: 13px; letter-spacing: .02em; padding: 10px 3px; white-space: normal; } }
-#a2hs { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 9000;
+#a2hs { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 10010;
   width: min(440px, calc(100% - 24px)); display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 14px;
   background: #15171d; border: 1px solid var(--gold); border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.6);
   color: var(--text); font: 600 14px/1.35 var(--body); }
@@ -528,7 +528,6 @@ body.poster-on #tapPlay { display: block; position: sticky; bottom: calc(10px + 
   box-shadow: 0 8px 24px rgba(0,0,0,.55); animation: tp-breathe 1.8s ease-in-out infinite; }
 @keyframes tp-breathe { 50% { box-shadow: 0 8px 24px rgba(0,0,0,.55), 0 0 0 6px rgba(201,162,74,.25); } }
 @media (prefers-reduced-motion: reduce) { body.poster-on #tapPlay { animation: none; } }
-body.poster-on #a2hs { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
 #poster { position: fixed; inset: 0; z-index: 9500; background: #05060a; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 16px; opacity: 0; transition: opacity .35s ease; }
 #poster.on { opacity: 1; }
 #poster .pz { position: relative; display: flex; height: min(72vh, calc((100vw - 32px) * 1.025)); aspect-ratio: 1120 / 1148; max-width: 100%; border-radius: 16px; overflow: hidden; box-shadow: 0 14px 44px rgba(0,0,0,.7); }
@@ -562,7 +561,7 @@ body.poster-on #a2hs { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
 <input id="hvpPass" type="password" inputmode="text" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Hoots vs Peaks password" placeholder="Password">
 <button type="submit">Enter</button><button type="button" class="g-back" id="hvpBack">Back</button><div class="g-no" id="hvpNo" role="alert"></div></form></div>
 <div id="poster" hidden><div class="pz"><div class="ph l"></div><div class="ph r"></div><div class="vs">VS</div></div><div class="side-txt"><div class="pn"></div><div class="pload"><span class="spin"></span>Loading match</div></div></div>
-<div id="film"><canvas id="filmCv"></canvas><div class="film-btns"><button id="filmSound" type="button">Sound on</button><button id="filmSkip" type="button">Skip</button></div><div id="filmGo" hidden><button id="goPC" type="button">Play PC</button><button id="goHome" type="button" hidden>Save to Home Screen</button><div id="homeTip" hidden></div><button id="goMob" type="button">Play Mobile</button></div></div>
+<div id="film"><canvas id="filmCv"></canvas><div class="film-btns"><button id="filmSound" type="button">Sound on</button><button id="filmSkip" type="button">Skip</button></div><div id="filmGo" hidden><button id="goPC" type="button">Play PC</button><button id="goMob" type="button">Play Mobile</button></div></div>
 <div class="app">
   <header class="bar" id="bar">
     <h1><img src="brand.png" alt=""><b>Fantasy League <span>Jai Alai</span></b></h1>
@@ -3447,10 +3446,9 @@ if (typeof module !== 'undefined') module.exports = Core;
     }
     function tick() {                                              // only on the setup screen: never over the film, a password or a match
       var b = make(), gate = $('gate'), film = $('film'), hv = $('hvpGate'), pads = $('pads');
-      var free = (!gate || gate.hidden) && (!film || film.hidden || getComputedStyle(film).display === 'none' || +getComputedStyle(film).opacity === 0) &&
-        (!hv || hv.hidden) && (!pads || pads.hidden) && (!$('poster') || $('poster').hidden);
+      var free = (!gate || gate.hidden) && film && film.classList.contains('ring') && !film.classList.contains('gone');   // only on the title screen, never on the setup screen or in a match
       var want = ready() && free;
-      if (b.hidden === want) b.hidden = !want;
+      if (b.hidden === want) { b.hidden = !want; if (window.FL_RELAYOUT) window.FL_RELAYOUT(); }   // the title screen makes room for it
     }
     window.addEventListener('appinstalled', function () { hide(true); });
     setTimeout(function () { tick(); setInterval(function () { if (box && box.dataset.done) return; tick(); }, 800); }, 2500);
@@ -3737,18 +3735,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   var ended = false, goBox = document.getElementById('filmGo');
   /* ---------- the title screen: no film. The name in the middle, the six league badges arched over it and the six countries under it, turning slowly ---------- */
   var RING = true, ringT0 = 0;
-  function homeOn() { var b = document.getElementById('goHome'), tp = document.getElementById('homeTip'); return (b && !b.hidden ? 1 : 0) + (tp && !tp.hidden ? 1.25 : 0); }
-  (function () {                                                    // Save to Home Screen, for phones on the hosted site
-    var b = document.getElementById('goHome'), tip = document.getElementById('homeTip'); if (!b || !RING) return;
-    var A = window.FL_A2HS; if (!A) return;
-    b.hidden = false;
-    b.addEventListener('click', function (e) {
-      e.stopPropagation();
-      var show = function (html) { tip.innerHTML = html; tip.hidden = false; if (typeof relayout === 'function') relayout(); };
-      if (A.ios) { show('Tap <b>Share</b> in Safari, then <b>Add to Home Screen</b>.'); return; }
-      A.install(function (ok) { if (ok) { b.hidden = true; tip.hidden = true; relayout(); } else show('Tap <b>\u22ee</b> at the top of Chrome, then <b>Add to Home screen</b>.'); });
-    });
-  })();
+  function homeOn() { var b = document.getElementById('a2hs'); return b && !b.hidden ? 1.85 : 0; }   // room at the foot for the Play full screen banner
   function ringGeo() {
     var top = u() * 4 + 22, home = homeOn() * 58, BTN = u() * 3.2 + 56 + home, foot = u() * 10.4 + BTN + 14;   // the "presents" line above; PLAY FREE, the buttons and Save to Home Screen below
     var R = Math.min((W / 2 - 10) / 1.23, (H - top - foot) / 2.46);   // badges sit on the ring and never run off the screen
@@ -3839,6 +3826,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   document.addEventListener('pointerdown', wake, true);
   document.getElementById('filmSkip').addEventListener('click', function (e) { e.stopPropagation(); stopAudio(); endCard(); });
   function relayout() { size(); if (ended && !done) holdFrame(); }
+  window.FL_RELAYOUT = function () { if (ended && !done) holdFrame(); };
   window.addEventListener('resize', relayout);
   window.addEventListener('orientationchange', function () { setTimeout(relayout, 120); });
   function roll() {                                                 // the film starts once the door is open
