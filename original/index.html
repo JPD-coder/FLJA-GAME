@@ -227,8 +227,13 @@ button.hot, button.hot:hover, .minis button.hot, .pad.land .minis button.hot {
 @keyframes gate-shake { 25% { transform: translateX(-7px); } 50% { transform: translateX(7px); } 75% { transform: translateX(-4px); } }
 @media (prefers-reduced-motion: reduce) { #gate.wrong form, #hvpGate.wrong form { animation: none; } }
 #hvpGate { z-index: 10040; background: rgba(5,6,10,.94); }                 /* the Hoots vs Peaks door sits under the main one */
-#hvpGate img { border-radius: 50%; width: 76px; height: 76px; }
-#hvpGate .g-pair { display: flex; gap: 12px; }
+#hvpGate img.g-art { width: auto; height: auto; max-width: 100%; max-height: min(46vh, 420px); border-radius: 14px; object-fit: contain; box-shadow: 0 8px 30px rgba(0,0,0,.6); }
+#hvpGate form { gap: 12px; }
+@media (max-height: 520px) {                                               /* a phone on its side: the picture beside the form */
+  #hvpGate form { width: min(660px, 100%); display: grid; grid-template-columns: auto 1fr; column-gap: 20px; row-gap: 8px; align-items: center; }
+  #hvpGate img.g-art { grid-row: 1 / span 6; max-height: 84vh; }
+  #hvpGate .g-big { font-size: 26px; } #hvpGate button { min-height: 42px; }
+}
 #hvpGate .g-big .ho { color: #ff7a1a; } #hvpGate .g-big .pk { color: #ff3b3b; }
 #hvpGate .g-back { background: transparent; color: var(--muted); border: 1px solid var(--line); min-height: 42px; }
 body.locked { overflow: hidden; }
@@ -498,7 +503,7 @@ body.hvp .pick-label, body.hvp .picker { display: none !important; }
 <div class="g-name">Fantasy League</div><div class="g-big">Jai Alai</div>
 <input id="gatePass" type="password" inputmode="text" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Password" placeholder="Password">
 <button type="submit">Enter</button><div class="g-no" id="gateNo" role="alert"></div></form></div>
-<div id="hvpGate" hidden><form id="hvpForm" autocomplete="off"><div class="g-pair"><img src="hoots-crest.png" alt=""><img src="peaks-crest.png" alt=""></div>
+<div id="hvpGate" hidden><form id="hvpForm" autocomplete="off"><img class="g-art" src="hvp-door.jpg" alt="A Hooters player and a Twin Peaks player face off, each with a cesta">
 <div class="g-name">Members only</div><div class="g-big"><span class="ho">Hoots</span> vs <span class="pk">Peaks</span></div>
 <input id="hvpPass" type="password" inputmode="text" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Hoots vs Peaks password" placeholder="Password">
 <button type="submit">Enter</button><button type="button" class="g-back" id="hvpBack">Back</button><div class="g-no" id="hvpNo" role="alert"></div></form></div>
