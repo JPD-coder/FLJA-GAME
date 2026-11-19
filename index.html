@@ -207,6 +207,23 @@ button.hot, button.hot:hover, .minis button.hot, .pad.land .minis button.hot {
 #filmSound.wants { opacity: 1; border-color: rgba(201,165,92,.9); color: #c9a55c; animation: film-snd 1.6s ease-in-out infinite; }
 @keyframes film-snd { 0%, 100% { box-shadow: 0 0 0 0 rgba(201,165,92,.5); } 50% { box-shadow: 0 0 0 7px rgba(201,165,92,0); } }
 @media (prefers-reduced-motion: reduce) { #filmSound.wants { animation: none; } }
+/* the door: the game waits behind a password until it is let in */
+#gate { position: fixed; inset: 0; z-index: 10050; display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 50% 35%, #15171d 0%, #05060a 70%); padding: 24px; }
+#gate form { width: min(340px, 100%); display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+#gate img { width: 92px; height: 92px; object-fit: contain; }
+#gate .g-name { font: 800 15px/1.15 var(--display); letter-spacing: .3em; text-transform: uppercase; color: var(--gold); }
+#gate .g-big { font: 900 34px/1 var(--display); letter-spacing: .04em; text-transform: uppercase; color: var(--text); }
+#gate input { width: 100%; padding: 13px 14px; border-radius: 10px; border: 1px solid var(--line); background: #0b0c0f;
+  color: var(--text); font: 700 17px/1 var(--body); letter-spacing: .12em; text-align: center; }
+#gate input:focus { outline: 2px solid var(--gold); outline-offset: 2px; }
+#gate button { width: 100%; min-height: 50px; border: 0; border-radius: 999px; background: var(--gold); color: #0b0c0f;
+  font: 800 16px/1 var(--display); letter-spacing: .18em; text-transform: uppercase; cursor: pointer; }
+#gate .g-no { min-height: 16px; font: 700 12px/1.2 var(--body); letter-spacing: .08em; color: #ff6b5e; }
+#gate.wrong form { animation: gate-shake .35s ease; }
+@keyframes gate-shake { 25% { transform: translateX(-7px); } 50% { transform: translateX(7px); } 75% { transform: translateX(-4px); } }
+@media (prefers-reduced-motion: reduce) { #gate.wrong form { animation: none; } }
+body.locked { overflow: hidden; }
 body.filming { overflow: hidden; }
 body:not(.filming) .setup { animation: setup-in .4s ease-out; }
 @keyframes setup-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
@@ -461,6 +478,10 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
 <body>
 
 
+<div id="gate" hidden><form id="gateForm" autocomplete="off"><img src="brand.png" alt="">
+<div class="g-name">Fantasy League</div><div class="g-big">Jai Alai</div>
+<input id="gatePass" type="password" inputmode="text" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Password" placeholder="Password">
+<button type="submit">Enter</button><div class="g-no" id="gateNo" role="alert"></div></form></div>
 <div id="film"><canvas id="filmCv"></canvas><div class="film-btns"><button id="filmSound" type="button">Sound on</button><button id="filmSkip" type="button">Skip</button></div><div id="filmGo" hidden><button id="goPC" type="button">Play PC</button><button id="goMob" type="button">Play Mobile</button></div></div>
 <div class="app">
   <header class="bar" id="bar">
@@ -3453,11 +3474,39 @@ if (typeof module !== 'undefined') module.exports = Core;
   function relayout() { size(); if (ended && !done) holdFrame(); }
   window.addEventListener('resize', relayout);
   window.addEventListener('orientationchange', function () { setTimeout(relayout, 120); });
-  document.body.classList.add('filming');
-  size();
-  raf = requestAnimationFrame(frame);
-  startAudio();                                                     // plays at once wherever the browser allows it
-  setTimeout(syncSnd, 250); setTimeout(syncSnd, 900);
+  function roll() {                                                 // the film starts once the door is open
+    document.body.classList.add('filming');
+    size();
+    raf = requestAnimationFrame(frame);
+    startAudio();                                                   // plays at once wherever the browser allows it
+    setTimeout(syncSnd, 250); setTimeout(syncSnd, 900);
+  }
+
+  /* ---------- the door: a password, asked once and remembered in this browser ---------- */
+  var PASS = 'Bueno22', KEY = 'flja-pass';
+  var gate = document.getElementById('gate');
+  function letIn() {
+    try { localStorage.setItem(KEY, PASS); } catch (e) { /* no storage: it asks again next visit */ }
+    document.body.classList.remove('locked');
+    if (gate) gate.hidden = true;
+    roll();
+  }
+  var known = '';
+  try { known = localStorage.getItem(KEY) || ''; } catch (e) { known = ''; }
+  if (!gate || known === PASS) { roll(); }
+  else {
+    document.body.classList.add('locked');
+    gate.hidden = false;
+    var inp = document.getElementById('gatePass'), no = document.getElementById('gateNo');
+    setTimeout(function () { try { inp.focus(); } catch (e) { /* ignore */ } }, 60);
+    document.getElementById('gateForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (inp.value.trim() === PASS) { letIn(); return; }
+      no.textContent = 'That is not it. Try again.';
+      gate.classList.remove('wrong'); void gate.offsetWidth; gate.classList.add('wrong');
+      inp.value = ''; try { inp.focus(); } catch (x) { /* ignore */ }
+    });
+  }
 })();
 
 </script>
