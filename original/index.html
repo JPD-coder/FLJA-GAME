@@ -494,6 +494,15 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
 .comp.hvp[aria-pressed="true"] .ho { color: #f26a00; } .comp.hvp[aria-pressed="true"] .pk { color: #e0202c; } .comp.hvp[aria-pressed="true"] .vs2 { color: #17171a; }
 body.hvp .pick-label, body.hvp .picker { display: none !important; }
 @media (max-width: 560px) { .comps.three { gap: 6px; } .comps.three .comp { font-size: 13px; letter-spacing: .02em; padding: 10px 3px; white-space: normal; } }
+#a2hs { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 9000;
+  width: min(440px, calc(100% - 24px)); display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 14px;
+  background: #15171d; border: 1px solid var(--gold); border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.6);
+  color: var(--text); font: 600 14px/1.35 var(--body); }
+#a2hs img { width: 40px; height: 40px; border-radius: 9px; flex: none; }
+#a2hs .a2-txt { flex: 1; min-width: 0; } #a2hs .a2-txt b { display: block; font: 800 14px/1.2 var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--gold); }
+#a2hs .a2-share { display: inline-block; width: 15px; height: 18px; vertical-align: -3px; margin: 0 2px; }
+#a2hs .a2-go { flex: none; border: 0; border-radius: 999px; background: var(--gold); color: #0b0c0f; font: 800 13px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; padding: 11px 14px; cursor: pointer; }
+#a2hs .a2-x { flex: none; width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -3293,6 +3302,54 @@ if (typeof module !== 'undefined') module.exports = Core;
     netBoot();
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);   // refit once the display font is in
   }
+
+  /* ---------- play full screen: help phone visitors put the game on their home screen (only on the hosted site, which has the app settings) ---------- */
+  (function () {
+    if (!document.querySelector('link[rel="manifest"]')) return;
+    var standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+    if (standalone) return;                                        // already playing from the home-screen icon
+    var ua = navigator.userAgent || '', ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+    var phone = ios || /Android/.test(ua);
+    if (!phone) return;
+    var KEY = 'flja-a2hs-hide', WEEK = 7 * 864e5, deferred = null, box = null;
+    try { var t = +localStorage.getItem(KEY) || 0; if (Date.now() - t < WEEK) return; } catch (e) { /* show it */ }
+    var SHARE = '<svg class="a2-share" viewBox="0 0 15 18" aria-hidden="true"><path d="M7.5 1v10M4 4.5 7.5 1 11 4.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 7H2.5v10h10V7h-2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>';
+    function hide(remember) {
+      if (box) { box.hidden = true; box.dataset.done = '1'; }     // closed: not again this visit
+      if (remember) { try { localStorage.setItem(KEY, String(Date.now())); } catch (e) { /* this visit only */ } }
+    }
+    function make() {
+      if (box) return box;
+      box = document.createElement('div'); box.id = 'a2hs'; box.hidden = true; box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', 'Play full screen');
+      box.innerHTML = '<img src="icon-192.png" alt=""><div class="a2-txt"><b>Play full screen</b>' +
+        (ios ? 'Tap Share ' + SHARE + ' in Safari, then <strong>Add to Home Screen</strong>.' : '<span class="a2-how">Tap <strong>\u22ee</strong> at the top, then <strong>Add to Home screen</strong>.</span>') + '</div>' +
+        (ios ? '' : '<button type="button" class="a2-go" hidden>Install</button>') +
+        '<button type="button" class="a2-x" aria-label="Close">\u00d7</button>';
+      document.body.appendChild(box);
+      box.querySelector('.a2-x').addEventListener('click', function () { hide(true); });
+      var go = box.querySelector('.a2-go');
+      if (go) go.addEventListener('click', function () {
+        if (!deferred) { hide(true); return; }
+        deferred.prompt();
+        deferred.userChoice.then(function () { deferred = null; hide(true); }, function () { hide(true); });
+      });
+      return box;
+    }
+    function ready() {                                             // Android: a one-tap Install button when the browser offers it, else the menu steps
+      if (!ios && box && deferred) { var g = box.querySelector('.a2-go'), how = box.querySelector('.a2-how'); if (g && g.hidden) { g.hidden = false; if (how) how.textContent = 'Add the game to your home screen.'; } }
+      return true;
+    }
+    function tick() {                                              // only on the setup screen: never over the film, a password or a match
+      var b = make(), gate = $('gate'), film = $('film'), hv = $('hvpGate'), pads = $('pads');
+      var free = (!gate || gate.hidden) && (!film || film.hidden || getComputedStyle(film).display === 'none' || +getComputedStyle(film).opacity === 0) &&
+        (!hv || hv.hidden) && (!pads || pads.hidden);
+      var want = ready() && free;
+      if (b.hidden === want) b.hidden = !want;
+    }
+    window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; });
+    window.addEventListener('appinstalled', function () { hide(true); });
+    setTimeout(function () { tick(); setInterval(function () { if (box && box.dataset.done) return; tick(); }, 800); }, 2500);
+  })();
   var hot = window.claude && window.claude.hot;
   if (hot && hot.snapshot) hot.snapshot(function () { return { cfg: cfg, mode: mode, score: game ? game.score : null }; });
   if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
