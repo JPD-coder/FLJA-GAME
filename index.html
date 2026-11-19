@@ -636,7 +636,7 @@ body.poster-on #tapPlay { display: block; position: sticky; bottom: calc(10px + 
       <li><b>Score.</b> Every throw must hit the front wall above the low red line, and the wall is good all the way up to the gold line at its top. A ball that goes over the top of the front or back wall is out. Miss, or let the ball bounce twice, and the other team scores.</li>
       <li><b>Run and catch.</b> Push the joystick under your right thumb to run: a nudge walks, a full push runs. In Amateur and the throwback modes, push right to run toward the front wall and left toward the back wall. In Pro the camera is behind you, so up runs toward the front wall, down toward the back wall, and left and right step across the court toward the side wall or the open side. You can also hold a finger on the court to run to that spot, or use the arrow keys on a keyboard. Any ball that passes one of your players is caught, from the floor up to a full stretch overhead, on the fly or after one bounce; only a ball well over his head goes by. In Pro you also have to be across the court to the ball to catch it. In doubles the front courter plays from the front wall back to line 10 and the back courter from line 7 to the back wall.</li>
       <li><b>Shots.</b> Saque (Serve) starts the point: it must bounce between the two red lines on the floor at lines 4 and 7, or it is a fault. In play, Pelotazo (Throw) is the normal throw, straight to the front wall. Rebote (Rebound) carries long, to come off the back wall. Cortada (Cut) goes low and hard into the front wall first, then comes back into the side wall around line 3 and kicks across the court. Dos Paredes (Two-Wall) takes the side wall first and then the front wall, and dies short at a sharp angle. Costado (Side Wall) is a backhand off the side wall up by line 2, then the front wall, and comes back deep and low. Amateur, 90s Throwback, 80s Retro and 50s Vintage give you Pelotazo, Rebote and Dos Paredes; Pro adds Cortada and Costado, and holding left or right on the joystick as you throw sends the ball to that side. When the pelota (ball) comes off the back wall and one of your players catches it, it must go back to the front wall in one motion: you have three seconds at Slow pace, two at Normal and one at Fast to press a shot button, or the ball drops and the other team scores. Each shot draws its own path on court; a red path is a fault. The button under the stack switches every name between Spanish and English.</li>
-      <li><b>Music.</b> On the hosted game, tap ♪ Music in the Menu / Mode / Music / Pause row and a thin player opens just under it; tap its green play button to start that mode's playlist, and again to pause. Tap ♪ Music or the × to close it. The record on the Music button spins while a song plays. Changing modes switches to that era's playlist (90s, 80s or 50s); tap play once to start it. While it plays the ball and crowd sounds stand down so the music is clear. Spotify only plays full songs when you are signed in to Spotify in that browser: sign in once at spotify.com, otherwise you hear 30-second previews.</li>
+      <li><b>Music.</b> On the hosted game, tap ♪ Music in the Menu / Mode / Music / Pause row to play that mode's playlist, and tap it again to pause. On some phones the first tap only wakes the player: tap once more. The button lights and its record spins while a song plays. Changing modes switches to that era's playlist (90s, 80s or 50s). While it plays the ball and crowd sounds stand down so the music is clear. Spotify only plays full songs when you are signed in to Spotify in that browser: sign in once at spotify.com, otherwise you hear 30-second previews.</li>
       </ul>
       <h3>Your buttons</h3>
       <dl>
@@ -1420,7 +1420,7 @@ if (typeof module !== 'undefined') module.exports = Core;
         var pb = $('musPlay'), on = !!(e && e.data && !e.data.isPaused); if (pb) { pb.textContent = on ? '\u275a\u275a' : '\u25b6'; pb.setAttribute('aria-label', on ? 'Pause' : 'Play'); }
         spLive = on; if (on) clearTimeout(spTryT);                           // the player itself says whether a song is sounding: the button goes by that, never by a guess
         if (on) spPlayed = true;                                             // once it has played, a tap picks up where it left off
-        var mm = $('miniMusic'); if (mm) mm.classList.toggle('spinning', on);   // the record on the button turns while a song plays
+        var mm = $('miniMusic'); if (mm) { mm.classList.toggle('spinning', on); mm.classList.toggle('hot', on); }   // lit, record turning: a song is playing
         musicOn = on; musDuck = on; if (!on) unlock();                       // the music is on exactly when Spotify says it is
       });
     });
@@ -1494,19 +1494,14 @@ if (typeof module !== 'undefined') module.exports = Core;
     var mm = $('miniMusic'); if (mm) { mm.classList.remove('hot'); mm.classList.remove('spinning'); }
     musicOn = false; musDuck = false; unlock();                    // the game's own sound comes back
   }
-  var thinOpen = false;
-  function musToggle() {                                           // Music opens the thin player under the buttons; Music again (or its ×) closes it and stops the song
+  var thinOpen = false;                                            // no player on screen any more: the Music button is the whole control
+  function musToggle() {                                           // tap to play, tap to pause, tap to carry on. Nothing opens and nothing covers the court
     var now = Date.now(); if (now - musTap < 400) return; musTap = now;
-    if (thinOpen) { thinShow(false); return; }
-    thinShow(true);
+    if (spLive) { musPause(); return; }                            // a song is sounding: pause it
+    openMusic(false); musicOn = true; musDuck = true; startPlay(); // otherwise ask for music (a phone that lets the first ask go by starts on the next tap)
+    var mm = $('miniMusic'); if (mm) mm.classList.add('hot');
   }
-  function thinShow(on) {
-    var box = musBuild(); if (!box) return;
-    thinOpen = !!on;
-    if (on) { openMusic(false); box.classList.add('thin'); musPlace(); }
-    else { musPause(); box.classList.remove('thin'); }
-    var mm = $('miniMusic'); if (mm) mm.classList.toggle('hot', thinOpen);
-  }
+  function thinShow() { }
   function musPlace() {                                            // the strip sits right under Menu / Mode / Music / Pause (above them if there is no room below)
     var box = $('musicBox'); if (!box || !box.classList.contains('thin')) return;
     var row = [].slice.call(document.querySelectorAll('.minis')).filter(function (m) { return m.offsetParent; })[0];
@@ -1811,7 +1806,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       var box = function (only) { return '<div class="shotbox" data-box="' + only + '"><div class="shots">' + four(only) + '</div><div class="shot-label">' + (cfg.singles ? 'Singles' : only % 2 ? 'Back Court' : 'Front Court') + '</div></div>'; };
       var minis = '<div class="minis"><button type="button" class="mini" data-mini="menu" aria-label="New match">Menu</button>' +
         (MULTI && !window.FL_VIEW3 ? '<button type="button" class="mini" data-mini="view" aria-label="Change the mode and camera">Mode</button>' : '') +
-        (window.FL_MUSIC && MUSIC[view] ? '<button type="button" class="mini' + (thinOpen ? ' hot' : '') + (spLive ? ' spinning' : '') + '" id="miniMusic" data-mini="music" aria-label="Era music: show or hide the player">' + recHTML() + 'Music</button>' : '') +
+        (window.FL_MUSIC && MUSIC[view] ? '<button type="button" class="mini' + (spLive ? ' hot spinning' : '') + '" id="miniMusic" data-mini="music" aria-label="Era music: show or hide the player">' + recHTML() + 'Music</button>' : '') +
         '<button type="button" class="mini" id="miniPause" data-mini="pause"' + (net.role === 'guest' ? ' hidden' : '') + '>Pause</button></div>';
       // one player, either way up: the shots stand in a column on the left, movement and the serve on the right,
       // and the small controls sit under the court bar between them. Sideways they flank the court; upright they sit under it.
@@ -2036,7 +2031,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var html = '<ul>' + stick + '<li>Or hold a finger on the court where you want to go.</li>' +
       (pc ? '<li>On a keyboard, the arrow keys move you' + (pro ? ' (up and down along the court, left and right across it)' : '') + '.</li>' : '') +
       '<li>When you catch the pelota (ball), throw it with a shot button.</li>' +
-      (window.FL_MUSIC ? '<li>Music: tap \u266a Music, then the green play button. Sign in to Spotify in this browser for full songs; otherwise you hear 30-second previews.</li>' : '') + '</ul>';
+      (window.FL_MUSIC ? '<li>Music: tap \u266a Music to play, again to pause (a second tap if the first does not start it). Sign in to Spotify in this browser for full songs; otherwise you hear 30-second previews.</li>' : '') + '</ul>';
     el.querySelector('.mt-body').innerHTML = html;
     el.hidden = false; tipOpen = true;
   }
