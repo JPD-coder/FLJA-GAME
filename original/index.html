@@ -534,7 +534,7 @@ body.hvp .pick-label, body.hvp .picker { display: none !important; }
     <div class="guide" id="guide" hidden>
       <h3>The basics</h3>
       <ul class="rules">
-      <li><b>Singles or doubles.</b> Pick the match type above the teams. Doubles is two on two, with a front-court and a back-court player on each team. Singles is one on one: you cover the whole court alone, and you can take a selfie or headshot pic so your face is on your player.</li>
+      <li><b>Singles and doubles.</b> Pick the match type above the teams. Singles is one on one: you cover the whole court alone, and you can take a selfie or headshot pic so your face is on your player. Doubles is two on two, with a front-court and a back-court player on each team.</li>
       <li><b>Who you play.</b> Under each team, Played by has a switch for the front-court player and one for the back-court player: set each to Player 1 or CPU. Set both to Player 1 and the game hands you whichever player can reach the ball. Set one to CPU and you stay on that position while the CPU plays your partner.</li>
       <li><b>Score.</b> Every throw must hit the front wall above the low red line, and the wall is good all the way up to the gold line at its top. A ball that goes over the top of the front or back wall is out. Miss, or let the ball bounce twice, and the other team scores.</li>
       <li><b>Run and catch.</b> Push the joystick under your right thumb to run: a nudge walks, a full push runs. In Amateur and the throwback modes, push right to run toward the front wall and left toward the back wall. In Pro the camera is behind you, so up runs toward the front wall, down toward the back wall, and left and right step across the court toward the side wall or the open side. You can also hold a finger on the court to run to that spot, or use the arrow keys on a keyboard. Any ball that passes one of your players is caught, from the floor up to a full stretch overhead, on the fly or after one bounce; only a ball well over his head goes by. In Pro you also have to be across the court to the ball to catch it. In doubles the front courter plays from the front wall back to line 10 and the back courter from line 7 to the back wall.</li>
@@ -1551,7 +1551,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     seg($('optSound'), [['on', 'On'], ['off', 'Off']], cfg.sound ? 'on' : 'off', 'sound');
     $('optViewRow').hidden = !MULTI || !!window.FL_VIEW3; if (MULTI) seg($('optView'), [['aerial', 'Pro'], ['side', 'Amateur'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', '50s Vintage']].filter(function (m) { return viewOK(m[0]); }), view, 'view');
     if (MULTI) { var SHORT = { aerial: 'Pro', side: 'Amateur', vintage: '90s', retro: '80s', sixties: '50s' }; [].forEach.call($('optView').querySelectorAll('button'), function (vb) { vb.innerHTML = '<span class="vlong">' + esc(vb.textContent) + '</span><span class="vshort">' + SHORT[vb.dataset.v] + '</span>'; }); }
-    seg($('optType'), [['doubles', 'Doubles'], ['singles', 'Singles']], cfg.singles ? 'singles' : 'doubles', 'type');
+    seg($('optType'), [['singles', 'Singles'], ['doubles', 'Doubles']], cfg.singles ? 'singles' : 'doubles', 'type');
     $('faceBox').hidden = !cfg.singles; faceUI();
     renderOnline();
   }
