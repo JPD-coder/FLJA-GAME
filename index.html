@@ -545,8 +545,8 @@ body.hvp .pick-label, body.hvp .picker { display: none !important; }
         <div><dt><i class="sw"></i>Pelotazo &middot; Throw</dt><dd>A hard throw aimed high on the front wall, meant to drive the ball deep over your opponent's head. The safe way to keep a rally going.</dd></div>
         <div><dt><i class="sw s1"></i>Rebota &middot; Rebound</dt><dd>The big throw: it comes off the front wall hard enough to carry all the way to the back wall. It is also the shot you use to save a ball played over your head, catching the carom off the back wall and sending it straight back in one motion.</dd></div>
         <div><dt><i class="sw s2"></i>Cortada &middot; Cut <small>(Pro)</small></dt><dd>Caught in the front of the court and thrown low and hard into the middle of the front wall. It bounces and tails sharply into the side wall, and the speed and tight angle make it very hard to reach.</dd></div>
-        <div><dt><i class="sw s3"></i>Dos Paredes &middot; Two-Wall <small>(Pro)</small></dt><dd>A kill shot: the ball hits the side wall first, then the front wall, comes off dead and drops short, angling away across the court. Running it down is close to impossible.</dd></div>
-        <div><dt><i class="sw s4"></i>Costado &middot; Side Wall</dt><dd>A stylish, difficult backhand played off the side wall up by line 2 before the front wall. Where the Dos Paredes dies short, the Costado kicks off the front wall and carries deep and low, skidding along the floor down the side-wall half of the court.</dd></div>
+        <div><dt><i class="sw s3"></i>Dos Paredes &middot; Two-Wall <small>(Pro)</small></dt><dd>A kill shot. The ball hits the side wall first, around line 3, then the front wall. It comes off the front wall dead and drops short, first bouncing around lines 4 to 9, and angles away across the court toward the open side. Running it down is close to impossible. Where the Costado carries deep, the Dos Paredes dies short.</dd></div>
+        <div><dt><i class="sw s4"></i>Costado &middot; Side Wall</dt><dd>A stylish, difficult backhand. The ball hits the side wall first, high up the court by line 2, then the front wall. It kicks off the front wall and carries deep and low, first bouncing around lines 8 to 14 and often reaching the back wall, skidding along the floor down the side-wall half of the court. Where the Dos Paredes dies short, the Costado carries deep. It is the one side-wall shot in every mode.</dd></div>
       </dl>
       <h3>Calls you will see on court</h3>
       <dl>
@@ -1616,8 +1616,8 @@ if (typeof module !== 'undefined') module.exports = Core;
         'A hard throw high on the front wall, to drive the ball deep over your opponent.',
         'The big throw: off the front wall hard enough to carry to the back wall.',
         'Low and hard into the middle of the front wall, tailing into the side wall.',
-        'The side wall first, then the front wall: it dies short at a sharp angle.',
-        'A backhand off the side wall up by line 2, then the front wall: it comes back deep and low.'];
+        'Side wall by line 3, then the front wall: it dies short, around lines 4 to 9, angling across the court.',
+        'A backhand off the side wall by line 2, then the front wall: it carries deep and low, around lines 8 to 14.'];
       var sb = function (only, k, extra) { return '<button type="button" class="throw idle ' + CLS[k] + (extra || '') + '" data-seat="' + s + '" data-only="' + only + '" data-sv="' + (k ? 0 : 1) + '" data-shot="' + Math.max(0, k - 1) + '" data-act="T" title="' + NAMES[k] + ' \u2014 ' + TIP[k] + '">' + NAMES[k] + '</button>'; };
       var four = function (only) {                                 // Amateur plays the two plain shots; Pro adds the two that take the side wall
         var set = shotSet().map(function (k) { return k + 1; }), out = '';   // button index = core shot + 1
