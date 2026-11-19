@@ -28,7 +28,7 @@ button[aria-pressed=true]{background:var(--gold);color:#0b0c0f;border-color:var(
 <div class="top"><div class="brand">MLJ Arena &amp; Lounge</div>
 <div class="acts">
 <button id="mWalk" aria-pressed="true">Walk Through View</button><button id="mDoll" aria-pressed="false">Dollhouse View</button><button id="mAir" aria-pressed="false">Aerial View</button>
-<select id="goto" aria-label="Go to"><option value="">Go to…</option><option value="entry">Main entrance</option><option value="food">Food court &amp; bars</option><option value="merch">Merch store</option><option value="rest">Restrooms</option><option value="doors">Fronton doors</option><option value="sharks">Shark tank bars</option><option value="seats">Seats</option><option value="vip">VIP couches</option><option value="court">On the court</option></select>
+<select id="goto" aria-label="Go to"><option value="">Go to…</option><option value="entry">Main entrance</option><option value="food">Food court &amp; bars</option><option value="merch">Merch store</option><option value="rest">Restrooms</option><option value="doors">Fronton doors</option><option value="sharks">Shark tank bars</option><option value="seats">Seats</option><option value="vip">VIP couches</option><option value="court">On the court</option><option value="valet">Valet circle</option><option value="vpark">Valet parking</option><option value="lot">Parking lot</option><option value="marina">Marina</option></select>
 <a class="btn" href="./" id="back">Back to the game</a></div></div>
 <div id="stick" hidden><i></i></div>
 <div id="hint"></div>
@@ -41,12 +41,12 @@ button[aria-pressed=true]{background:var(--gold);color:#0b0c0f;border-color:var(
 'use strict';
 var T=THREE, el=document.getElementById('view');
 var renderer=new T.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio||1,2)); el.appendChild(renderer.domElement);
-var scene=new T.Scene(); scene.background=new T.Color(0x05060a);
-var cam=new T.PerspectiveCamera(68,1,0.3,900);
+var scene=new T.Scene(); scene.background=new T.Color(0x070b18);
+var cam=new T.PerspectiveCamera(68,1,0.3,3000);
 /* ---- the plan, in feet. x runs along the court from the front wall (0) to the back wall (168). z runs from the long side wall (0) across the court,
    over the wood strip, up through the VIP couches and the seats to the bar terrace, then through the double doors into the concourse and out the entrance. ---- */
 var L=168,COURT=40,WOOD=52,VIP0=54,SEAT0=83,TER0=105.6,DOORZ=128,END=182,HALLH=44,CONH=30,TERY=12.5,CX=84,DOORW=6;
-function floorY(x,z){ if(z<VIP0) return 0; if(z<SEAT0) return 1+1.5*Math.min(2,Math.floor((z-VIP0)/9.67)); if(z<TER0) return 5.5+1.2*Math.min(5,Math.max(0,Math.floor((z-84)/3.6))); return TERY; }
+function floorY(x,z){ if(x<-3||x>L+3||z<-3||z>=END) return TERY; if(z<VIP0) return 0; if(z<SEAT0) return 1+1.5*Math.min(2,Math.floor((z-VIP0)/9.67)); if(z<TER0) return 5.5+1.2*Math.min(5,Math.max(0,Math.floor((z-84)/3.6))); return TERY; }
 function mat(c,o){ o=o||{}; o.color=c; return new T.MeshLambertMaterial(o); }
 function box(w,h,d,x,y,z,m,parent){ var g=new T.Mesh(new T.BoxGeometry(w,h,d),typeof m==='number'?mat(m):m); g.position.set(x,y,z); (parent||scene).add(g); return g; }
 function canvasTex(w,h,draw){ var c=document.createElement('canvas'); c.width=w; c.height=h; draw(c.getContext('2d'),w,h); var t=new T.CanvasTexture(c); t.anisotropy=4; return t; }
@@ -165,14 +165,107 @@ sign('← FOOD COURT & BARS        MERCH & RESTROOMS →',46,2.6,CX,TERY+22,DOOR
 var rm=mat(0x0c0d11,{side:T.DoubleSide}); var r1=new T.Mesh(new T.BoxGeometry(L+4,1,DOORZ+2),rm); r1.position.set(L/2,HALLH+0.5,DOORZ/2-1); roof.add(r1);
 var r2=new T.Mesh(new T.BoxGeometry(L+4,1,END-DOORZ+1),rm); r2.position.set(L/2,TERY+CONH+0.5,(DOORZ+END)/2+0.5); roof.add(r2);
 for(var li=0;li<6;li++){ var lamp=new T.Mesh(new T.BoxGeometry(6,0.4,2.4),new T.MeshBasicMaterial({color:0xfff3d6})); lamp.position.set(18+li*26.4,HALLH-0.4,22); roof.add(lamp); }
-box(L+40,0.2,END+60,L/2,-0.6,END/2,0x0a0b0e); box(L+40,TERY,40,L/2,TERY/2-0.25,END+20,0x0d0e12);
+/* ---- outside: grade is level with the concourse (the court sits below it). South (z > END) = valet circle, valet parking, the main lot.
+   East (x > L) = seawall, the Intracoastal and the marina. Palms ring the building. ---- */
+var G=TERY, WX=198, sd=7; function rnd(){ sd=(sd*16807)%2147483647; return sd/2147483647; }
+function slab(x0,x1,z0,z1,c,dy,h){ h=h||0.3; return box(x1-x0,h,z1-z0,(x0+x1)/2,G+(dy||0)-h/2-0.05,(z0+z1)/2,c); }
+function M4(x,y,z,ry,sx,sy,sz,rz){ return new T.Matrix4().compose(new T.Vector3(x,y,z),new T.Quaternion().setFromEuler(new T.Euler(0,ry||0,rz||0,'YXZ')),new T.Vector3(sx||1,sy||1,sz||1)); }
+function inst(geo,m,ms,cols){ var im=new T.InstancedMesh(geo,m,ms.length); ms.forEach(function(q,i){ im.setMatrixAt(i,q); if(cols) im.setColorAt(i,new T.Color(cols[i])); }); scene.add(im); return im; }
+function glow(c){ return new T.MeshBasicMaterial({color:c}); }
+var GRASS=0x1d4a26, ASPH=0x1d1e23, PAVE=0x4a4640, STONE=0xd9d2c2;
+box(L+40,0.2,END+60,L/2,-0.6,END/2,0x0a0b0e);
+slab(-110,-2,-90,END+0.6,GRASS); slab(-400,-110,-300,700,0x0e2a16,-0.2); slab(-110,WX,-300,-90,0x0e2a16,-0.2); slab(-110,WX,500,700,0x0e2a16,-0.2); slab(-2,L+2,-90,-1.6,GRASS); slab(L+2,WX,-90,END+0.6,GRASS); slab(-110,WX,END+0.6,500,ASPH);
+/* water + seawall + boardwalk */
+(function(){ var w=new T.Mesh(new T.PlaneGeometry(700,900),glow(0x0b3350)); w.rotation.x=-Math.PI/2; w.position.set(WX+350,G-5,205); scene.add(w);
+  var ms=[]; for(var i=0;i<90;i++) ms.push(M4(WX+20+rnd()*520,G-4.9,-220+rnd()*840,0,6+rnd()*22,1,1)); inst(new T.BoxGeometry(1,0.05,0.5),glow(0x1f6f9c),ms);
+  box(2,6,590,WX+1,G-3,205,0x6f6a60); slab(WX-10,WX,-90,500,0x7a5a3a,0.12);
+  var rail=[]; for(var z=-88;z<500;z+=8) rail.push(M4(WX-0.3,G+1.7,z,0,0.3,3.4,0.3)); inst(new T.BoxGeometry(1,1,1),mat(0xe9e4d8),rail); box(0.3,0.25,590,WX-0.3,G+3.4,205,0xe9e4d8); })();
+/* marina: three piers with finger docks, boats in the slips, a yacht on each T-head */
+function boat(x,z,len,ry,col){ var g=new T.Group(); g.position.set(x,G-4.6,z); g.rotation.y=ry||0; scene.add(g); var w=len*0.3, hull=mat(0xf4f4f0);
+  function p(a,b,c,px,py,pz,m){ var q=new T.Mesh(new T.BoxGeometry(a,b,c),m); q.position.set(px,py,pz); g.add(q); return q; }
+  p(len,len*0.1+1.6,w,0,(len*0.1+1.6)/2,0,hull); p(len*0.14,len*0.1+1.2,w*0.62,len*0.56,(len*0.1+1.6)/2+0.2,0,hull); p(len*1.0,0.5,w+0.1,0,len*0.1+1.0,0,mat(col));
+  p(len*0.42,len*0.07+1.8,w*0.74,-len*0.05,len*0.1+1.6+(len*0.07+1.8)/2,0,hull); p(len*0.43,(len*0.07+1.8)*0.45,w*0.75,-len*0.05,len*0.1+1.6+(len*0.07+1.8)*0.55,0,mat(0x10151c));
+  if(len>50){ p(len*0.26,len*0.06+1.4,w*0.6,-len*0.1,len*0.17+3.4+(len*0.06+1.4)/2,0,hull); p(len*0.27,(len*0.06+1.4)*0.5,w*0.61,-len*0.1,len*0.17+3.4+(len*0.06+1.4)*0.55,0,mat(0x10151c)); p(0.4,7,0.4,-len*0.12,len*0.23+8,0,hull); } }
+(function(){ var WOODM=mat(0x8a6842), BC=[0x1d4ed8,0xc9a55c,0x0f766e,0xb91c1c,0x111827,0x3cb5e4], piles=[], k=0;
+  [10,92,174].forEach(function(pz,pi){ var len=118; box(len,0.8,9,WX+len/2,G-1.2,pz,WOODM); box(9,0.8,64,WX+len+4.5,G-1.2,pz,WOODM);
+    boat(WX+len+16,pz,[78,66,92][pi],Math.PI/2,BC[pi]);
+    for(var fx=WX+18;fx<WX+len-6;fx+=27){ [-1,1].forEach(function(s){ box(3.2,0.7,26,fx,G-1.3,pz+s*17.5,WOODM); piles.push(M4(fx,G-1,pz+s*31,0,1,9,1));
+        if(rnd()<0.86) boat(fx+9+rnd()*1.5,pz+s*(19+rnd()*2),26+Math.floor(rnd()*4)*5,s>0?Math.PI/2:-Math.PI/2,BC[(k++)%6]); }); }
+    for(var px=WX+6;px<WX+len;px+=20){ piles.push(M4(px,G-1,pz+5,0,1,9,1)); piles.push(M4(px,G-1,pz-5,0,1,9,1)); } });
+  inst(new T.CylinderGeometry(0.7,0.7,1,8),mat(0x4b3a28),piles); sign('MLJ MARINA',20,3,WX-5,G+13,92,-Math.PI/2); box(0.6,12,0.6,WX-5,G+6,82.5,0xe9e4d8); box(0.6,12,0.6,WX-5,G+6,101.5,0xe9e4d8); })();
+/* palms */
+var PALMS=[]; function palm(x,z,h){ PALMS.push([x,z,h||(24+rnd()*10)]); }
+(function(){ var z,x;
+  for(z=-8;z<END;z+=19){ palm(-13,z); palm(-34,z+9.5); palm(L+12,z); palm(L+25,z+9.5); }
+  for(x=-10;x<L+14;x+=19){ palm(x,-14); palm(x+9.5,-34); }
+  for(z=-60;z<END-10;z+=24){ palm(-62,z); palm(-90,z+12); } for(x=-60;x<WX-14;x+=26){ palm(x,-64); }
+  for(x=-100;x<WX-12;x+=14){ if(x>66&&x<102) continue; palm(x,287,22+rnd()*8); }
+  for(z=192;z<500;z+=22){ palm(-104,z); palm(WX-14,z+6); }
+  [[14,212],[14,262],[154,212],[154,262],[42,190],[126,190]].forEach(function(q){ palm(q[0],q[1],30); });
+  for(var a=0;a<5;a++) palm(CX+Math.cos(a*1.257)*9,244+Math.sin(a*1.257)*9,26+a*1.5); })();
+(function(){ var tr=[], fr=[], fc=[]; PALMS.forEach(function(p){ tr.push(M4(p[0],G+p[2]/2,p[1],0,1,p[2],1)); var a0=rnd()*6.28;
+    for(var i=0;i<9;i++){ fr.push(M4(p[0],G+p[2],p[1],a0+i*0.698,1,1,1,-0.42-rnd()*0.2)); fc.push(i%2?0x2f8a3f:0x24703a); }
+    for(i=0;i<5;i++){ fr.push(M4(p[0],G+p[2]+0.3,p[1],a0+0.35+i*1.257,0.7,1,0.8,0.25)); fc.push(0x3a9a48); } });
+  inst(new T.CylinderGeometry(0.5,0.85,1,6),mat(0x6b5236),tr); var fg=new T.BoxGeometry(12,0.18,2.6); fg.translate(6,0,0); inst(fg,mat(0xffffff),fr,fc); })();
+/* front of the building + the porte-cochere */
+sign('MAJOR LEAGUE JAI ALAI',64,6,CX,G+CONH-4,END+0.75,0); banner('brand.png',15,15,24,G+15,END+0.75,0); banner('brand.png',15,15,L-24,G+15,END+0.75,0);
+TL.slice(0,6).forEach(function(s,i){ banner(s,8,8,[46,58,70,98,110,122][i]>84?[46,58,70,98,110,122][i]+18:[46,58,70,98,110,122][i]-8,G+7,END+0.75,0); });
+slab(40,128,END+0.6,198,PAVE,0.06); slab(77,91,END+0.6,199,0x8f1d2c,0.1);
+(function(){ var cy=G+25, z0=END+0.8, z1=232, x0=38, x1=130, cw=x1-x0, cd=z1-z0, cz=(z0+z1)/2;
+  box(cw,3,cd,CX,cy+1.5,cz,0xefe9dc); box(cw+3,1,cd+3,CX,cy+3.5,cz,GOLD); box(cw-16,4,cd-12,CX,cy+6,cz-2,0xefe9dc); box(cw-13,0.8,cd-9,CX,cy+8.4,cz-2,GOLD);
+  box(cw-4,0.3,cd-4,CX,cy-0.15,cz,0x6b4a2c);
+  for(var i=0;i<5;i++) for(var j=0;j<3;j++) box(7,0.25,1.6,x0+12+i*17,cy-0.4,z0+9+j*16,glow(0xfff0c8));
+  [x0+4,x1-4].forEach(function(x){ [z0+5,cz,z1-4].forEach(function(z){ box(4,25,4,x,G+12.5,z,STONE); box(5.4,2,5.4,x,G+1,z,0xbdb5a2); box(5.4,1.6,5.4,x,cy-0.8,z,GOLD); }); });
+  sign('MLJ ARENA  ·  VALET',46,3.6,CX,cy+6,z1+3.6-8,0,{bg:'#efe9dc',fg:'#0b0c0f'});
+  box(3,4,2,x0+10,G+2,z0+17,0x101114); sign('VALET',3,1.2,x0+10,G+3.2,z0+18.05,0,{border:false}); box(3,4,2,x1-10,G+2,z0+17,0x101114); sign('VALET',3,1.2,x1-10,G+3.2,z0+18.05,0,{border:false});
+  for(var b=0;b<8;b++){ box(0.5,3,0.5,[x0+12,x1-12][b%2]+((b>>1)%2?6:-6)*0+ (b%2?-1:1)*Math.floor(b/2)*0,G+1.5,z0+2+Math.floor(b/2)*0,GOLD).visible=false; } })();
+/* valet circle: paver disc, island with fountain */
+(function(){ function disc(r,h,c,dy,m){ var d=new T.Mesh(new T.CylinderGeometry(r,r,h,48),m||mat(c)); d.position.set(CX,G+dy,244); scene.add(d); return d; }
+  disc(44,0.2,PAVE,0.0); disc(17,1.0,0xbdb5a2,0.5); disc(16,1.0,GRASS,0.62); disc(7.5,2.2,STONE,1.1); disc(6.6,2.2,0,1.2,glow(0x2f9fd0)); disc(1.2,7,STONE,3.5); disc(2.6,0.6,STONE,6.2); disc(0.5,2.4,0,8,glow(0x9fe0ff));
+  slab(70,98,198,292,PAVE,0.02); })();
+/* cars */
+var CK={lambo:{l:15.4,w:6.8,bh:1.5,ch:1.25,cl:5.2,co:0.9,g:0.55,r:1.15},ferrari:{l:15,w:6.5,bh:1.65,ch:1.35,cl:5.4,co:0.7,g:0.55,r:1.15},porsche:{l:14.8,w:6.2,bh:1.9,ch:1.5,cl:6.6,co:1.2,g:0.6,r:1.1},
+  bentley:{l:16.8,w:6.8,bh:2.9,ch:2.1,cl:9.6,co:1.3,g:0.9,r:1.45},rolls:{l:18.2,w:6.6,bh:2.5,ch:1.8,cl:8.2,co:1.2,g:0.7,r:1.3},gwagon:{l:15.4,w:6.5,bh:3.1,ch:2.5,cl:9.4,co:1.4,g:1.1,r:1.5},mclaren:{l:15,w:6.6,bh:1.55,ch:1.3,cl:5,co:0.4,g:0.5,r:1.15}};
+var TIRE=mat(0x08080a), GLASS=mat(0x0d1218), HEAD=glow(0xfff6d8), TAIL=glow(0xff2a2a), WG=new T.CylinderGeometry(1,1,1,12); WG.rotateZ(Math.PI/2);
+function car(x,z,ry,kind,col){ var S=CK[kind], g=new T.Group(), b=mat(col); g.position.set(x,G,z); g.rotation.y=ry; scene.add(g);
+  function p(w,h,d,px,py,pz,m){ var q=new T.Mesh(new T.BoxGeometry(w,h,d),m); q.position.set(px,py,pz); g.add(q); return q; }
+  p(S.w,S.bh,S.l,0,S.g+S.bh/2,0,b); p(S.w*0.84,S.ch,S.cl,0,S.g+S.bh+S.ch/2,S.co,GLASS); p(S.w*0.8,0.16,S.cl*0.72,0,S.g+S.bh+S.ch+0.08,S.co+S.cl*0.04,b);
+  if(S.bh<1.8){ p(S.w*0.96,S.bh*0.45,S.l*0.2,0,S.g+S.bh*0.22,-S.l*0.42,b).scale.set(1,1,1); p(S.w*0.86,0.5,S.l*0.24,0,S.g+S.bh+0.22,S.l*0.34,b); }
+  if(kind==='lambo'||kind==='mclaren'){ p(S.w*0.92,0.14,1.3,0,S.g+S.bh+1.0,S.l*0.46,b); p(0.2,0.8,0.5,-S.w*0.34,S.g+S.bh+0.5,S.l*0.46,b); p(0.2,0.8,0.5,S.w*0.34,S.g+S.bh+0.5,S.l*0.46,b); }
+  if(kind==='rolls'||kind==='bentley') p(S.w*0.5,S.bh*0.5,0.2,0,S.g+S.bh*0.62,-S.l/2-0.06,mat(0xd8dade));
+  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(q){ var w=new T.Mesh(WG,TIRE); w.scale.set(1.0,S.r,S.r); w.position.set(q[0]*(S.w/2-0.35),S.r,q[1]*S.l*0.31); g.add(w); });
+  p(S.w*0.9,0.24,0.14,0,S.g+S.bh*0.72,-S.l/2-0.08,HEAD); p(S.w*0.9,0.22,0.14,0,S.g+S.bh*0.78,S.l/2+0.08,TAIL); return g; }
+var LUX=[['lambo',0xb6f000],['ferrari',0xd4121a],['bentley',0xeeeae0],['porsche',0xc8ccd2],['rolls',0x0b0b0d],['mclaren',0xff7a00],['gwagon',0x15171a],['ferrari',0xf6c900],['lambo',0xff6a00],['porsche',0x1d4ed8],['bentley',0x0f3d2e],['rolls',0xf2f0ea],
+  ['mclaren',0x1ea7ff],['lambo',0x8f0bcd],['porsche',0xf2f2f2],['ferrari',0x101012],['gwagon',0x5b6b4a],['bentley',0x101114],['lambo',0xf2f2f2],['porsche',0xd4121a]], lk=0;
+function lux(x,z,ry){ var q=LUX[(lk++)%LUX.length]; return car(x,z,ry,q[0],q[1]); }
+car(58,205,Math.PI/2,'lambo',0xb6f000); car(84,205,Math.PI/2,'ferrari',0xd4121a); car(110,205,Math.PI/2,'bentley',0xeeeae0);
+(function(){ var lines=[], z, x;
+  for(z=204;z<=276;z+=11){ lux(22,z,-Math.PI/2); lux(146,z,Math.PI/2); lines.push(M4(22,G+0.02,z-5.5,0,19,1,0.35)); lines.push(M4(146,G+0.02,z-5.5,0,19,1,0.35)); }
+  slab(-104,66,282,292,GRASS,0.5,0.9); slab(102,WX-10,282,292,GRASS,0.5,0.9); box(170,2.6,2.2,-19,G+1.6,284,0x17401f); box(86,2.6,2.2,145,G+1.6,284,0x17401f);
+  sign('VALET PARKING',20,2.6,48,G+8,293,0); sign('VALET PARKING',20,2.6,120,G+8,293,0); box(0.5,7,0.5,39,G+3.5,293,GOLD); box(0.5,7,0.5,57,G+3.5,293,GOLD); box(0.5,7,0.5,111,G+3.5,293,GOLD); box(0.5,7,0.5,129,G+3.5,293,GOLD);
+  [[305,0],[339,Math.PI]].forEach(function(r){ for(x=-52;x<=176;x+=11){ if(x>62&&x<106) continue; lines.push(M4(x-5.5,G+0.02,r[0],0,0.35,1,19)); if(rnd()<0.9) lux(x,r[0],r[1]); } });
+  /* the gap, then the main lot */
+  slab(-104,66,352,358,GRASS,0.4,0.8); slab(102,WX-10,352,358,GRASS,0.4,0.8);
+  var body=[], cab=[], under=[], cols=[], NC=[0x6b7280,0x1f2937,0xe5e7eb,0x7f1d1d,0x1e3a8a,0x374151,0x9ca3af,0x14532d,0xd1d5db,0x111827,0x92400e,0xf8fafc];
+  [[373,0],[411,Math.PI],[429,0],[467,Math.PI]].forEach(function(r){ for(x=-96;x<=WX-18;x+=9.5){ if(x>64&&x<104) continue; lines.push(M4(x-4.75,G+0.02,r[0],0,0.35,1,18));
+      if(rnd()<0.68){ var t=rnd()<0.4, h=t?3.2:2.3, ln=t?16:14.6, dz=(rnd()-0.5)*1.2, s=r[1]?-1:1; under.push(M4(x,G+0.5,r[0]+dz,0,5.6,1,ln-2)); body.push(M4(x,G+0.8+h/2,r[0]+dz,0,6.1,h,ln)); cab.push(M4(x,G+0.8+h+0.85,r[0]+dz+s*(t?1.6:0.9),0,5.4,1.7,t?9.5:7)); cols.push(NC[Math.floor(rnd()*NC.length)]); } } });
+  lines.push(M4(-15,G+0.02,420,0,162,1,0.35)); lines.push(M4(144,G+0.02,420,0,80,1,0.35));
+  for(z=298;z<496;z+=14) lines.push(M4(CX,G+0.02,z,0,0.4,1,7));
+  inst(new T.BoxGeometry(1,0.04,1),glow(0xd9d9d2),lines); var ub=new T.BoxGeometry(1,1,1); inst(ub,TIRE,under); inst(ub,mat(0xffffff),body,cols); inst(ub,GLASS,cab);
+  /* light posts */
+  var posts=[], heads=[], pools=[]; [[392,[-80,-32,16,60,108,150]],[448,[-80,-32,16,60,108,150]],[322,[-70,-10,50,118,168]],[232,[-40,-80]],[232,[178]]].forEach(function(r){ r[1].forEach(function(px){
+      posts.push(M4(px,G+14,r[0],0,0.6,28,0.6)); posts.push(M4(px,G+27.6,r[0],0,9,0.4,0.5)); heads.push(M4(px-4,G+27.2,r[0],0,2.8,0.5,1.4)); heads.push(M4(px+4,G+27.2,r[0],0,2.8,0.5,1.4)); pools.push(M4(px,G+0.04,r[0],0,1,1,1)); }); });
+  inst(ub,mat(0x2b2d33),posts); inst(ub,glow(0xfff3c4),heads); inst(new T.CylinderGeometry(22,22,0.02,28),new T.MeshBasicMaterial({color:0xffe9a8,transparent:true,opacity:0.07,depthWrite:false}),pools);
+  sign('MLJ ARENA\nPARKING',22,7,CX,G+9,497,Math.PI); box(1,6,1,CX-9,G+3,497,0x2b2d33); box(1,6,1,CX+9,G+3,497,0x2b2d33); })();
 /* ---- moving around ---- */
 var pos=new T.Vector3(CX,0,END-6), yaw=0, pitch=-0.03, mode='walk', keys={}, joy={x:0,y:0}, started=false;
-var orbit={a:0.55,e:0.8,d:185}, SPOTS={entry:[CX,END-6,0],food:[62,DOORZ+24,0.75],merch:[112,DOORZ+30,-0.75],rest:[138,DOORZ+25.6,Math.PI],doors:[CX,DOORZ+12,0],sharks:[70,121,1.1],seats:[CX+25,100,0],vip:[CX,72,0],court:[70,20,Math.PI/2]};
-function zone(x,z){ return z<COURT?0:z<DOORZ?1:2; }
-function tryMove(nx,nz){ nx=Math.max(1.5,Math.min(L-1.5,nx)); var z0=zone(pos.x,pos.z);
+var orbit={a:0.62,e:0.7,d:340}, SPOTS={entry:[CX,END-6,0],food:[62,DOORZ+24,0.75],merch:[112,DOORZ+30,-0.75],rest:[138,DOORZ+25.6,Math.PI],doors:[CX,DOORZ+12,0],sharks:[70,121,1.1],seats:[CX+25,100,0],vip:[CX,72,0],court:[70,20,Math.PI/2],valet:[60,262,-0.3],vpark:[CX,322,0],lot:[CX,446,0],marina:[WX-13,128,-2.0]};
+function zone(x,z){ return (x<-3||x>L+3||z<-3||z>=END)?3:z<COURT?0:z<DOORZ?1:2; }
+function tryMove(nx,nz){ var z0=zone(pos.x,pos.z);
+  if(z0===3){ nx=Math.max(-104,Math.min(WX-2,nx)); nz=Math.max(-84,Math.min(494,nz)); if(nx>-4&&nx<L+4&&nz>-4&&nz<END+1.6&&!(Math.abs(nx-CX)<7&&nz>END-3)){ if(pos.x>-4&&pos.x<L+4) nz=pos.z; else nx=pos.x; } pos.x=nx; pos.z=nz; return; }
+  nx=Math.max(1.5,Math.min(L-1.5,nx));
   if(z0===0) nz=Math.max(1.5,Math.min(COURT-1.2,nz)); else if(z0===1){ nz=Math.max(COURT+1.4,nz); if(nz>DOORZ-1.6&&Math.abs(nx-CX)>DOORW-1) nz=DOORZ-1.6; }
-  else { if(nz<DOORZ+1.6&&Math.abs(nx-CX)>DOORW-1) nz=DOORZ+1.6; nz=Math.min(END-2,nz); }
+  else { if(nz<DOORZ+1.6&&Math.abs(nx-CX)>DOORW-1) nz=DOORZ+1.6; if(Math.abs(nx-CX)>7) nz=Math.min(END-2,nz); }
   pos.x=nx; pos.z=nz; }
 function setMode(m){ mode=m; [['mWalk','walk'],['mDoll','doll'],['mAir','air']].forEach(function(q){ document.getElementById(q[0]).setAttribute('aria-pressed',String(q[1]===m)); });
   roof.visible=m==='walk'; document.getElementById('stick').hidden=!(m==='walk'&&touch&&started);
@@ -184,11 +277,11 @@ addEventListener('keydown',function(e){ keys[e.key.toLowerCase()]=1; }); addEven
 var drag=null, pinch=0, pts={};
 el.addEventListener('pointerdown',function(e){ pts[e.pointerId]=[e.clientX,e.clientY]; drag=[e.clientX,e.clientY]; el.setPointerCapture(e.pointerId); });
 el.addEventListener('pointermove',function(e){ if(!pts[e.pointerId]) return; var ids=Object.keys(pts);
-  if(ids.length===2){ pts[e.pointerId]=[e.clientX,e.clientY]; var a=pts[ids[0]],b=pts[ids[1]],d=Math.hypot(a[0]-b[0],a[1]-b[1]); if(pinch){ orbit.d=Math.max(60,Math.min(420,orbit.d*pinch/d)); } pinch=d; return; }
+  if(ids.length===2){ pts[e.pointerId]=[e.clientX,e.clientY]; var a=pts[ids[0]],b=pts[ids[1]],d=Math.hypot(a[0]-b[0],a[1]-b[1]); if(pinch){ orbit.d=Math.max(60,Math.min(760,orbit.d*pinch/d)); } pinch=d; return; }
   var dx=e.clientX-drag[0], dy=e.clientY-drag[1]; drag=[e.clientX,e.clientY]; pts[e.pointerId]=drag;
   if(mode==='walk'){ yaw-=dx*0.005; pitch=Math.max(-1.2,Math.min(1.2,pitch-dy*0.004)); } else if(mode==='doll'){ orbit.a-=dx*0.006; orbit.e=Math.max(0.25,Math.min(1.45,orbit.e+dy*0.005)); } });
 function up(e){ delete pts[e.pointerId]; pinch=0; } el.addEventListener('pointerup',up); el.addEventListener('pointercancel',up);
-el.addEventListener('wheel',function(e){ if(mode!=='walk'){ orbit.d=Math.max(60,Math.min(420,orbit.d*(1+e.deltaY*0.001))); e.preventDefault(); } },{passive:false});
+el.addEventListener('wheel',function(e){ if(mode!=='walk'){ orbit.d=Math.max(60,Math.min(760,orbit.d*(1+e.deltaY*0.001))); e.preventDefault(); } },{passive:false});
 (function(){ var s=document.getElementById('stick'), k=s.firstElementChild, id=null;
   function mv(e){ var r=s.getBoundingClientRect(), x=(e.clientX-r.left-r.width/2)/(r.width/2), y=(e.clientY-r.top-r.height/2)/(r.height/2), m=Math.hypot(x,y); if(m>1){x/=m;y/=m;} joy.x=x; joy.y=y; k.style.transform='translate('+x*30+'px,'+y*30+'px)'; }
   s.addEventListener('pointerdown',function(e){ id=e.pointerId; s.setPointerCapture(id); mv(e); e.stopPropagation(); });
@@ -204,8 +297,8 @@ function frame(now){ var dt=Math.min(0.05,(now-last)/1000); last=now;
     if(f||sd){ var sx=Math.sin(yaw), cz=Math.cos(yaw); tryMove(pos.x-(sx*f-cz*sd)*sp, pos.z-(cz*f+sx*sd)*sp); }
     var ty=floorY(pos.x,pos.z)+5.6; pos.y+=(ty-pos.y)*Math.min(1,dt*10);
     cam.position.copy(pos); cam.rotation.order='YXZ'; cam.rotation.set(pitch,yaw,0); }
-  else if(mode==='doll'){ var c=new T.Vector3(L/2,8,END/2-6); cam.position.set(c.x+Math.sin(orbit.a)*Math.cos(orbit.e)*orbit.d, c.y+Math.sin(orbit.e)*orbit.d, c.z+Math.cos(orbit.a)*Math.cos(orbit.e)*orbit.d); cam.lookAt(c); }
-  else { cam.position.set(L/2,Math.max(150,orbit.d*1.0),END/2+0.01); cam.rotation.order='YXZ'; cam.rotation.set(-Math.PI/2,0,0); }
+  else if(mode==='doll'){ var ok=Math.max(0,Math.min(1,(orbit.d-170)/330)), c=new T.Vector3(L/2+18*ok,8,END/2-6+125*ok); cam.position.set(c.x+Math.sin(orbit.a)*Math.cos(orbit.e)*orbit.d, c.y+Math.sin(orbit.e)*orbit.d, c.z+Math.cos(orbit.a)*Math.cos(orbit.e)*orbit.d); cam.lookAt(c); }
+  else { var ak=Math.max(0,Math.min(1,(orbit.d-170)/330)); cam.position.set(L/2+18*ak,Math.max(150,orbit.d*1.5),END/2+0.01+115*ak); cam.rotation.order='YXZ'; cam.rotation.set(-Math.PI/2,0,0); }
   var t=now/1000; sharks.forEach(function(s){ var a=t*s.sp+s.ph; s.g.position.set(s.x+Math.cos(a)*10.4,s.y+Math.sin(a*2.3)*0.25,s.z+Math.sin(a)*2.1); s.g.rotation.y=-a-Math.PI/2; });
   renderer.render(scene,cam); requestAnimationFrame(frame); }
 pos.y=TERY+5.6; requestAnimationFrame(frame);
