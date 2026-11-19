@@ -505,6 +505,19 @@ body.hvp .pick-label, body.hvp .picker { display: none !important; }
 #a2hs .a2-x { flex: none; width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; }
 /* matchup poster (preview): a still court, a Tap to Play button, then the two teams face off while the match loads */
 #tapPlay { display: none; }
+body.poster-on #tapPlay.wait { background: #2a2d36; color: var(--muted); animation: none; }
+.team.blank .team-name { color: var(--muted); }
+.blank-badge { width: 56px; height: 56px; flex: none; border-radius: 50%; border: 2px dashed var(--line); background: radial-gradient(circle, rgba(255,255,255,.04), transparent 70%); }
+.team-head.glow img, .team-head.glow .flag { animation: pick-glow 2s ease-out var(--gd, 0ms) both; }
+.team-head.glow .team-name { animation: pick-name 2s ease-out var(--gd, 0ms) both; }
+@keyframes pick-glow { 0% { transform: scale(.6); filter: drop-shadow(0 0 0 rgba(255,215,120,0)); opacity: 0; }
+  18% { transform: scale(1.18); filter: drop-shadow(0 0 22px rgba(255,215,120,.95)) brightness(1.35); opacity: 1; }
+  45% { transform: scale(1); filter: drop-shadow(0 0 16px rgba(255,215,120,.7)) brightness(1.15); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(255,215,120,0)) brightness(1); } }
+@keyframes pick-name { 0% { opacity: 0; transform: translateX(-8px); } 25% { opacity: 1; transform: none; text-shadow: 0 0 18px rgba(255,215,120,.8); } 100% { text-shadow: none; } }
+.team.nudge { animation: team-nudge .9s ease; }
+@keyframes team-nudge { 0%, 100% { box-shadow: none; } 30%, 70% { box-shadow: 0 0 0 3px var(--gold), 0 0 24px rgba(201,162,74,.5); } }
+@media (prefers-reduced-motion: reduce) { .team-head.glow img, .team-head.glow .flag, .team-head.glow .team-name, .team.nudge { animation: none; } }
 body.pv-setup .stage { display: none !important; }
 body.poster-on #tapPlay { display: block; position: sticky; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 40; width: 100%; min-height: 58px; margin: 14px 0 6px;
   border: 0; border-radius: 999px; background: var(--gold); color: #0b0c0f; font: 900 20px/1 var(--display); letter-spacing: .2em; text-transform: uppercase; cursor: pointer;
@@ -1510,6 +1523,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   // League Play is the six clubs (roster 0-5); World Cup Play is the six national sides (roster 6-11)
   function groupList(comp) { return comp === 'hvp' ? [12, 13] : comp === 'world' ? [6, 7, 8, 9, 10, 11] : [0, 1, 2, 3, 4, 5]; }
   function setComp(comp) {
+    if (comp !== cfg.comp) { picked = [false, false]; glowAt = [0, 0]; }   // a new competition starts blank again
     cfg.comp = comp;
     var list = groupList(comp);
     if (list.indexOf(cfg.pick[0]) < 0 || list.indexOf(cfg.pick[1]) < 0) cfg.pick = [list[0], list[1]];
@@ -1570,6 +1584,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     lastHolder = -99; sidesOn = null; buildSetup(); show();
   }
   function buildSetup() {
+    setTimeout(tapLabel, 0);
     var html = '', list = groupList(cfg.comp);
     $('comps').innerHTML = '<button type="button" id="compLeague" class="comp league" data-comp="league" aria-pressed="' + (cfg.comp === 'league') + '" aria-expanded="' + (cfg.comp === 'league') + '">League Play</button>' +
       '<button type="button" id="compWorld" class="comp world" data-comp="world" aria-pressed="' + (cfg.comp === 'world') + '" aria-expanded="' + (cfg.comp === 'world') + '">World Cup Play</button>' +
@@ -1577,13 +1592,14 @@ if (typeof module !== 'undefined') module.exports = Core;
     $('comps').classList.toggle('three', MULTI && !window.FL_VIEW3);
     $('teams').hidden = !cfg.comp;
     for (var t = 0; t < 2; t++) {
-      var tm = ROSTER[cfg.pick[t]];
-      html += '<div class="team"><div class="team-head">' + badge(tm) + '<div class="team-name">' + esc(tm.name) + '</div></div>' +
+      var tm = ROSTER[cfg.pick[t]], blank = POSTER && cfg.comp !== 'hvp' && !picked[t], gl = glowAt[t] && Date.now() - glowAt[t] < 2000;
+      html += '<div class="team' + (blank ? ' blank' : '') + '"><div class="team-head' + (gl ? ' glow" style="--gd:-' + (Date.now() - glowAt[t]) + 'ms' : '') + '">' +
+        (blank ? '<span class="blank-badge" aria-hidden="true"></span><div class="team-name">' + (cfg.comp === 'world' ? 'Your country' : 'Your team') + '</div>' : badge(tm) + '<div class="team-name">' + esc(tm.name) + '</div>') + '</div>' +
         '<div class="pick-label">' + (t ? 'Pick the other team' : 'Pick a team') + '</div><div class="picker" role="group" aria-label="Choose team ' + (t + 1) + '">';
       for (var li = 0; li < list.length; li++) {
         var k = list[li];
-        html += '<button type="button" id="pick' + t + '-' + k + '" data-pick="' + t + '" data-v="' + k + '" aria-pressed="' + (cfg.pick[t] === k) + '" aria-label="' + esc(ROSTER[k].name) + '" title="' + esc(ROSTER[k].name) + '"' +
-          (cfg.pick[1 - t] === k ? ' disabled' : '') + '>' + badge(ROSTER[k]) + '</button>';
+        html += '<button type="button" id="pick' + t + '-' + k + '" data-pick="' + t + '" data-v="' + k + '" aria-pressed="' + (!blank && cfg.pick[t] === k) + '" aria-label="' + esc(ROSTER[k].name) + '" title="' + esc(ROSTER[k].name) + '"' +
+          (cfg.pick[1 - t] === k && (!POSTER || picked[1 - t] || cfg.comp === 'hvp') ? ' disabled' : '') + '>' + badge(ROSTER[k]) + '</button>';
       }
       html += '</div>';
       // a switch for each court position: a person plays that one, or the CPU does
@@ -1635,7 +1651,13 @@ if (typeof module !== 'undefined') module.exports = Core;
   elSetup.addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     if (b.dataset.comp) { if (b.dataset.comp === 'hvp' && !hvpOpen()) hvpAsk(); else setComp(b.dataset.comp); }
-    else if (b.dataset.pick != null) { cfg.pick[+b.dataset.pick] = +b.dataset.v; applyTeams(); save(); buildSetup(); }
+    else if (b.dataset.pick != null) {
+      var pt = +b.dataset.pick, pv = +b.dataset.v;
+      if (POSTER && cfg.pick[1 - pt] === pv) { var pl = groupList(cfg.comp).filter(function (x) { return x !== pv; }); cfg.pick[1 - pt] = pl[0]; }   // the other side was only holding a place
+      cfg.pick[pt] = pv;
+      if (POSTER && !picked[pt]) { picked[pt] = true; glowAt[pt] = Date.now(); setTimeout(function () { glowAt[pt] = 0; if (mode === 'demo') buildSetup(); }, 2050); }
+      applyTeams(); save(); buildSetup();
+    }
     else if (b.dataset.pseat != null) { cfg.seats[+b.dataset.pseat] = +b.dataset.v; save(); buildSetup(); }
     else if (b.dataset.who != null) { cfg.whoT[+b.dataset.who] = b.dataset.v; save(); buildSetup(); }
     else if (b.dataset.opt) {
@@ -1891,8 +1913,15 @@ if (typeof module !== 'undefined') module.exports = Core;
     el.innerHTML = '<div class="fb"><img src="' + r.logo + '" alt=""></div>';
   }
   var posterT = 0;
+  var picked = [false, false], glowAt = [0, 0];                    // preview: both teams start blank until the player picks them
+  function bothPicked() { return !POSTER || cfg.comp === 'hvp' || (picked[0] && picked[1]); }
   function posterGo() {
     if (net.role === 'guest' || (net.role === 'host' && !net.peer)) return;
+    if (!bothPicked()) {                                           // nudge them to the team still to pick
+      var tc = document.querySelectorAll('#teams .team')[picked[0] ? 1 : 0];
+      if (tc) { tc.scrollIntoView({ behavior: 'smooth', block: 'center' }); tc.classList.remove('nudge'); void tc.offsetWidth; tc.classList.add('nudge'); }
+      return;
+    }
     var p = $('poster'); if (!p) { tryStart(); return; }
     var a = cfg.pick[0], b = cfg.pick[1], pz = p.querySelector('.pz'), L = p.querySelector('.ph.l'), R = p.querySelector('.ph.r');
     if (cfg.comp === 'hvp') { L.style.display = 'none'; R.style.display = 'none'; pz.style.background = 'url("hvp-door.jpg?v=2") center top / cover'; }
@@ -1906,6 +1935,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     }, 5000);
   }
   if ($('tapPlay')) $('tapPlay').addEventListener('click', posterGo);
+  function tapLabel() { var b = $('tapPlay'); if (!b) return; var ok = bothPicked(); b.textContent = ok ? 'Tap to Play' : (picked[0] || picked[1] ? 'Pick the other team' : 'Pick your teams'); b.classList.toggle('wait', !ok); }
   function startDemo(keepNet) {
     if (keepNet !== true) { if (net.role === 'guest') netLeave(); else if (net.role === 'host') net.started = false; }
     seatsNow = null; net.lost = false;
