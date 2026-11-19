@@ -517,7 +517,6 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
       <div class="opt"><span class="opt-label">Play to</span><div class="seg" id="optTarget"></div></div>
       <div class="opt"><span class="opt-label">CPU</span><div class="seg" id="optLevel"></div></div>
       <div class="opt"><span class="opt-label">Pace</span><div class="seg" id="optPace"></div></div>
-      <div class="opt"><span class="opt-label">Players</span><div class="seg" id="optWho"></div></div>
       <div class="opt"><span class="opt-label">Sound</span><div class="seg" id="optSound"></div></div>
     </div>
     <button type="button" class="opts-toggle" id="guideToggle" aria-expanded="false" aria-controls="guide">How to Play +</button>
@@ -1479,6 +1478,9 @@ if (typeof module !== 'undefined') module.exports = Core;
       // a switch for each court position: a person plays that one, or the CPU does
       var who = t ? 'Player 2' : 'Player 1', nPos = cfg.singles ? 1 : 2;
       html += '<div class="seat"><span class="seat-name">Played by</span></div>';
+      var WHO = [['men', 'Men'], ['women', 'Women'], ['mixed', 'Mixed']], wh = '';   // who is on court: the same choice on both cards
+      for (var wi = 0; wi < WHO.length; wi++) wh += '<button type="button" id="who' + t + '-' + WHO[wi][0] + '" data-opt="who" data-v="' + WHO[wi][0] + '" aria-pressed="' + (cfg.who === WHO[wi][0]) + '">' + WHO[wi][1] + '</button>';
+      html += '<div class="seat"><span class="seat-pos">Players</span><div class="seg" role="group" aria-label="Men, women or mixed">' + wh + '</div></div>';
       for (var sp = 0; sp < nPos; sp++) {
         var si = t * 2 + sp, onS = !!cfg.seats[si];
         html += '<div class="seat"><span class="seat-pos">' + (nPos === 1 ? 'Court' : sp ? 'Back Court' : 'Front Court') + '</span>' +
@@ -1493,7 +1495,6 @@ if (typeof module !== 'undefined') module.exports = Core;
     $('teams').innerHTML = html;
     seg($('optTarget'), [[9, '9'], [15, '15'], [21, '21']], cfg.target, 'target');
     seg($('optLevel'), [['easy', 'Easy'], ['normal', 'Normal'], ['hard', 'Hard']], cfg.level, 'level');
-    seg($('optWho'), [['men', 'Men'], ['women', 'Women'], ['mixed', 'Mixed']], cfg.who, 'who');
     seg($('optPace'), [['relaxed', 'Slow'], ['standard', 'Normal'], ['pro', 'Fast']], cfg.pace, 'pace');
     seg($('optSound'), [['on', 'On'], ['off', 'Off']], cfg.sound ? 'on' : 'off', 'sound');
     $('optViewRow').hidden = !MULTI || !!window.FL_VIEW3; if (MULTI) seg($('optView'), [['aerial', 'Pro'], ['side', 'Amateur'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', '50s Vintage']], view, 'view');
