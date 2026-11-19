@@ -195,6 +195,7 @@ button.hot, button.hot:hover, .minis button.hot, .pad.land .minis button.hot {
 #film { position: fixed; inset: 0; z-index: 9999; background: #05060a; opacity: 1; transition: opacity .5s ease; }
 #film.gone { opacity: 0; pointer-events: none; }
 #film canvas { display: block; width: 100%; height: 100%; }
+#film.ring .film-btns { display: none; }
 #film .film-btns { position: absolute; top: max(14px, env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px)); display: flex; gap: 8px; }
 #film .film-btns button { min-height: 42px; padding: 9px 20px; border-radius: 999px; border: 1px solid rgba(242,239,230,.45);
   background: rgba(8,10,14,.55); color: #f2efe6; font: 700 14px/1 var(--display); letter-spacing: .18em;
@@ -1146,7 +1147,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     return (mode === 'match' && solo === t ? 'YOU' : cfg.names[t].toUpperCase()) + ': ';
   }
   var STORE = 'fronton-doubles';
-  var cfg = { comp: 'league', pick: [0, 1], names: ['Squared Groupers', 'Peloteros'], seats: [1, 1, 0, 0], sv: 2, target: 15, level: 'normal', pace: 'standard', sound: true, singles: false, view: 'aerial', lang: 'es', who: 'men', whoT: ['men', 'men'] };
+  var cfg = { comp: 'league', pick: [0, 1], names: ['Squared Groupers', 'Peloteros'], seats: [1, 1, 0, 0], sv: 2, target: 15, level: 'normal', pace: 'standard', sound: true, singles: true, view: 'aerial', lang: 'es', who: 'men', whoT: ['men', 'men'] };
   try {
     var saved = JSON.parse(localStorage.getItem(STORE) || 'null');
     if (saved && saved.seats && saved.names) for (var k in cfg) if (saved[k] != null) cfg[k] = saved[k];
@@ -1155,7 +1156,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       cfg.seats[st * 2] = cfg.seats[st * 2] ? 1 : 0; cfg.seats[st * 2 + 1] = cfg.seats[st * 2 + 1] ? 1 : 0;
     }
     cfg.sv = 2;
-    cfg.target = 15; cfg.level = 'normal'; cfg.pace = 'standard';     // these always start here; they can be changed in Play Settings for the session
+    cfg.target = 15; cfg.level = 'normal'; cfg.pace = 'standard'; cfg.singles = true;   // every visit opens on singles     // these always start here; they can be changed in Play Settings for the session
     cfg.comp = 'league'; cfg.pick = [0, 1];                       // every visit opens on Squared Groupers vs Peloteros
     cfg.who = 'men'; cfg.whoT = ['men', 'men'];                    // and with men playing; each team picks Men, Women or Mixed for that visit
     if (cfg.names[0] === 'Green') cfg.names[0] = 'Squared Groupers';
@@ -3727,10 +3728,53 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   /* the film ends on the name and waits there: the player says how they are playing */
   var ended = false, goBox = document.getElementById('filmGo');
-  function holdFrame() {                                            // the last frame of the film, held: name card + PLAY FREE
-    draw(9.3);
-    var base = cardGeo().base;
-    title('PLAY FREE', W / 2, base, u() * 5, '700', 0.3, CHALK, 1, W * 0.8);
+  /* ---------- the title screen: no film. The name in the middle, the six league badges arched over it and the six countries under it, turning slowly ---------- */
+  var RING = true, ringT0 = 0;
+  function ringGeo() {
+    var top = u() * 4 + 22, BTN = u() * 3.2 + 56, foot = u() * 10.4 + BTN + 14;    // the "presents" line above; PLAY FREE and the buttons below
+    var R = Math.min((W / 2 - 10) / 1.23, (H - top - foot) / 2.46);   // badges sit on the ring and never run off the screen
+    var L = Math.min(R * 0.46, 132);                                // badge size: twelve round the ring, never touching
+    var block = 2 * R + L + foot, y0 = top + Math.max(0, (H - top - block) / 2) * 0.8;   // the whole card centred in what is left
+    var cy = y0 + L / 2 + R;
+    return { R: R, L: L, cx: W / 2, cy: cy, base: cy + R + L / 2 + u() * 7.2 };
+  }
+  function badgeAt(im, x, y, L, flag) {
+    if (!ok(im)) return;
+    var iw = im.naturalWidth, ih = im.naturalHeight, k = Math.min(L / iw, L / ih) * (flag ? 0.86 : 1), w = iw * k, h = ih * k;
+    ctx.drawImage(im, x - w / 2, y - h / 2, w, h);
+  }
+  function drawRing(t) {
+    var g = ringGeo(), cx = g.cx, cy = g.cy, R = g.R, L = g.L, i, a, spin = t * Math.PI * 2 / 48;   // one slow turn every 48 seconds
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.fillStyle = '#05060a'; ctx.fillRect(0, 0, W, H);
+    ctx.save(); ctx.globalAlpha = 0.24; cover(art.court, 620, 300, 860, 385); ctx.restore();
+    vignette();
+    var gl = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 1.25);   // a warm pool of light behind the name
+    gl.addColorStop(0, 'rgba(201,165,92,.20)'); gl.addColorStop(1, 'rgba(201,165,92,0)'); ctx.fillStyle = gl; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = 'rgba(201,165,92,.28)'; ctx.lineWidth = Math.max(1, u() * 0.25);
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
+    title('MAJOR LEAGUE JAI ALAI MEDIA PRESENTS', W / 2, u() * 4 + 12, Math.max(10, u() * 2.1), '700', 0.32, GOLD, 0.9, W * 0.9);
+    for (i = 0; i < 6; i++) {                                       // the league over the top, the countries underneath: they meet level with the middle of the name
+      a = Math.PI + (i + 0.5) * Math.PI / 6 + spin;
+      ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 10; badgeAt(art['r' + i], cx + Math.cos(a) * R, cy + Math.sin(a) * R, L, false); ctx.restore();
+      a = (i + 0.5) * Math.PI / 6 + spin;
+      ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 10; badgeAt(art['r' + (11 - i)], cx + Math.cos(a) * R, cy + Math.sin(a) * R, L, true); ctx.restore();
+    }
+    var inner = R - L * 0.62, box = inner * 1.5;                    // the name, sized to sit inside the ring
+    var mh = Math.min(box * 0.42, u() * 22), stack = mh * 1.08 + box * 0.5;
+    var y0 = cy - stack / 2 + mh;
+    if (ok(art.mark)) { var mw = mh * art.mark.naturalWidth / art.mark.naturalHeight; ctx.drawImage(art.mark, cx - mw / 2, y0 - mh, mw, mh); }
+    title('FANTASY LEAGUE', cx, y0 + box * 0.13, box * 0.1, '800', 0.24, GOLD, 1, box * 0.95);
+    title('JAI ALAI', cx, y0 + box * 0.38, box * 0.28, '900', 0.05, CHALK, 1, box * 1.05);
+    ctx.fillStyle = GOLD; ctx.fillRect(cx - box * 0.36, y0 + box * 0.44, box * 0.72, Math.max(2, u() * 0.45));
+    title('PLAY FREE', W / 2, g.base, u() * 5, '700', 0.3, CHALK, 1, W * 0.8);
+    ctx.fillStyle = 'rgba(255,255,255,.015)'; for (i = 0; i < 16; i++) ctx.fillRect(Math.random() * W, Math.random() * H, 2, 2);
+    return g;
+  }
+  function holdFrame() {                                            // the title screen: name ring + PLAY FREE + the buttons
+    var base;
+    if (RING) base = drawRing(ringT0 ? (performance.now() - ringT0) / 1000 : 0).base;
+    else { draw(9.3); base = cardGeo().base; title('PLAY FREE', W / 2, base, u() * 5, '700', 0.3, CHALK, 1, W * 0.8); }
     goBox.style.top = Math.round(base + u() * 3.2) + 'px';          // the buttons sit right under that line
     goBox.style.bottom = 'auto';
   }
@@ -3748,6 +3792,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     raf = requestAnimationFrame(frame);
     if (!t0) t0 = ts;
     var t = (ts - t0) / 1000;
+    if (RING) { if (!ended) { endCard(); ringT0 = ts; } holdFrame(); return; }   // the title screen keeps turning until they choose how to play
     if (t >= RUN || ended) { endCard(); return; }
     draw(t);
   }
@@ -3779,6 +3824,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   window.addEventListener('resize', relayout);
   window.addEventListener('orientationchange', function () { setTimeout(relayout, 120); });
   function roll() {                                                 // the film starts once the door is open
+    if (RING) root.classList.add('ring');
     if (NOFILM) { document.body.classList.remove('filming'); if (root.parentNode) root.remove(); return; }
     document.body.classList.add('filming');
     size();
