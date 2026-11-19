@@ -36,6 +36,8 @@ window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
   --vice-aqua: #1fd5d9;
   --vice-lime: #a8e22a;  /* the league's five team colours: pink, aqua, lime, purple, red */
   --vice-purple: #9b5cf6;
+  /* the shot buttons, from the team logos: Peloteros pink and aqua, Squared Groupers lime and yellow, Booties purple */
+  --shot-pelotazo: #f52f9b; --shot-rebota: #3cb5e4; --shot-dos: #c6ee32; --shot-cortada: #fcfc04; --shot-costado: #8f0bcd;
   --vice-red: #e0392c;
   --team-a: #a8e22a;
   --team-b: #3bb4e6;
@@ -275,8 +277,8 @@ body:not(.filming) .setup { animation: setup-in .4s ease-out; }
 .guide .rules { grid-template-columns: 1fr; }
 .guide dd { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
 .guide .sw { flex: none; width: 14px; height: 14px; border-radius: 3px; background: var(--text); }
-.guide .sw.sv { background: var(--team-a, var(--gold)); }
-.guide .sw.s1 { background: #22c55e; } .guide .sw.s2 { background: var(--vice-pink); } .guide .sw.s3 { background: var(--vice-aqua); } .guide .sw.s4 { background: #fcfc04; }
+.guide .sw.sv { background: #f2efe6; box-shadow: 0 0 0 2px #e0392c; }   /* the serve button: white with a red ring */
+.guide .sw.sn { background: var(--shot-pelotazo); } .guide .sw.s1 { background: var(--shot-rebota); } .guide .sw.s2 { background: var(--shot-cortada); } .guide .sw.s3 { background: var(--shot-dos); } .guide .sw.s4 { background: var(--shot-costado); }
 @media (max-width: 520px) { .guide dl > div { grid-template-columns: 1fr; } }
 .type-row .seg button { padding-inline: 14px; }
 #optView { flex-wrap: nowrap; flex: 1 1 auto; min-width: 0; }
@@ -391,7 +393,7 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
 .shots { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; padding: 5px; }
 .shots { grid-template-columns: repeat(2, 1fr); }
 .shots button { grid-column: auto; }
-.pad .shots .throw.sn { background: var(--vice-lime); border-color: var(--vice-lime); color: #122a02; }
+.pad .shots .throw.sn, .side .throw.sn { background: var(--shot-pelotazo); border-color: var(--shot-pelotazo); color: #24000f; }
 .shot-label { text-align: center; background: var(--panel); border-top: 1px solid var(--line); color: var(--muted); font: 800 13px/1.15 var(--display); letter-spacing: .14em; text-transform: uppercase; padding: 5px 2px; }
 .shotbox.live .shot-label, .shot-label.live { background: var(--text); color: #0b0c0f; }
 .pad .shots button { height: 42px; min-width: 0; padding: 0; overflow: hidden; font-size: 16px !important; letter-spacing: 0 !important; }
@@ -408,10 +410,10 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
 .pad.t0 .throw, .side.t0 .throw { background: var(--team-a); border-color: var(--team-a); color: var(--team-a-ink, #10180a); }
 .pad.t1 .throw, .side.t1 .throw { background: var(--team-b); border-color: var(--team-b); color: var(--team-b-ink, #06141c); }
 .pad .throw.on, .side .throw.on { filter: brightness(1.25); }
-.pad .throw.s1, .side .throw.s1 { background: var(--vice-aqua); border-color: var(--vice-aqua); color: #04201f; }
-.pad .throw.s2, .side .throw.s2 { background: var(--vice-pink); border-color: var(--vice-pink); color: #24000f; }
-.pad .throw.s3, .side .throw.s3 { background: var(--vice-purple); border-color: var(--vice-purple); color: #f6efff; }
-.pad .throw.s4, .side .throw.s4 { background: #fcfc04; border-color: #fcfc04; color: #2a2a00; }   /* the yellow in the Squared Groupers logo */
+.pad .throw.s1, .side .throw.s1 { background: var(--shot-rebota); border-color: var(--shot-rebota); color: #03192a; }
+.pad .throw.s2, .side .throw.s2 { background: var(--shot-cortada); border-color: var(--shot-cortada); color: #2a2a00; }
+.pad .throw.s3, .side .throw.s3 { background: var(--shot-dos); border-color: var(--shot-dos); color: #1b2a02; }
+.pad .throw.s4, .side .throw.s4 { background: var(--shot-costado); border-color: var(--shot-costado); color: #fbf2ff; }
 /* a shot that can be played right now breathes; the serve ball glows inside its red ring */
 @keyframes shot-ready { 0%, 100% { box-shadow: 0 0 0 0 rgba(242,239,230,.55), 0 2px 10px rgba(0,0,0,.45); transform: scale(1); }
   50% { box-shadow: 0 0 0 9px rgba(242,239,230,0), 0 2px 10px rgba(0,0,0,.45); transform: scale(1.045); } }
@@ -542,7 +544,7 @@ body.hvp .pick-label, body.hvp .picker { display: none !important; }
       <h3>Your buttons</h3>
       <dl>
         <div><dt><i class="sw sv"></i>Saque &middot; Serve</dt><dd>The first throw of each point. The team that won the last point throws the ball to hit the front wall and land inside the red serve box between lines 4 and 7. Once the serve is good the rally is open and both teams may throw anywhere legal. This button only lights up on a serve.</dd></div>
-        <div><dt><i class="sw"></i>Pelotazo &middot; Throw</dt><dd>A hard throw aimed high on the front wall, meant to drive the ball deep over your opponent's head. The safe way to keep a rally going.</dd></div>
+        <div><dt><i class="sw sn"></i>Pelotazo &middot; Throw</dt><dd>A hard throw aimed high on the front wall, meant to drive the ball deep over your opponent's head. The safe way to keep a rally going.</dd></div>
         <div><dt><i class="sw s1"></i>Rebota &middot; Rebound</dt><dd>The big throw: it comes off the front wall hard enough to carry all the way to the back wall. It is also the shot you use to save a ball played over your head, catching the carom off the back wall and sending it straight back in one motion.</dd></div>
         <div><dt><i class="sw s3"></i>Dos Paredes &middot; Two-Wall</dt><dd>A kill shot. The ball hits the side wall first, around line 3, then the front wall. It comes off the front wall dead and drops short, first bouncing around lines 4 to 9, and angles away across the court toward the open side. Running it down is close to impossible. Where the Costado carries deep, the Dos Paredes dies short. It is the one side-wall shot in every mode.</dd></div>
         <div><dt><i class="sw s2"></i>Cortada &middot; Cut <small>(Pro)</small></dt><dd>Caught in the front of the court and thrown low and hard into the middle of the front wall. It bounces and tails sharply into the side wall, and the speed and tight angle make it very hard to reach.</dd></div>
@@ -1580,7 +1582,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   var SHOT_ES = ['Saque', 'Pelotazo', 'Rebota', 'Cortada', 'Dos Paredes', 'Costado'];
   var SHOT_EN = ['Serve', 'Throw', 'Rebound', 'Cut', 'Two-Wall', 'Side Wall'];
-  function shotSet() { return view === 'aerial' ? [0, 1, 2, 3, 4] : [0, 1, 3]; }   // core shots: Pro has all five; every other mode Pelotazo, Rebota and Dos Paredes
+  function shotSet() { return view === 'aerial' ? [0, 1, 3, 2, 4] : [0, 1, 3]; }   // in button order: the three every mode has, then Pro's two   // core shots: Pro has all five; every other mode Pelotazo, Rebota and Dos Paredes
   function shotNames() { return cfg.lang === 'en' ? SHOT_EN : SHOT_ES; }
   function langBtn() {                                              // the other language waits under the stack, one tap away
     return '<button type="button" class="langbtn" data-mini="lang" aria-label="Switch the shot names">' + (cfg.lang === 'en' ? 'Espa\u00f1ol' : 'English') + '</button>';
@@ -2241,7 +2243,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     }
   }
 
-  var SHOTCOL = ['#fff', '#22c55e', '#ff2e97', '#1fd5d9', '#fcfc04'];
+  var SHOTCOL = ['#f52f9b', '#3cb5e4', '#fcfc04', '#c6ee32', '#8f0bcd'];   // by shot: pelotazo, rebota, cortada, dos paredes, costado (the same colors as the buttons)
   function shotCall(k) { return (shotNames()[k + 1] || '').toUpperCase(); }   // shot 1-3 -> the name on its button
   function call(t, c, x, y) { fx.call = { t: t, c: c, x: Math.max(240, Math.min(C.W - 240, x)), y: y, life: 1 }; }
   function drawAim(p) {
@@ -2267,7 +2269,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     };
     var pr;
     if (serve) pr = arc(0, '#fff', 4, 0.95);
-    else { var ss = shotSet(); pr = arc(0, '#fff', 5, 0.9); for (k = 1; k < ss.length; k++) arc(ss[k], SHOTCOL[ss[k]], 5, 0.9); }   // in play: one path per shot, in its button's color
+    else { var ss = shotSet(); pr = arc(0, SHOTCOL[0], 5, 0.9); for (k = 1; k < ss.length; k++) arc(ss[k], SHOTCOL[ss[k]], 5, 0.9); }   // in play: one path per shot, in its button's color
     var bad = pr.fault;
     ctx.globalAlpha = 1;
     if (serve && pr.bounceX != null && !bad) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(pr.bounceX, C.FEET - 4, 24, 7, 0, 0, 6.3); ctx.stroke(); }
@@ -2602,7 +2604,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var holder = game.holder >= 0 ? P[game.holder] : null;
     if (holder && holder.human && game.phase !== 'point' && (!net.role || holder.team === solo)) {
       var shots = f.serve ? [0] : shotSet();
-      for (n = 0; n < shots.length; n++) { var pr = Core.predict(Core.launch(holder, holder.aim, f.serve, shots[n]), Core.flagsFor(holder, f.serve, shots[n]), true); rc.fillStyle = pr.fault ? '#ff2e4d' : SHOTCOL[shots[n]];
+      for (n = 0; n < shots.length; n++) { var pr = Core.predict(Core.launch(holder, holder.aim, f.serve, shots[n]), Core.flagsFor(holder, f.serve, shots[n]), true); rc.fillStyle = pr.fault ? '#ff2e4d' : f.serve ? '#fff' : SHOTCOL[shots[n]];
         for (i = 2; i < pr.s.length; i += pr.fault ? 9 : 5) rc.fillRect(q(pr.s[i].x), q(pr.s[i].y), 1, 1); }
     }
     if (!holder && game.phase === 'rally' && game.pred && game.pred.bounceX != null && f.bounces === 0) { rc.fillStyle = blink ? TEAM[1 - Math.max(0, game.lastTeam)].ui : '#ffffff'; rc.fillRect(q(game.pred.bounceX) - 4, FL - 1, 8, 1); rc.fillRect(q(game.pred.bounceX) - 1, FL - 3, 2, 2); }
@@ -2787,7 +2789,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   function v3aim(p) {                                              // for each shot: where it strikes the front wall and where it comes down
     var serve = game.flags.serve, shots = serve ? [0] : shotSet(), n, i;
     for (n = 0; n < shots.length; n++) {
-      var shot = shots[n], fl = Core.flagsFor(p, serve, shot), pr = Core.predict(Core.launch(p, p.aim, serve, shot), fl, true), s = pr.s, col = pr.fault ? RED : SHOTCOL[shot];
+      var shot = shots[n], fl = Core.flagsFor(p, serve, shot), pr = Core.predict(Core.launch(p, p.aim, serve, shot), fl, true), s = pr.s, col = pr.fault ? RED : serve ? '#fff' : SHOTCOL[shot];
       var wi = 0; for (i = 1; i < s.length; i++) if (s[i].x > s[wi].x) wi = i;
       var lp = net.role ? null : Core.latPlan(game, p, fl, pr, curLat), wl = lp ? Math.max(0, Math.min(1, lp.zF)) : shot >= 2 ? 0.33 : 0.5, a = pr.fault ? 0.35 : 1;
       ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 4;
