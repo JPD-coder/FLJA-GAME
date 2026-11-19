@@ -81,16 +81,14 @@ body { background: var(--ink); color: var(--text); font: 15px/1.45 var(--body); 
 #musicBox iframe { display: block; width: 100%; height: 152px; border: 0; }
 #musPlay { flex: none; width: 24px; height: 24px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #1db954; color: #04130a; border: 0; border-radius: 999px; padding: 0 0 0 1px; font: 700 11px/1 system-ui, sans-serif; cursor: pointer; }
 #musicBox .mus-top button#musPlay:hover { background: #17a74a; }
-/* the thin player: one slim strip under Menu / Mode / Music / Pause. Its play button has Spotify's own play button lying, all but invisible, right over it,
-   so the tap that starts the music lands on Spotify's player, which a phone always lets play */
+/* the thin player: one slim strip under Menu / Mode / Music / Pause, with our own green play button; Spotify's player plays out of sight behind it */
 #musicBox.thin { opacity: 1; pointer-events: auto; z-index: 80; width: auto; height: 34px; overflow: visible; border-radius: 999px; background: #121212; border: 1px solid rgba(201,165,92,.55); box-shadow: 0 4px 14px rgba(0,0,0,.45); }
 #musicBox.thin .mus-top { height: 34px; padding: 0 6px 0 12px; gap: 8px; }
 #musicBox.thin #musMin, #musicBox.thin #musOpen { display: none; }
 #musicBox .mus-lab { display: none; }
 #musicBox.thin .mus-top button#musPlay { width: 26px; height: 26px; flex: none; display: flex; align-items: center; justify-content: center; padding: 0 0 0 1px; border-radius: 50%; background: #1db954; color: #04130a; font: 700 12px/1 system-ui, sans-serif; }
-#musicBox.thin .mus-wrap { position: absolute; width: 26px; height: 26px; border-radius: 50%; overflow: hidden; opacity: .011; transition: none; }
-#musicBox.thin #musEmbed { position: absolute; width: 345px; height: 80px; left: -307px; top: -53px; }   /* at 345px wide Spotify's play button sits 25px in from the right, 66px down */
-#musicBox.thin iframe { width: 345px; height: 80px; }
+#musicBox.thin .mus-wrap { position: absolute; left: 0; top: 0; width: 320px; height: 80px; opacity: .001; pointer-events: none; z-index: -1; transition: none; }   /* Spotify's player plays from behind, never touched */
+#musicBox.thin iframe { height: 80px; pointer-events: none; }
 #musicBox.thin.away { visibility: hidden; }
 #musicBox.mbar.away { visibility: hidden; }
 .mini .rec { display: inline-block; width: 1.25em; height: 1.25em; margin-right: .35em; vertical-align: -.28em; border-radius: 50%; flex: none;
@@ -1397,7 +1395,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (!ok) { closeMusic(); return; }
     var box = musBuild(); if (box) box.hidden = false;
     spLoad(); spMake();                                            // ready before the first tap, so playing needs no second one
-    var id = PLAY[MUSIC[view]]; if (spCtl && id) { var was = musicOn; spEnsure(id); if (was) spKick(0); }   // a new era brings its own playlist
+    var id = PLAY[MUSIC[view]]; if (spCtl && id) { var was = musicOn; spEnsure(id); if (was) { musicOn = true; musDuck = true; spKick(0); } }   // playing: the new era's playlist carries on   // a new era brings its own playlist
   }
   function spLoad() {                                              // Spotify's own player API, so the bar can start the music with the track list tucked away
     if (spReq) return; spReq = true;
@@ -1445,7 +1443,10 @@ if (typeof module !== 'undefined') module.exports = Core;
       box.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
       $('musX').addEventListener('click', function () { thinShow(false); });
       $('musMin').addEventListener('click', function () { $('musMin').textContent = box.classList.toggle('open') ? '▲' : '▼'; });
-      $('musPlay').addEventListener('click', startPlay);
+      $('musPlay').addEventListener('click', function () {        // the green button: play, or pause when a song is playing
+        if (spLive) { musPause(); return; }
+        musicOn = true; musDuck = true; startPlay();
+      });
       box.hidden = true;
     }
     return box;
@@ -1514,8 +1515,6 @@ if (typeof module !== 'undefined') module.exports = Core;
     var left = Math.max(6, Math.min(innerWidth - w - 6, r.left + r.width / 2 - w / 2));
     var top = below + 5; if (top + 34 > innerHeight - 2) top = Math.max(2, r.top - 39);
     box.style.left = Math.round(left) + 'px'; box.style.top = Math.round(top) + 'px'; box.style.bottom = 'auto';
-    var pb = $('musPlay'), wr = box.querySelector('.mus-wrap');     // Spotify's own play button, right over ours
-    if (pb && wr) { wr.style.left = pb.offsetLeft + 'px'; wr.style.top = pb.offsetTop + 'px'; }
   }
   setInterval(musPlace, 250);
   window.addEventListener('resize', musPlace);
@@ -2045,7 +2044,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (net.role !== 'guest') track('start', (cfg.singles ? 'singles' : 'doubles') + '.' + cfg.comp + '.' + (net.role ? 'online' : cfg.seats[0] && cfg.seats[2] ? 'local' : 'cpu'));
     if (net.role) {                                               // online: each person runs a whole team; the host is team 1
       seatsNow = net.role === 'host' ? [1, 0, 0, 0] : [0, 0, 1, 0]; solo = net.role === 'host' ? 0 : 1; soloBoth = [true, true];
-      game = Core.newGame({ seats: [1, 1, 1, 1], solo: [true, true], level: cfg.level, target: cfg.target, rebHold: rebHold(), singles: !!cfg.singles, firstServe: Math.random() < 0.5 ? 0 : 1 });
+      game = Core.newGame({ seats: [1, 1, 1, 1], solo: [true, true], level: cfg.level, target: cfg.target, rebHold: rebHold(), singles: !!cfg.singles, firstServe: 0 });   // the host is Player 1 and serves first
       if (net.role === 'host') { net.started = true; net.gid++; net.lost = false; var pf = net.peer && net.peer.presence.fl; net.gt = pf && pf.t ? pf.t.slice(0, 2) : [0, 0]; net.pend = [null, null]; }
     } else {
       seatsNow = cfg.seats.slice();
@@ -2055,7 +2054,8 @@ if (typeof module !== 'undefined') module.exports = Core;
       for (var tb = 0; tb < 2; tb++) if (soloBoth[tb]) { seatsNow[tb * 2] = 1; seatsNow[tb * 2 + 1] = 0; }   // one person, both players: one set of buttons
       var hs0 = humans();
       solo = hs0.length && (hs0[0] >> 1) === (hs0[hs0.length - 1] >> 1) ? hs0[0] >> 1 : -1;   // every human player on one team: that team is mine
-      game = Core.newGame({ seats: seatsNow.slice(), solo: soloBoth.slice(), level: cfg.level, target: cfg.target, rebHold: rebHold(), singles: !!cfg.singles, firstServe: Math.random() < 0.5 ? 0 : 1 });
+      var p1 = seatsNow.indexOf(1);                                   // Player 1 serves the opening point, and the ball waits in his hand until he presses serve
+      game = Core.newGame({ seats: seatsNow.slice(), solo: soloBoth.slice(), level: cfg.level, target: cfg.target, rebHold: rebHold(), singles: !!cfg.singles, firstServe: p1 >= 0 ? p1 >> 1 : 0 });
     }
     if (score) game.score = score;
     drag = null; cv.style.touchAction = 'none'; cv.style.cursor = '';
