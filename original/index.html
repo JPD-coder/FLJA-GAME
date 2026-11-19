@@ -120,8 +120,8 @@ body.sides .bar { display: none; }
 body.sides .app { padding-top: 4px; padding-bottom: 4px; gap: 4px; max-width: none; }
 body.sides .pads { position: relative; z-index: 3; }
 /* sideways the hands sit either side of the court, so the court is given those margins to itself */
-body.sides .stage { margin-left: calc(var(--sc) * 1.42 + 6px); margin-right: calc(var(--sc) * 1.14 + 8px); }
-body.sides .pads { padding-left: calc(var(--sc) * 1.42 + 6px); padding-right: calc(var(--sc) * 1.14 + 8px); }   /* the court keeps everything the hands don't need */
+body.sides .stage { margin-left: calc(var(--sc) * 1.42 + 6px); margin-right: calc(var(--sc) * 1.42 + 8px); }
+body.sides .pads { padding-left: calc(var(--sc) * 1.42 + 6px); padding-right: calc(var(--sc) * 1.42 + 8px); }   /* the court keeps everything the hands don't need */
 .pad.land { flex-direction: row; align-items: stretch; gap: 8px; }
 .pad.land .runs { flex: 0 0 24%; }
 .pad.land .runs button { height: 100%; }
@@ -144,12 +144,12 @@ body.sides .pads { padding-left: calc(var(--sc) * 1.42 + 6px); padding-right: ca
 .pad.land .minis button { flex: 1; height: auto; min-height: 26px; padding: 1px 6px; font-size: 11px !important; letter-spacing: .05em; }
                                  /* room for the circles that sit beside the court */
 /* upright: the same three parts as sideways — shots left, court bar and small controls between, joystick and serve right */
-.pad.tall { display: flex; flex-direction: row; align-items: center; gap: 10px; padding: 6px 2px; }
+.pad.tall { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0; }
 .pad.tall .shots.round { display: flex; flex-direction: column; gap: 6px; padding: 0; }
 .pad.tall { --sc: min(70px, 10.5vh); }
 .pad.tall .shots.round button { width: calc(var(--sc) * 1.42); height: calc(var(--sc) * .86); min-height: 0; padding: 0 4px; border-radius: 14px;
   font-weight: 800; font-size: calc(var(--sc) * .23) !important; letter-spacing: 0; line-height: 1.02; }
-.pad.tall .shotbox { flex: 1; min-width: 0; align-self: flex-end; background: #0b0c0f; border: 0; }
+.pad.tall .shotbox { flex: 1 1 auto; min-width: 0; align-self: center; background: #0b0c0f; border: 0; }   /* the small controls sit on the same centre line as the hands */
 .pad.tall .minis { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; padding: 2px; border-top: 0; }
 .pad.tall .minis button { flex: 1 1 44%; min-width: 0; height: auto; min-height: 30px; padding: 2px 4px; font-size: 11px !important; letter-spacing: .05em; }
 .pad.tall .shot-label { font-size: 11px; padding: 3px 2px; }
@@ -157,7 +157,7 @@ body.sides .pads { padding-left: calc(var(--sc) * 1.42 + 6px); padding-right: ca
 .pad.tall .stick { width: calc(var(--sc) * 1.14); height: calc(var(--sc) * 1.14); margin: 0; }
 .pad.tall .stick .stick-knob { width: calc(var(--sc) * .67); height: calc(var(--sc) * .67); margin: calc(var(--sc) * -.335) 0 0 calc(var(--sc) * -.335); }
 .pad.tall .stick .stick-base .arw { width: 13px; height: 13px; }
-.pad.tall .righthand .throw.ball { width: var(--sc); height: var(--sc); font-size: calc(var(--sc) * .17) !important; }   /* the same disc as a shot circle */
+.pad.tall .righthand .throw.ball { width: calc(var(--sc) * 1.42); height: calc(var(--sc) * .86); border-radius: 14px; font-size: calc(var(--sc) * .23) !important; }   /* the same pill as a shot */
 /* the serve has a ball of its own, under the joystick, in the hand that throws it */
 .righthand { flex: none; display: flex; flex-direction: column; align-items: center; gap: 18px; }   /* the serve ball keeps clear of the joystick */
 /* sideways both hands sit beside the court, in the black either side of it, so the court keeps its height */
@@ -168,7 +168,7 @@ body.sides .pads { padding-left: calc(var(--sc) * 1.42 + 6px); padding-right: ca
   box-shadow: 0 0 0 4px #e0392c, 0 3px 12px rgba(0,0,0,.5); }                  /* a red ring, the same rim as the joystick above it */
 .pad .righthand .throw.ball.idle { opacity: .4; }
 
-.pad.land .righthand .throw.ball { width: var(--sc); height: var(--sc); font-size: calc(var(--sc) * .17) !important; }   /* the same disc as a shot circle */
+.pad.land .righthand .throw.ball { width: calc(var(--sc) * 1.42); height: calc(var(--sc) * .86); border-radius: 14px; font-size: calc(var(--sc) * .23) !important; }   /* the same pill as a shot */
 .pad.land .stick { flex: 0 0 auto; width: calc(var(--sc) * 1.14); height: calc(var(--sc) * 1.14); margin: 0; align-self: center; }
 .pad.land .stick .stick-knob { width: calc(var(--sc) * .67); height: calc(var(--sc) * .67); margin: calc(var(--sc) * -.335) 0 0 calc(var(--sc) * -.335); }
 .pad.land .shotbox { flex: 1; background: #0b0c0f; align-self: flex-end; border: 0; }   /* the small controls sit as low as the pad goes */
