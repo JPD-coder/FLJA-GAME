@@ -1192,7 +1192,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     '90s': '0upBXHeACqExJ1LkyATsc4?utm_source=generator&si=bc91f17320d24ad1',
     '50s': '0lV2pWMdyZt7ojB7BPLF4a?utm_source=generator&si=c9dec9fc101e4486'
   };
-  var spApi = null, spCtl = null, spReq = false, spWant = false, spWait = 0, spPlayed = false, musTap = 0, spLive = false, spTryT = 0;
+  var spApi = null, spCtl = null, spReq = false, spWant = false, spWait = 0, spPlayed = false, musTap = 0, spLive = false, spTryT = 0, spUri = '', spReady = false, spLoadT = 0;
   var MUSIC = { side: '90s', aerial: '90s', retro: '80s', vintage: '90s', sixties: '50s' }, musicOn = false;
   var VIEWS = { sixties: '', retro: '', vintage: 'fronton5.jpg', side: 'fronton6.jpg', aerial: 'aerial-view.jpg' }, bgs = {}, RETRO = false;
   function viewOK(v) { return VIEWS[v] != null && (!HVP || v === 'aerial' || v === 'side'); }   // Hoots vs Peaks is played in Pro and Amateur only
@@ -1378,7 +1378,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (mb) mb.hidden = !ok;
     if (!ok) { closeMusic(); return; }
     musBuild(); spLoad(); spMake();                                // ready before the first tap, so playing needs no second one
-    if (musicOn) openMusic();                                      // a new era brings its own playlist
+    if (musicOn) openMusic(true);                                  // a new era brings its own playlist, and keeps the music going
   }
   function spLoad() {                                              // Spotify's own player API, so the bar can start the music with the track list tucked away
     if (spReq) return; spReq = true;
@@ -1390,9 +1390,12 @@ if (typeof module !== 'undefined') module.exports = Core;
   function spMake() {
     var host = $('musEmbed'); if (!spApi || spCtl || !host || host.firstChild) return;
     var id = PLAY[MUSIC[view]]; if (!id) return;
-    spApi.createController(host, { uri: 'spotify:playlist:' + id.split('?')[0], width: '100%', height: 152 }, function (ctl) {
+    spUri = id.split('?')[0];
+    spApi.createController(host, { uri: 'spotify:playlist:' + spUri, width: '100%', height: 152 }, function (ctl) {
       spCtl = ctl;
-      if (spWant) { spWant = false; clearTimeout(spWait); spKick(0); }
+      ctl.addListener('ready', function () { spReady = true; if (musicOn && !spLive) spKick(0); });   // the player can take orders now
+      setTimeout(function () { if (!spReady) { spReady = true; if (musicOn && !spLive) spKick(0); } }, 1500);   // in case it never says so
+      if (spWant) { spWant = false; clearTimeout(spWait); }
       ctl.addListener('playback_update', function (e) {
         var pb = $('musPlay'), on = !!(e && e.data && !e.data.isPaused); if (pb) { pb.textContent = on ? '\u23f8' : '\u25b6'; pb.setAttribute('aria-label', on ? 'Pause' : 'Play'); }
         spLive = on; if (on) clearTimeout(spTryT);                           // the player itself says whether a song is sounding: the button goes by that, never by a guess
@@ -1430,8 +1433,16 @@ if (typeof module !== 'undefined') module.exports = Core;
   /* ask the player to play, and keep asking until it reports a song sounding: a phone often lets the first request go by, which used to cost a second and third tap */
   function spKick(n) {
     clearTimeout(spTryT); if (!spCtl) return;
+    if (!spReady || Date.now() < spLoadT) { spTryT = setTimeout(function () { if (musicOn && !spLive) spKick(n); }, 200); return; }   // wait for the player, or for a new playlist to load
     try { if (spPlayed && spCtl.resume) spCtl.resume(); else if (spCtl.play) spCtl.play(); else spCtl.togglePlay(); } catch (e) { try { spCtl.togglePlay(); } catch (x) { /* ignore */ } }
-    if (n < 5) spTryT = setTimeout(function () { if (musicOn && !spLive) spKick(n + 1); }, n ? 900 : 650);
+    if (n < 6) spTryT = setTimeout(function () { if (musicOn && !spLive) { if (n >= 2) spPlayed = false; spKick(n + 1); } }, n ? 900 : 700);   // a resume that did nothing: start the playlist instead
+  }
+  function spEnsure(id) {                                          // the player holds this era's playlist; a new one starts from its first song
+    id = id.split('?')[0];
+    if (!spCtl || spUri === id) return;
+    spUri = id; spPlayed = false; spLive = false;
+    try { spCtl.loadUri('spotify:playlist:' + id); } catch (e) { /* ignore */ }
+    spLoadT = Date.now() + 900;                                    // give it a moment to load before asking it to play
   }
   function startPlay() {                                            // one tap plays: the music starts itself as soon as the player answers
     if (spCtl) { spKick(0); return; }
@@ -1443,7 +1454,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var box = musBuild(); if (!box) return;
     if (box.getAttribute('data-id') !== id) {                      // a different era: hand the player its playlist
       box.setAttribute('data-id', id);
-      if (spCtl) { spCtl.loadUri('spotify:playlist:' + id.split('?')[0]); $('musPlay').textContent = '\u25b6'; $('musPlay').setAttribute('aria-label', 'Play'); }
+      if (spCtl) { spEnsure(id); $('musPlay').textContent = '\u25b6'; $('musPlay').setAttribute('aria-label', 'Play'); }
       else if ($('musEmbed') && $('musEmbed').firstChild) { $('musEmbed').innerHTML = ''; spFallback(); }
     }
     $('musLab').textContent = key + ' playlist';
@@ -1464,6 +1475,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var now = Date.now(); if (now - musTap < 400) return; musTap = now;   // one tap is one tap, however the browser reports it
     if (musicOn && spCtl && !spLive) { spKick(0); return; }        // asked for but not sounding yet: this tap asks again, it never switches it off
     if (musicOn) { musPause(); return; }
+    var cur = PLAY[MUSIC[view]]; if (spCtl && cur && spUri !== cur.split('?')[0]) { openMusic(true); return; }   // the era changed while it was off: its own playlist
     if (spCtl && spPlayed) {                                       // already playing earlier in this match: carry on, never start over
       musDuck = true; musicOn = true;
       var mm = $('miniMusic'); if (mm) mm.classList.add('hot');
@@ -1747,7 +1759,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       var box = function (only) { return '<div class="shotbox" data-box="' + only + '"><div class="shots">' + four(only) + '</div><div class="shot-label">' + (cfg.singles ? 'Singles' : only % 2 ? 'Back Court' : 'Front Court') + '</div></div>'; };
       var minis = '<div class="minis"><button type="button" class="mini" data-mini="menu" aria-label="New match">Menu</button>' +
         (MULTI && !window.FL_VIEW3 ? '<button type="button" class="mini" data-mini="view" aria-label="Change the mode and camera">Mode</button>' : '') +
-        (window.FL_MUSIC && MUSIC[view] ? '<button type="button" class="mini" id="miniMusic" data-mini="music" aria-label="Era music: on or off">\u266a Music</button>' : '') +
+        (window.FL_MUSIC && MUSIC[view] ? '<button type="button" class="mini' + (musicOn && spLive ? ' hot' : '') + '" id="miniMusic" data-mini="music" aria-label="Era music: on or off">\u266a Music</button>' : '') +
         '<button type="button" class="mini" id="miniPause" data-mini="pause"' + (net.role === 'guest' ? ' hidden' : '') + '>Pause</button></div>';
       // one player, either way up: the shots stand in a column on the left, movement and the serve on the right,
       // and the small controls sit under the court bar between them. Sideways they flank the court; upright they sit under it.
