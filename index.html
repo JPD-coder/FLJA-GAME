@@ -1816,11 +1816,15 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (img.bg.complete && img.bg.naturalWidth) ctx.drawImage(img.bg, 0, 0, C.W, C.H);
     else { ctx.fillStyle = '#050506'; ctx.fillRect(0, 0, C.W, C.H); ctx.fillStyle = '#636363'; ctx.fillRect(0, 714, C.W, 92); }
     var serving = game.phase === 'serve';
-    // the serve box, painted on the cancha between lines 4 and 7: a serve has to land inside it
+    // the serve box, painted on the cancha between lines 4 and 7: a serve has to land inside it.
+    // the 90s fronton's floor seams fan out from line 7 and sit a touch left of the game's lines, so the box follows them
+    var FY = 714, FB = 806, SKEW = LOOK2 ? 0 : 0.00249, SOFF = LOOK2 ? 0 : -21, PIV = 1055;
+    var fx = function (x, y) { var ax = x + SOFF; return ax + (ax - PIV) * SKEW * (y - FY); };
+    var z4t = fx(C.ZONE_NEAR, FY), z4b = fx(C.ZONE_NEAR, FB), z7t = fx(C.ZONE_FAR, FY), z7b = fx(C.ZONE_FAR, FB);
     ctx.fillStyle = serving ? 'rgba(216,69,46,.26)' : 'rgba(216,69,46,.13)';
-    ctx.fillRect(C.ZONE_FAR, 714, C.ZONE_NEAR - C.ZONE_FAR, 92);
-    ctx.fillStyle = serving ? '#ff5540' : '#cf3b28';
-    ctx.fillRect(C.ZONE_FAR - 3, 714, 6, 92); ctx.fillRect(C.ZONE_NEAR - 3, 714, 6, 92);
+    ctx.beginPath(); ctx.moveTo(z7t, FY); ctx.lineTo(z4t, FY); ctx.lineTo(z4b, FB); ctx.lineTo(z7b, FB); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = serving ? '#ff5540' : '#cf3b28'; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.moveTo(z4t, FY); ctx.lineTo(z4b, FB); ctx.moveTo(z7t, FY); ctx.lineTo(z7b, FB); ctx.stroke();
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
     for (var n = 1; n <= (LOOK2 ? 0 : 14); n++) {
       var major = n === 4 || n === 7 || n === 11, x = C.LINES[n], top = major ? 614 : 652;
