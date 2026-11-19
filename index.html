@@ -1881,7 +1881,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   /* ---------- matchup poster (preview build only): a still court, a Tap to Play button, then the poster while the match loads ---------- */
   var POSTER = !!window.FL_POSTER;
   if (POSTER) document.body.classList.add('poster-on');
-  var POSTERS = { '0m': 'poster-0-m.jpg?v=2', '1m': 'poster-1-m.jpg?v=2' };   // roster index + m/w. Each half faces right; missing ones fall back to the team badge
+  var POSTERS = { '0m': 'poster-0-m.jpg?v=3', '1m': 'poster-1-m.jpg?v=3', '2m': 'poster-2-m.jpg?v=3', '3m': 'poster-3-m.jpg?v=3', '4m': 'poster-4-m.jpg?v=3', '5m': 'poster-5-m.jpg?v=3' };   // roster index + m/w. Each half faces right; missing ones fall back to the team badge
   function posterHalf(el, t) {
     var r = ROSTER[t], key = t + (cfg.who === 'women' ? 'w' : 'm'), src = POSTERS[key] || (cfg.who === 'mixed' ? POSTERS[t + 'm'] : null);
     el.innerHTML = ''; el.style.backgroundImage = '';
