@@ -517,6 +517,7 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
       <div class="opt"><span class="opt-label">Play to</span><div class="seg" id="optTarget"></div></div>
       <div class="opt"><span class="opt-label">CPU</span><div class="seg" id="optLevel"></div></div>
       <div class="opt"><span class="opt-label">Pace</span><div class="seg" id="optPace"></div></div>
+      <div class="opt"><span class="opt-label">Players</span><div class="seg" id="optWho"></div></div>
       <div class="opt"><span class="opt-label">Sound</span><div class="seg" id="optSound"></div></div>
     </div>
     <button type="button" class="opts-toggle" id="guideToggle" aria-expanded="false" aria-controls="guide">How to Play +</button>
@@ -1057,7 +1058,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var t = m.ev === 'chula' ? m.winner : 1 - m.winner;
     return (mode === 'match' && solo === t ? 'YOU' : cfg.names[t].toUpperCase()) + ': ';
   }
-  var cfg = { comp: 'league', pick: [0, 1], names: ['Squared Groupers', 'Peloteros'], seats: [1, 1, 0, 0], sv: 2, target: 9, level: 'easy', pace: 'relaxed', sound: true, singles: false, view: 'aerial', lang: 'es' };
+  var cfg = { comp: 'league', pick: [0, 1], names: ['Squared Groupers', 'Peloteros'], seats: [1, 1, 0, 0], sv: 2, target: 9, level: 'easy', pace: 'relaxed', sound: true, singles: false, view: 'aerial', lang: 'es', who: 'men' };
   try {
     var saved = JSON.parse(localStorage.getItem('fronton-doubles') || 'null');
     if (saved && saved.seats && saved.names) for (var k in cfg) if (saved[k] != null) cfg[k] = saved[k];
@@ -1156,6 +1157,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var wl = st.wall ? st.arc : 0;                                 // off the side wall: the body swings out and tips back
     ctx.save(); ctx.translate(p.x - p.face * 24 + wl * 36 * p.face, baseY); if (wl) ctx.rotate(-p.face * 0.34 * wl); ctx.scale(p.face * k, k);
     ctx.drawImage(sheet, f.x, f.y, f.w, f.h, -f.ax, -f.h, f.w, f.h);
+    if (isWoman(p)) ponytail(f.hx - f.ax - 2, f.hy - f.h + 20, 44, 1, p.i);
     if (!refl && faceFor(p)) {                                     // singles photo: a bobble head over the painted one
       var fr = 150, wob = Math.sin(t * 4.6 + p.i) * 0.07 + Math.sin(t * 11 + p.i) * 0.05 * st.mv;
       ctx.translate(f.hx - f.ax, f.hy - f.h + 30); ctx.rotate(wob); ctx.translate(0, -fr);
@@ -1200,6 +1202,38 @@ if (typeof module !== 'undefined') module.exports = Core;
     }
   }
   function inkFor(hex) { var n = parseInt(hex.slice(1), 16); return 0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255) > 150 ? '#0b0c0f' : '#ffffff'; }
+  function isWoman(p) {                                            // Women: all four. Mixed: one of each per team
+    var g = cfg.who || 'men';
+    if (g === 'women') return true;
+    if (g !== 'mixed') return false;
+    return p.team === 0 ? (p.i % 2 === 0) : (p.i % 2 === 1);
+  }
+  function tailBack(x, y, r, i) {                                  // seen from behind, the hair hangs down the back of the jersey
+    var sw = Math.sin(game.t * 3.1 + i * 1.3) * r * 0.22;
+    ctx.save();
+    ctx.fillStyle = '#2b1a10';
+    ctx.beginPath();
+    ctx.moveTo(x - r * 0.46, y);
+    ctx.quadraticCurveTo(x - r * 0.34 + sw, y + r * 1.05, x + sw * 1.4, y + r * 1.8);
+    ctx.quadraticCurveTo(x + r * 0.34 + sw, y + r * 1.05, x + r * 0.46, y);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#f2efe6';
+    ctx.beginPath(); ctx.arc(x, y + r * 0.1, r * 0.2, 0, 6.3); ctx.fill();
+    ctx.restore();
+  }
+  function ponytail(x, y, r, dir, i) {                             // hair swinging out from under the helmet
+    var sw = Math.sin(game.t * 3.1 + i * 1.3) * r * 0.16;
+    ctx.save();
+    ctx.fillStyle = '#2b1a10';
+    ctx.beginPath();
+    ctx.moveTo(x - dir * r * 0.62, y - r * 0.28);
+    ctx.quadraticCurveTo(x - dir * (r * 1.35 + sw), y + r * 0.3, x - dir * (r * 1.12 + sw * 1.4), y + r * 1.5);
+    ctx.quadraticCurveTo(x - dir * (r * 0.8 + sw), y + r * 0.58, x - dir * r * 0.46, y + r * 0.2);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#f2efe6';
+    ctx.beginPath(); ctx.arc(x - dir * r * 0.66, y - r * 0.02, r * 0.17, 0, 6.3); ctx.fill();
+    ctx.restore();
+  }
   function applyTeams() {
     var p = cfg.pick;
     if (!p || !ROSTER[p[0]] || !ROSTER[p[1]] || p[0] === p[1]) p = cfg.pick = [0, 1];
@@ -1459,6 +1493,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     $('teams').innerHTML = html;
     seg($('optTarget'), [[9, '9'], [15, '15'], [21, '21']], cfg.target, 'target');
     seg($('optLevel'), [['easy', 'Easy'], ['normal', 'Normal'], ['hard', 'Hard']], cfg.level, 'level');
+    seg($('optWho'), [['men', 'Men'], ['women', 'Women'], ['mixed', 'Mixed']], cfg.who, 'who');
     seg($('optPace'), [['relaxed', 'Slow'], ['standard', 'Normal'], ['pro', 'Fast']], cfg.pace, 'pace');
     seg($('optSound'), [['on', 'On'], ['off', 'Off']], cfg.sound ? 'on' : 'off', 'sound');
     $('optViewRow').hidden = !MULTI || !!window.FL_VIEW3; if (MULTI) seg($('optView'), [['aerial', 'Pro'], ['side', 'Amateur'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', '50s Vintage']], view, 'view');
@@ -1913,7 +1948,8 @@ if (typeof module !== 'undefined') module.exports = Core;
     ctx.fillStyle = '#23262e'; ctx.fillRect(x + 16, y + 208, w - 32, 2);
     var showRally = game.rally > 1 && game.phase === 'rally';              // the rally count takes the place of "play to" while a rally is on
     ctx.font = '700 25px ' + DISPLAY; ctx.fillStyle = MUTED; ctx.textAlign = 'left';
-    ctx.fillText((cfg.comp === 'world' ? 'WORLD CUP  ·  ' : cfg.comp === 'league' ? 'LEAGUE PLAY  ·  ' : '') + (game.cfg.singles ? 'SINGLES' : 'DOUBLES') + (showRally ? '' : '  \u00b7  PLAY TO ' + cfg.target), x + 22, y + 231);
+    var whoTag = cfg.who === 'women' ? "WOMEN'S  " : cfg.who === 'mixed' ? 'MIXED  ' : '';
+    ctx.fillText((cfg.comp === 'world' ? 'WORLD CUP  ·  ' : cfg.comp === 'league' ? 'LEAGUE PLAY  ·  ' : '') + whoTag + (game.cfg.singles ? 'SINGLES' : 'DOUBLES') + (showRally ? '' : '  \u00b7  PLAY TO ' + cfg.target), x + 22, y + 231);
     ctx.textAlign = 'right';
     if (showRally) ctx.fillText('RALLY ' + game.rally, x + w - 22, y + 231);
   }
@@ -2115,6 +2151,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     ctx.fillStyle = shade(skin, -0.05); ctx.beginPath(); ctx.arc(hdx + 12.6, hdy + 3.5, 2.6, 0, 6.3); ctx.fill();
     ctx.fillStyle = '#16110d'; ctx.fillRect(hdx + 5.5, hdy + 0.5, 2.6, 2.8);
     ctx.strokeStyle = 'rgba(20,14,10,.7)'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(hdx + 7, hdy + 9); ctx.lineTo(hdx + 11, hdy + 8.4); ctx.stroke();
+    if (isWoman(p)) ponytail(hdx - 1, hdy + 1, 13, 1, p.i);
     var hg = ctx.createLinearGradient(hdx, hdy - 15, hdx, hdy + 2), ht = tones(kit.helm, false);
     hg.addColorStop(0, ht[0]); hg.addColorStop(0.55, ht[1]); hg.addColorStop(1, ht[2]);
     ctx.beginPath(); ctx.arc(hdx, hdy - 1, 14.2, Math.PI * 0.97, Math.PI * 2.07); ctx.closePath();
@@ -2460,9 +2497,13 @@ if (typeof module !== 'undefined') module.exports = Core;
     reach: ['....HHHH.CC.', '...HHHHHHCC.', '...HHSSSSC..', '....SSSSS...', '....JJJJS...', '...JJJJJJ...', '..JJJJJJJJ..', '..SJJJJJJ...', '..SJJJJJJ...', '..S.RRRR....', '....RRRR....', '....WWWW....', '....WWWW....', '...WWWWWW...', '...WW..WW...', '...WW..WW...', '...WW..WW...', '...WW..WW...', '..BBB..BBB..', '..BBB..BBB..'],
     tuck: RBODY.concat(['..SJJJJJJSCC', '..SJJJJJJSCC', '....RRRR..C.', '....RRRR....', '...WWWWWW...', '..WWW..WWW..', '..WW....WW..', '..BBB..BBB..', '............', '............', '............', '............', '............'])
   };
-  function rSprite(name, x, feetY, face, kit, glow) {              // each cell is 2 screen pixels
+  function rSprite(name, x, feetY, face, kit, glow, woman) {       // each cell is 2 screen pixels
     var m = RSPR[name], pal = { H: kit.helm, J: kit.jersey, S: '#ffb38a', W: '#ffffff', R: '#ff2e4d', C: '#ffd27a', B: '#c8c8d8' }, r, c, ch;
     for (r = 0; r < 20; r++) for (c = 0; c < 12; c++) { ch = m[r][c]; if (ch === '.') continue; rc.fillStyle = glow && ch === 'J' ? '#ffffff' : pal[ch]; rc.fillRect(x + (face > 0 ? c - 6 : 5 - c) * 2, feetY - 40 + r * 2, 2, 2); }
+    if (woman) {                                                   // a ponytail, three cells behind the helmet
+      rc.fillStyle = '#3a2418';
+      for (r = 0; r < 3; r++) rc.fillRect(x + (face > 0 ? -1 - (r > 1 ? 1 : 0) : (r > 1 ? 1 : 0)) * 2 - (face > 0 ? 2 : 0), feetY - 38 + r * 2, 2, 2);
+    }
   }
   function rEvent(ev) {
     var b = game.ball, X = Math.round(b.x / 5), Y = Math.round(b.y / 5);
@@ -2521,7 +2562,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       var name = ju > 0 ? 'tuck' : throwing ? (p.anim > 0.18 ? 'wind' : 'hurl') : holding ? (p.holdT < 0.16 ? 'reach' : 'stand') : Math.abs(p.vx) > 20 ? (Math.sin(p.run / 30 * 2.4) > 0 ? 'runA' : 'runB') : 'stand';
       var px0 = q(p.x), fy = FL - Math.round(ju * 21), mine = mode === 'match' && Core.ctl(game, p) && (!net.role || p.team === solo);
       rc.fillStyle = '#000'; rc.fillRect(px0 - 8, FL - 1, 16, 1);
-      rSprite(name, px0, fy, p.face, kit, false);
+      rSprite(name, px0, fy, p.face, kit, false, isWoman(p));
       if (mine) { rc.fillStyle = blink ? TEAM[p.team].ui : '#ffffff'; rc.fillRect(px0 - 2, fy - 47, 5, 1); rc.fillRect(px0 - 1, fy - 46, 3, 1); rc.fillRect(px0, fy - 45, 1, 1); rText(solo >= 0 ? 'YOU' : 'P' + humanNo[i], px0 + 1, fy - 54, TEAM[p.team].ui, 1, true); }
       if (holding) { p._tip = { x: p.x + p.face * 55, y: C.FEET - (name === 'reach' ? 190 : 110) - ju * 105 }; }
       if (holding && game.reb && mine) { var left = Math.max(0, 1 - p.holdT / (game.cfg.rebHold || C.REBOTE_HOLD)); rc.fillStyle = '#000'; rc.fillRect(px0 - 13, fy - 62, 26, 4); rc.fillStyle = left < 0.4 ? '#ff2e4d' : '#ffd21f'; rc.fillRect(px0 - 12, fy - 61, Math.round(24 * left), 2); }
@@ -2671,6 +2712,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     ctx.fillStyle = KIT[p.team].jersey; ctx.beginPath(); ctx.arc(cx, cy, cr * 1.12, 0, 6.3); ctx.fill();
     if (TEAM[p.team].flag) { ctx.font = Math.round(cr * 1.7) + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff'; ctx.fillText(TEAM[p.team].flag, cx, cy + cr * 0.08); }
     else if (im && im.complete && im.naturalWidth) { var ls = cr * 2 / Math.max(im.naturalWidth, im.naturalHeight); ctx.drawImage(im, cx - im.naturalWidth * ls / 2, cy - im.naturalHeight * ls / 2, im.naturalWidth * ls, im.naturalHeight * ls); }
+    if (isWoman(p)) tailBack(ox + f.jx * k, oy + (f.hy + 22) * k, 34 * k, p.i);   // the hair falls over the jersey, so it goes on after the crest
     if (faceFor(p)) {                                              // singles photo as a bobble head, seen in every camera
       var fr = 150 * k, wob = Math.sin(t * 4.6 + p.i) * 0.07 + Math.sin(t * 11 + p.i) * 0.05 * st.mv;
       ctx.save(); ctx.translate(ox + f.jx * k, oy + (f.hy + 14) * k); ctx.rotate(wob); ctx.translate(0, -fr);
