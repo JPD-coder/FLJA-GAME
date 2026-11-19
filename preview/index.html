@@ -508,6 +508,7 @@ body.hvp .pick-label, body.hvp .picker { display: none !important; }
 #a2hs .a2-x { flex: none; width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; }
 /* matchup poster (preview): a still court, a Tap to Play button, then the two teams face off while the match loads */
 #tapPlay { display: none; }
+body.pv-setup .stage { display: none !important; }
 body.poster-on #tapPlay { display: block; position: sticky; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 40; width: 100%; min-height: 58px; margin: 14px 0 6px;
   border: 0; border-radius: 999px; background: var(--gold); color: #0b0c0f; font: 900 20px/1 var(--display); letter-spacing: .2em; text-transform: uppercase; cursor: pointer;
   box-shadow: 0 8px 24px rgba(0,0,0,.55); animation: tp-breathe 1.8s ease-in-out infinite; }
@@ -1913,6 +1914,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     sidesOn = false; document.body.classList.remove('sides'); sideL.innerHTML = ''; sideR.innerHTML = '';
     game = Core.newGame({ seats: [0, 0, 0, 0], level: 'normal', target: 1e9, singles: !!cfg.singles, firstServe: Math.random() < 0.5 ? 0 : 1 });
     drag = null; cv.style.touchAction = ''; cv.style.cursor = 'pointer';
+    document.body.classList.toggle('pv-setup', POSTER && !net.role);   // preview: no court on the setup screen (an online wait still shows its message)
     buildSetup(); show();
   }
   function startMatch(score) {
@@ -1934,6 +1936,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     }
     if (score) game.score = score;
     drag = null; cv.style.touchAction = 'none'; cv.style.cursor = '';
+    document.body.classList.remove('pv-setup');
     buildPads(); show();
     try { window.scrollTo(0, 0); } catch (e) { /* ignore */ }
   }
