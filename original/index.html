@@ -76,15 +76,23 @@ body { background: var(--ink); color: var(--text); font: 15px/1.45 var(--body); 
 #musicBox .mus-top a:hover { outline: 2px solid #1db954; outline-offset: 1px; }
 #musicBox .mus-top button { background: none; border: 0; color: #f1efe8; font-size: 19px; line-height: 1; padding: 0 6px; cursor: pointer; }
 #musicBox .mus-wrap { height: 0; overflow: hidden; transition: height .2s ease; }
+.rec { display: inline-block; border-radius: 50%; flex: none; position: relative; background: radial-gradient(circle, #c9a55c 0 31%, #111 32% 36%, #2a2a2a 37% 44%, #111 45% 52%, #2a2a2a 53% 60%, #111 61% 100%); box-shadow: 0 0 0 1px rgba(255,255,255,.18); }
 #musicBox.open .mus-wrap { height: 152px; }
 #musicBox iframe { display: block; width: 100%; height: 152px; border: 0; }
 #musPlay { flex: none; width: 24px; height: 24px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #1db954; color: #04130a; border: 0; border-radius: 999px; padding: 0 0 0 1px; font: 700 11px/1 system-ui, sans-serif; cursor: pointer; }
 #musicBox .mus-top button#musPlay:hover { background: #17a74a; }
 /* the bar: Spotify's own slim player, right under Menu / Mode / Music / Pause, so a tap on its play button always plays */
-#musicBox.mbar { opacity: 1; pointer-events: auto; z-index: 70; height: 80px; border-radius: 12px; background: #121212; box-shadow: 0 8px 24px rgba(0,0,0,.55); }
+#musicBox.mbar { opacity: 1; pointer-events: auto; z-index: 70; height: 44px; width: auto !important; display: flex; align-items: center; gap: 10px; padding: 0 4px 0 12px;
+  border-radius: 999px; background: #121212; border: 1px solid rgba(201,165,92,.6); box-shadow: 0 6px 18px rgba(0,0,0,.5); overflow: visible; }
 #musicBox.mbar .mus-top { display: none; }
-#musicBox.mbar .mus-wrap, #musicBox.mbar.open .mus-wrap { height: 80px; }
-#musicBox.mbar iframe { height: 80px; }
+#musicBox .mus-lab { display: none; }
+#musicBox.mbar .mus-lab { display: flex; align-items: center; gap: 8px; font: 800 12px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--gold); white-space: nowrap; }
+#musicBox.mbar .mus-lab .rec { width: 22px; height: 22px; }
+#musicBox.mbar.playing .mus-lab .rec { animation: rec-spin 1.8s linear infinite; }
+/* only Spotify's own play / pause button shows, through a small round window: a tap on it is a tap on the player, which a phone always lets play */
+#musicBox.mbar .mus-wrap, #musicBox.mbar.open .mus-wrap { position: relative; flex: none; width: 36px; height: 36px; border-radius: 50%; overflow: hidden; transition: none; background: #1db954; }
+#musicBox.mbar #musEmbed { position: absolute; width: 320px; height: 80px; left: -280px; top: -46px; }   /* Spotify's play button sits 22px in from the right, 64px down */
+#musicBox.mbar iframe { width: 320px; height: 80px; }
 #musicBox.mbar.away { visibility: hidden; }
 .mini .rec { display: inline-block; width: 1.25em; height: 1.25em; margin-right: .35em; vertical-align: -.28em; border-radius: 50%; flex: none;
   background: radial-gradient(circle, var(--rec-label, #c9a55c) 0 31%, #111 32% 36%, #2a2a2a 37% 44%, #111 45% 52%, #2a2a2a 53% 60%, #111 61% 100%); background-size: cover;
@@ -1412,6 +1420,7 @@ if (typeof module !== 'undefined') module.exports = Core;
         spLive = on; if (on) clearTimeout(spTryT);                           // the player itself says whether a song is sounding: the button goes by that, never by a guess
         if (on) spPlayed = true;                                             // once it has played, a tap picks up where it left off
         var mm = $('miniMusic'); if (mm) mm.classList.toggle('spinning', on);   // the record on the button turns while a song plays
+        var mbx = $('musicBox'); if (mbx) mbx.classList.toggle('playing', on);
       });
     });
   }
@@ -1430,6 +1439,7 @@ if (typeof module !== 'undefined') module.exports = Core;
         '<button type="button" id="musPlay" aria-label="Play">\u25b6</button>' +
         '<button type="button" id="musMin" aria-label="Show or hide the track list">▼</button>' +
         '<button type="button" id="musX" aria-label="Stop and close the player">×</button></div>' +
+        '<span class="mus-lab"><span class="rec" aria-hidden="true"></span><span id="musBarLab"></span></span>' +
         '<div class="mus-wrap"><div id="musEmbed"></div></div>';
       document.body.appendChild(box);                              // on the page itself, so no hidden section can hide the bar
       box.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
@@ -1467,7 +1477,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       if (spCtl) { spEnsure(id); $('musPlay').textContent = '\u25b6'; $('musPlay').setAttribute('aria-label', 'Play'); }
       else if ($('musEmbed') && $('musEmbed').firstChild) { $('musEmbed').innerHTML = ''; spFallback(); }
     }
-    $('musLab').textContent = key + ' playlist';
+    $('musLab').textContent = key + ' playlist'; if ($('musBarLab')) $('musBarLab').textContent = key + ' music';
     $('musOpen').href = 'https://open.spotify.com/playlist/' + id.split('?')[0];
     musDuck = true;                                                // the playlist takes over: no ball or crowd sound over the music
     box.hidden = false; musicOn = true;
@@ -1498,10 +1508,10 @@ if (typeof module !== 'undefined') module.exports = Core;
     box.classList.remove('away');
     var r = row.getBoundingClientRect(), pad = row.closest('.pad'), pr = pad ? pad.getBoundingClientRect() : r;
     var below = pad && pad.classList.contains('tall') ? pr.bottom : r.bottom;   // upright: under the whole row of controls, so it covers none of them
-    var w = Math.min(innerWidth - 12, Math.max(r.width, 300), 380);
+    box.style.width = ''; var w = box.offsetWidth || 200;
     var left = Math.max(6, Math.min(innerWidth - w - 6, r.left + r.width / 2 - w / 2));
-    var top = below + 8; if (top + 80 > innerHeight - 4) top = Math.max(4, r.top - 86);   // sideways there is no room below: just above the buttons
-    box.style.left = Math.round(left) + 'px'; box.style.top = Math.round(top) + 'px'; box.style.bottom = 'auto'; box.style.width = Math.round(w) + 'px';
+    var top = below + 6; if (top + 44 > innerHeight - 4) top = Math.max(4, r.top - 50);   // sideways there is no room below: just above the buttons
+    box.style.left = Math.round(left) + 'px'; box.style.top = Math.round(top) + 'px'; box.style.bottom = 'auto';
   }
   setInterval(function () { if (musicOn) musPlace(); }, 300);
   window.addEventListener('resize', function () { if (musicOn) musPlace(); });
@@ -2125,7 +2135,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   function layout() {
     fitHeader();
-    var mb = document.getElementById('musicBox'), vh = viewH() - (sidesOn && mode === 'match' && mb && mb.classList.contains('mbar') ? 88 : 0), avail;   // sideways: the court gives up a strip at the bottom for the music player
+    var mb = document.getElementById('musicBox'), vh = viewH() - (sidesOn && mode === 'match' && mb && mb.classList.contains('mbar') ? 52 : 0), avail;   // sideways: the court gives up a strip at the bottom for the music player
     var w = stage.clientWidth;
     if (mode === 'match') {
       var below = (elPads.hidden ? 0 : elPads.offsetHeight + 10) + (elAfter.hidden ? 0 : elAfter.offsetHeight + 10);
