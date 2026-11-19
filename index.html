@@ -83,14 +83,17 @@ body { background: var(--ink); color: var(--text); font: 15px/1.45 var(--body); 
 #musicBox iframe { display: block; width: 100%; height: 152px; border: 0; }
 #musPlay { flex: none; width: 24px; height: 24px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #1db954; color: #04130a; border: 0; border-radius: 999px; padding: 0 0 0 1px; font: 700 11px/1 system-ui, sans-serif; cursor: pointer; }
 #musicBox .mus-top button#musPlay:hover { background: #17a74a; }
-/* no bar at all: Spotify's player lies, all but invisible, over the Music button with its own play / pause right under the thumb.
-   A tap on Music is a tap on Spotify's button, which a phone always lets play, and the court gives up nothing */
-#musicBox.overbtn { opacity: .011; pointer-events: auto; z-index: 80; border-radius: 8px; overflow: hidden; width: auto; height: auto; }
-#musicBox.overbtn .mus-top, #musicBox.overbtn .mus-lab { display: none; }
-#musicBox.overbtn .mus-wrap { position: absolute; inset: 0; height: auto; transition: none; }
-#musicBox.overbtn { border-radius: 50%; }
-#musicBox.overbtn #musEmbed { position: absolute; width: 345px; height: 80px; }
-#musicBox.overbtn iframe { width: 345px; height: 80px; }
+/* the thin player: one slim strip under Menu / Mode / Music / Pause. Its play button has Spotify's own play button lying, all but invisible, right over it,
+   so the tap that starts the music lands on Spotify's player, which a phone always lets play */
+#musicBox.thin { opacity: 1; pointer-events: auto; z-index: 80; width: auto; height: 34px; overflow: visible; border-radius: 999px; background: #121212; border: 1px solid rgba(201,165,92,.55); box-shadow: 0 4px 14px rgba(0,0,0,.45); }
+#musicBox.thin .mus-top { height: 34px; padding: 0 6px 0 12px; gap: 8px; }
+#musicBox.thin #musMin, #musicBox.thin #musOpen { display: none; }
+#musicBox .mus-lab { display: none; }
+#musicBox.thin .mus-top button#musPlay { width: 26px; height: 26px; flex: none; display: flex; align-items: center; justify-content: center; padding: 0 0 0 1px; border-radius: 50%; background: #1db954; color: #04130a; font: 700 12px/1 system-ui, sans-serif; }
+#musicBox.thin .mus-wrap { position: absolute; width: 26px; height: 26px; border-radius: 50%; overflow: hidden; opacity: .011; transition: none; }
+#musicBox.thin #musEmbed { position: absolute; width: 345px; height: 80px; left: -307px; top: -53px; }   /* at 345px wide Spotify's play button sits 25px in from the right, 66px down */
+#musicBox.thin iframe { width: 345px; height: 80px; }
+#musicBox.thin.away { visibility: hidden; }
 #musicBox.mbar.away { visibility: hidden; }
 .mini .rec { display: inline-block; width: 1.25em; height: 1.25em; margin-right: .35em; vertical-align: -.28em; border-radius: 50%; flex: none;
   background: radial-gradient(circle, var(--rec-label, #c9a55c) 0 31%, #111 32% 36%, #2a2a2a 37% 44%, #111 45% 52%, #2a2a2a 53% 60%, #111 61% 100%); background-size: cover;
@@ -635,7 +638,7 @@ body.poster-on #tapPlay { display: block; position: sticky; bottom: calc(10px + 
       <li><b>Score.</b> Every throw must hit the front wall above the low red line, and the wall is good all the way up to the gold line at its top. A ball that goes over the top of the front or back wall is out. Miss, or let the ball bounce twice, and the other team scores.</li>
       <li><b>Run and catch.</b> Push the joystick under your right thumb to run: a nudge walks, a full push runs. In Amateur and the throwback modes, push right to run toward the front wall and left toward the back wall. In Pro the camera is behind you, so up runs toward the front wall, down toward the back wall, and left and right step across the court toward the side wall or the open side. You can also hold a finger on the court to run to that spot, or use the arrow keys on a keyboard. Any ball that passes one of your players is caught, from the floor up to a full stretch overhead, on the fly or after one bounce; only a ball well over his head goes by. In Pro you also have to be across the court to the ball to catch it. In doubles the front courter plays from the front wall back to line 10 and the back courter from line 7 to the back wall.</li>
       <li><b>Shots.</b> Saque (Serve) starts the point: it must bounce between the two red lines on the floor at lines 4 and 7, or it is a fault. In play, Pelotazo (Throw) is the normal throw, straight to the front wall. Rebote (Rebound) carries long, to come off the back wall. Cortada (Cut) goes low and hard into the front wall first, then comes back into the side wall around line 3 and kicks across the court. Dos Paredes (Two-Wall) takes the side wall first and then the front wall, and dies short at a sharp angle. Costado (Side Wall) is a backhand off the side wall up by line 2, then the front wall, and comes back deep and low. Amateur, 90s Throwback, 80s Retro and 50s Vintage give you Pelotazo, Rebote and Dos Paredes; Pro adds Cortada and Costado, and holding left or right on the joystick as you throw sends the ball to that side. When the pelota (ball) comes off the back wall and one of your players catches it, it must go back to the front wall in one motion: you have three seconds at Slow pace, two at Normal and one at Fast to press a shot button, or the ball drops and the other team scores. Each shot draws its own path on court; a red path is a fault. The button under the stack switches every name between Spanish and English.</li>
-      <li><b>Music.</b> On the hosted game, tap ♪ Music in the Menu / Mode / Music / Pause row to play that mode's playlist, and tap it again to pause; the record on the button spins while a song plays. Changing modes switches to that era's playlist (90s, 80s or 50s); tap ♪ Music once to start it. While it plays the ball and crowd sounds stand down so the music is clear. Spotify only plays full songs when you are signed in to Spotify in that browser: sign in once at spotify.com, otherwise you hear 30-second previews.</li>
+      <li><b>Music.</b> On the hosted game, tap ♪ Music in the Menu / Mode / Music / Pause row and a thin player opens just under it; tap its green play button to start that mode's playlist, and again to pause. Tap ♪ Music or the × to close it. The record on the Music button spins while a song plays. Changing modes switches to that era's playlist (90s, 80s or 50s); tap play once to start it. While it plays the ball and crowd sounds stand down so the music is clear. Spotify only plays full songs when you are signed in to Spotify in that browser: sign in once at spotify.com, otherwise you hear 30-second previews.</li>
       </ul>
       <h3>Your buttons</h3>
       <dl>
@@ -1416,10 +1419,10 @@ if (typeof module !== 'undefined') module.exports = Core;
       setTimeout(function () { if (!spReady) { spReady = true; if (musicOn && !spLive) spKick(0); } }, 1500);   // in case it never says so
       if (spWant) { spWant = false; clearTimeout(spWait); }
       ctl.addListener('playback_update', function (e) {
-        var pb = $('musPlay'), on = !!(e && e.data && !e.data.isPaused); if (pb) { pb.textContent = on ? '\u23f8' : '\u25b6'; pb.setAttribute('aria-label', on ? 'Pause' : 'Play'); }
+        var pb = $('musPlay'), on = !!(e && e.data && !e.data.isPaused); if (pb) { pb.textContent = on ? '\u275a\u275a' : '\u25b6'; pb.setAttribute('aria-label', on ? 'Pause' : 'Play'); }
         spLive = on; if (on) clearTimeout(spTryT);                           // the player itself says whether a song is sounding: the button goes by that, never by a guess
         if (on) spPlayed = true;                                             // once it has played, a tap picks up where it left off
-        var mm = $('miniMusic'); if (mm) { mm.classList.toggle('spinning', on); mm.classList.toggle('hot', on); }   // the button lights and its record turns while a song plays
+        var mm = $('miniMusic'); if (mm) mm.classList.toggle('spinning', on);   // the record on the button turns while a song plays
         musicOn = on; musDuck = on; if (!on) unlock();                       // the music is on exactly when Spotify says it is
       });
     });
@@ -1443,7 +1446,7 @@ if (typeof module !== 'undefined') module.exports = Core;
         '<div class="mus-wrap"><div id="musEmbed"></div></div>';
       document.body.appendChild(box);                              // on the page itself, so no hidden section can hide the bar
       box.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
-      $('musX').addEventListener('click', closeMusic);
+      $('musX').addEventListener('click', function () { thinShow(false); });
       $('musMin').addEventListener('click', function () { $('musMin').textContent = box.classList.toggle('open') ? '▲' : '▼'; });
       $('musPlay').addEventListener('click', startPlay);
       box.hidden = true;
@@ -1490,21 +1493,32 @@ if (typeof module !== 'undefined') module.exports = Core;
     var mm = $('miniMusic'); if (mm) { mm.classList.remove('hot'); mm.classList.remove('spinning'); }
     musicOn = false; musDuck = false; unlock();                    // the game's own sound comes back
   }
-  function musToggle() {                                           // reached only before Spotify's player is up (or from a keyboard): ask it directly
+  var thinOpen = false;
+  function musToggle() {                                           // Music opens the thin player under the buttons; Music again (or its ×) closes it and stops the song
     var now = Date.now(); if (now - musTap < 400) return; musTap = now;
-    if (musicOn) { musPause(); return; }
-    openMusic(true);
+    if (thinOpen) { thinShow(false); return; }
+    thinShow(true);
   }
-  function musPlace() {                                            // lay Spotify's play button exactly under the Music button
-    var box = $('musicBox'); if (!box) return;
-    var btn = $('miniMusic'), live = spCtl || ($('musEmbed') && $('musEmbed').firstChild);
-    if (!btn || !btn.offsetParent || mode !== 'match' || !live) { box.classList.remove('overbtn'); box.style.left = box.style.top = box.style.width = box.style.height = ''; return; }
-    var r = btn.getBoundingClientRect(), em = $('musEmbed'), S = 24;   // only a small circle, the size of Spotify's play button: nothing else of the player can be reached
-    var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-    box.classList.add('overbtn'); box.hidden = false;
-    box.style.left = Math.round(cx - S / 2) + 'px'; box.style.top = Math.round(cy - S / 2) + 'px'; box.style.bottom = 'auto';
-    box.style.width = S + 'px'; box.style.height = S + 'px';
-    if (em) { em.style.left = Math.round(S / 2 - 320) + 'px'; em.style.top = Math.round(S / 2 - 66) + 'px'; }   // at 345px wide Spotify's play button sits 25px in from the right, 66px down (measured on JP's iPhone)
+  function thinShow(on) {
+    var box = musBuild(); if (!box) return;
+    thinOpen = !!on;
+    if (on) { openMusic(false); box.classList.add('thin'); musPlace(); }
+    else { musPause(); box.classList.remove('thin'); }
+    var mm = $('miniMusic'); if (mm) mm.classList.toggle('hot', thinOpen);
+  }
+  function musPlace() {                                            // the strip sits right under Menu / Mode / Music / Pause (above them if there is no room below)
+    var box = $('musicBox'); if (!box || !box.classList.contains('thin')) return;
+    var row = [].slice.call(document.querySelectorAll('.minis')).filter(function (m) { return m.offsetParent; })[0];
+    if (!row || mode !== 'match') { box.classList.add('away'); return; }
+    box.classList.remove('away');
+    var r = row.getBoundingClientRect(), pad = row.closest('.pad'), pr = pad ? pad.getBoundingClientRect() : r;
+    var below = pad && pad.classList.contains('tall') ? pr.bottom : r.bottom;   // upright: under the whole block of controls
+    box.style.width = ''; var w = box.offsetWidth || 220;
+    var left = Math.max(6, Math.min(innerWidth - w - 6, r.left + r.width / 2 - w / 2));
+    var top = below + 5; if (top + 34 > innerHeight - 2) top = Math.max(2, r.top - 39);
+    box.style.left = Math.round(left) + 'px'; box.style.top = Math.round(top) + 'px'; box.style.bottom = 'auto';
+    var pb = $('musPlay'), wr = box.querySelector('.mus-wrap');     // Spotify's own play button, right over ours
+    if (pb && wr) { wr.style.left = pb.offsetLeft + 'px'; wr.style.top = pb.offsetTop + 'px'; }
   }
   setInterval(musPlace, 250);
   window.addEventListener('resize', musPlace);
@@ -1523,6 +1537,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     return art ? '<span class="rec cover" aria-hidden="true" style="--rec-art:url(&quot;' + art + '&quot;)"></span>' : '<span class="rec" aria-hidden="true"></span>';
   }
   function closeMusic() {                                          // a full stop: the era changed, or the match is over
+    thinOpen = false; if ($('musicBox')) $('musicBox').classList.remove('thin');
     spPlayed = false; spLive = false; clearTimeout(spTryT);
     var box = $('musicBox');
     if (box) {
@@ -1797,7 +1812,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       var box = function (only) { return '<div class="shotbox" data-box="' + only + '"><div class="shots">' + four(only) + '</div><div class="shot-label">' + (cfg.singles ? 'Singles' : only % 2 ? 'Back Court' : 'Front Court') + '</div></div>'; };
       var minis = '<div class="minis"><button type="button" class="mini" data-mini="menu" aria-label="New match">Menu</button>' +
         (MULTI && !window.FL_VIEW3 ? '<button type="button" class="mini" data-mini="view" aria-label="Change the mode and camera">Mode</button>' : '') +
-        (window.FL_MUSIC && MUSIC[view] ? '<button type="button" class="mini' + (spLive ? ' hot spinning' : '') + '" id="miniMusic" data-mini="music" aria-label="Era music: show or hide the player">' + recHTML() + 'Music</button>' : '') +
+        (window.FL_MUSIC && MUSIC[view] ? '<button type="button" class="mini' + (thinOpen ? ' hot' : '') + (spLive ? ' spinning' : '') + '" id="miniMusic" data-mini="music" aria-label="Era music: show or hide the player">' + recHTML() + 'Music</button>' : '') +
         '<button type="button" class="mini" id="miniPause" data-mini="pause"' + (net.role === 'guest' ? ' hidden' : '') + '>Pause</button></div>';
       // one player, either way up: the shots stand in a column on the left, movement and the serve on the right,
       // and the small controls sit under the court bar between them. Sideways they flank the court; upright they sit under it.
@@ -2022,7 +2037,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var html = '<ul>' + stick + '<li>Or hold a finger on the court where you want to go.</li>' +
       (pc ? '<li>On a keyboard, the arrow keys move you' + (pro ? ' (up and down along the court, left and right across it)' : '') + '.</li>' : '') +
       '<li>When you catch the pelota (ball), throw it with a shot button.</li>' +
-      (window.FL_MUSIC ? '<li>Music: tap \u266a Music to play, again to pause. Sign in to Spotify in this browser for full songs; otherwise you hear 30-second previews.</li>' : '') + '</ul>';
+      (window.FL_MUSIC ? '<li>Music: tap \u266a Music, then the green play button. Sign in to Spotify in this browser for full songs; otherwise you hear 30-second previews.</li>' : '') + '</ul>';
     el.querySelector('.mt-body').innerHTML = html;
     el.hidden = false; tipOpen = true;
   }
