@@ -11,6 +11,9 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font:15px/1.
 .top>*{pointer-events:auto}
 .brand{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-size:13px}
 .acts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.row3{display:flex;gap:6px;flex-wrap:nowrap}.row3 button{white-space:nowrap}
+@media (max-width:480px){.acts{width:100%}.row3{width:100%}.row3 button{flex:1 1 auto;padding:9px 6px;font-size:11.5px}}
+@media (max-width:365px){.row3{gap:4px}.row3 button{padding:9px 3px;font-size:10.5px}}
 button,select,a.btn{font:700 13px system-ui,sans-serif;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:9px 13px;cursor:pointer;text-decoration:none}
 button[aria-pressed=true]{background:var(--gold);color:#0b0c0f;border-color:var(--gold)}
 #hint{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:12.5px;color:var(--muted);z-index:5;white-space:nowrap;max-width:94vw;overflow:hidden;text-overflow:ellipsis}
@@ -30,7 +33,7 @@ button[aria-pressed=true]{background:var(--gold);color:#0b0c0f;border-color:var(
 <div id="view"></div>
 <div class="top"><div class="brand">MLJ Arena &amp; Lounge</div>
 <div class="acts">
-<button id="mWalk" aria-pressed="true">Walk Through View</button><button id="mDoll" aria-pressed="false">Dollhouse View</button><button id="tourBtn">&#9654; Watch the Tour</button>
+<span class="row3"><button id="mDoll" aria-pressed="false">Dollhouse View</button><button id="mWalk" aria-pressed="true">Walk Thru View</button><button id="tourBtn">3D Video Walk Thru</button></span>
 <select id="goto" aria-label="Go to"><option value="">Go to…</option><option value="entry">Main entrance</option><option value="food">Food court &amp; bars</option><option value="merch">Merch store</option><option value="rest">Restrooms</option><option value="doors">Fronton doors</option><option value="sharks">Shark tank bars</option><option value="seats">Seats</option><option value="vip">VIP couches</option><option value="court">On the court</option><option value="valet">Valet circle</option><option value="vpark">Valet parking</option><option value="lot">Parking lot</option><option value="marina">Marina</option></select>
 <a class="btn" href="./" id="back">Back to the game</a></div></div>
 <div id="stick" hidden><i></i></div>
