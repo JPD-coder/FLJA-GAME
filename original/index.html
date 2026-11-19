@@ -503,6 +503,31 @@ body.hvp .pick-label, body.hvp .picker { display: none !important; }
 #a2hs .a2-share { display: inline-block; width: 15px; height: 18px; vertical-align: -3px; margin: 0 2px; }
 #a2hs .a2-go { flex: none; border: 0; border-radius: 999px; background: var(--gold); color: #0b0c0f; font: 800 13px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; padding: 11px 14px; cursor: pointer; }
 #a2hs .a2-x { flex: none; width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; }
+/* matchup poster (preview): a still court, a Tap to Play button, then the two teams face off while the match loads */
+#tapPlay { display: none; }
+body.poster-on #tapPlay { display: block; position: sticky; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 40; width: 100%; min-height: 58px; margin: 14px 0 6px;
+  border: 0; border-radius: 999px; background: var(--gold); color: #0b0c0f; font: 900 20px/1 var(--display); letter-spacing: .2em; text-transform: uppercase; cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0,0,0,.55); animation: tp-breathe 1.8s ease-in-out infinite; }
+@keyframes tp-breathe { 50% { box-shadow: 0 8px 24px rgba(0,0,0,.55), 0 0 0 6px rgba(201,162,74,.25); } }
+@media (prefers-reduced-motion: reduce) { body.poster-on #tapPlay { animation: none; } }
+body.poster-on #a2hs { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+#poster { position: fixed; inset: 0; z-index: 9500; background: #05060a; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 16px; opacity: 0; transition: opacity .35s ease; }
+#poster.on { opacity: 1; }
+#poster .pz { position: relative; display: flex; height: min(72vh, calc((100vw - 32px) * 1.094)); aspect-ratio: 1199 / 1312; max-width: 100%; border-radius: 16px; overflow: hidden; box-shadow: 0 14px 44px rgba(0,0,0,.7); }
+#poster .ph { position: relative; flex: 1 1 50%; min-width: 0; background-size: cover; background-position: center top; }
+#poster .ph.r { transform: scaleX(-1); }                                  /* every half is drawn facing right; the right-hand team is turned to face it */
+#poster .ph .fb { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+#poster .ph .fb img { width: 72%; max-width: 260px; filter: drop-shadow(0 8px 20px rgba(0,0,0,.6)); }
+#poster .ph.r .fb img { transform: scaleX(-1); }
+#poster .vs { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font: 900 clamp(34px, 9vw, 72px)/1 var(--display); letter-spacing: .04em; color: #fff;
+  text-shadow: 0 0 18px rgba(0,0,0,.9), 0 4px 0 rgba(0,0,0,.6); pointer-events: none; z-index: 2; display: block !important; }
+#poster .side-txt { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+#poster .pn { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; font: 900 clamp(18px, 4.6vw, 30px)/1.1 var(--display); letter-spacing: .06em; text-transform: uppercase; text-align: center; }
+#poster .pn i { font-style: normal; color: var(--muted); }
+#poster .pload { display: flex; align-items: center; gap: 12px; font: 700 13px/1 var(--body); letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
+#poster .spin { width: 26px; height: 26px; border-radius: 50%; border: 3px solid rgba(255,255,255,.15); border-top-color: var(--gold); animation: p-spin .8s linear infinite; }
+@keyframes p-spin { to { transform: rotate(360deg); } }
+@media (max-height: 520px) { #poster { flex-direction: row; gap: 28px; } #poster .pz { height: 86vh; flex: none; } #poster .side-txt { align-items: flex-start; gap: 18px; max-width: 42vw; } #poster .pn { flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; } }
 </style>
 </head>
 <body>
@@ -516,6 +541,7 @@ body.hvp .pick-label, body.hvp .picker { display: none !important; }
 <div class="g-name">Members only</div><div class="g-big"><span class="ho">Hoots</span> vs <span class="pk">Peaks</span></div>
 <input id="hvpPass" type="password" inputmode="text" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Hoots vs Peaks password" placeholder="Password">
 <button type="submit">Enter</button><button type="button" class="g-back" id="hvpBack">Back</button><div class="g-no" id="hvpNo" role="alert"></div></form></div>
+<div id="poster" hidden><div class="pz"><div class="ph l"></div><div class="ph r"></div><div class="vs">VS</div></div><div class="side-txt"><div class="pn"></div><div class="pload"><span class="spin"></span>Loading match</div></div></div>
 <div id="film"><canvas id="filmCv"></canvas><div class="film-btns"><button id="filmSound" type="button">Sound on</button><button id="filmSkip" type="button">Skip</button></div><div id="filmGo" hidden><button id="goPC" type="button">Play PC</button><button id="goMob" type="button">Play Mobile</button></div></div>
 <div class="app">
   <header class="bar" id="bar">
@@ -593,6 +619,7 @@ body.hvp .pick-label, body.hvp .picker { display: none !important; }
       <div class="opt-label">Play a friend online</div>
       <div id="onlineBody"></div>
     </div>
+  <button type="button" id="tapPlay">Tap to Play</button>
   </section>
 
   <section class="pads" id="pads" aria-label="Player controls" hidden></section>
@@ -1774,7 +1801,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   cv.addEventListener('pointerdown', function (e) {
     unlock();
-    if (mode === 'demo') { tryStart(); return; }
+    if (mode === 'demo') { if (!POSTER) tryStart(); return; }      // preview: the court is a picture; Tap to Play starts the match
     var hs = humans(); if (!hs.length || paused || game.phase === 'over') return;
     e.preventDefault();
     var hd = game.holder, mine0 = -1;                             // a tap on the court throws for whichever of my players has the ball
@@ -1845,6 +1872,34 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (mp) { mp.textContent = paused ? 'Resume' : 'Pause'; mp.classList.toggle('hot', paused); }   // the same word on every button, in every view
     layout();
   }
+  /* ---------- matchup poster (preview build only): a still court, a Tap to Play button, then the poster while the match loads ---------- */
+  var POSTER = !!window.FL_POSTER;
+  if (POSTER) document.body.classList.add('poster-on');
+  var POSTERS = { '0m': 'poster-0-m.jpg', '1m': 'poster-1-m.jpg' };   // roster index + m/w. Each half faces right; missing ones fall back to the team badge
+  function posterHalf(el, t) {
+    var r = ROSTER[t], key = t + (cfg.who === 'women' ? 'w' : 'm'), src = POSTERS[key] || (cfg.who === 'mixed' ? POSTERS[t + 'm'] : null);
+    el.innerHTML = ''; el.style.backgroundImage = '';
+    if (src) { el.style.backgroundImage = 'url("' + src + '")'; return; }
+    var c = r.ui || '#888';
+    el.style.backgroundImage = 'radial-gradient(circle at 40% 45%, ' + c + 'aa 0%, ' + c + '33 38%, #07080a 78%)';
+    el.innerHTML = '<div class="fb"><img src="' + r.logo + '" alt=""></div>';
+  }
+  var posterT = 0;
+  function posterGo() {
+    if (net.role === 'guest' || (net.role === 'host' && !net.peer)) return;
+    var p = $('poster'); if (!p) { tryStart(); return; }
+    var a = cfg.pick[0], b = cfg.pick[1], pz = p.querySelector('.pz'), L = p.querySelector('.ph.l'), R = p.querySelector('.ph.r');
+    if (cfg.comp === 'hvp') { L.style.display = 'none'; R.style.display = 'none'; pz.style.background = 'url("hvp-door.jpg?v=2") center top / cover'; }
+    else { L.style.display = ''; R.style.display = ''; pz.style.background = ''; posterHalf(L, a); posterHalf(R, b); }
+    p.querySelector('.pn').innerHTML = '<span style="color:' + (TEAM[0].ui || '#fff') + '">' + esc(cfg.names[0]) + '</span><i>vs</i><span style="color:' + (TEAM[1].ui || '#fff') + '">' + esc(cfg.names[1]) + '</span>';
+    unlock(); p.hidden = false; void p.offsetWidth; p.classList.add('on');
+    clearTimeout(posterT);
+    posterT = setTimeout(function () {                             // about two and a half seconds, then the match opens behind it and the poster fades
+      tryStart();
+      p.classList.remove('on'); setTimeout(function () { p.hidden = true; }, 380);
+    }, 2600);
+  }
+  if ($('tapPlay')) $('tapPlay').addEventListener('click', posterGo);
   function startDemo(keepNet) {
     if (keepNet !== true) { if (net.role === 'guest') netLeave(); else if (net.role === 'host') net.started = false; }
     seatsNow = null; net.lost = false;
@@ -1887,7 +1942,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   // no Start button: the court itself starts the match (tap it, or press Enter)
   window.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter' && mode === 'demo' && !/^(INPUT|TEXTAREA|BUTTON|A)$/.test(e.target.tagName)) tryStart();
+    if (e.key === 'Enter' && mode === 'demo' && !/^(INPUT|TEXTAREA|BUTTON|A)$/.test(e.target.tagName)) { if (POSTER) posterGo(); else tryStart(); }
   });
   if ($('btnMusic')) $('btnMusic').addEventListener('click', musToggle);   // the header button is gone: music sits in the Pause / Menu / View row
   $('btnRematch').addEventListener('click', function () { if (net.role === 'guest') return; unlock(); startMatch(); });
@@ -2932,7 +2987,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     }
     ctx.setTransform(sc, 0, 0, sc, 0, 0);
     if (amt > 0.01) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, C.W, 54 * amt); ctx.fillRect(0, C.H - 54 * amt, C.W, 54 * amt); }
-    if (mode === 'demo') banner(net.role === 'guest' ? 'WAITING FOR THE HOST' : net.role === 'host' && !net.peer ? 'WAITING FOR OPPONENT' : 'TAP HERE TO PLAY', null, '#ffffff');
+    if (mode === 'demo' && (!POSTER || net.role)) banner(net.role === 'guest' ? 'WAITING FOR THE HOST' : net.role === 'host' && !net.peer ? 'WAITING FOR OPPONENT' : 'TAP HERE TO PLAY', null, '#ffffff');
     if (net.lost) banner('OPPONENT DISCONNECTED', 'Tap New match to leave');
     else if (paused) banner('PAUSED', net.role === 'guest' ? 'The host paused the match'
       : hasKeys() ? 'Press P or tap Resume' : 'Tap Resume');   // no keyboard, no point naming a key
@@ -3269,7 +3324,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       if (fx.slow > 0) { tsF = fx.slow > 0.45 ? 0.2 : 0.2 + 0.8 * (1 - fx.slow / 0.45); fx.slow -= dt; }
       fdt = dt * tsF;
       if (mode !== 'demo') Core.step(game, dt * (PACE[cfg.pace] || 0.88) * tsF, inputs);
-      else { Core.step(game, dt * 0.86, inputs); game.score[0] = game.score[1] = 0; }   // the court keeps playing while nobody has started: a real rally, no score
+      else if (!POSTER) { Core.step(game, dt * 0.86, inputs); game.score[0] = game.score[1] = 0; }   // preview: the court stands still until Tap to Play   // the court keeps playing while nobody has started: a real rally, no score
       for (var e = 0; e < game.events.length; e++) { play(game.events[e]); fxEvent(game.events[e]); }
       fxUpdate(dt * tsF, dt);
       game.events.length = 0;
@@ -3342,7 +3397,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     function tick() {                                              // only on the setup screen: never over the film, a password or a match
       var b = make(), gate = $('gate'), film = $('film'), hv = $('hvpGate'), pads = $('pads');
       var free = (!gate || gate.hidden) && (!film || film.hidden || getComputedStyle(film).display === 'none' || +getComputedStyle(film).opacity === 0) &&
-        (!hv || hv.hidden) && (!pads || pads.hidden);
+        (!hv || hv.hidden) && (!pads || pads.hidden) && (!$('poster') || $('poster').hidden);
       var want = ready() && free;
       if (b.hidden === want) b.hidden = !want;
     }
