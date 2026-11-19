@@ -276,7 +276,7 @@ body:not(.filming) .setup { animation: setup-in .4s ease-out; }
 .guide dd { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
 .guide .sw { flex: none; width: 14px; height: 14px; border-radius: 3px; background: var(--text); }
 .guide .sw.sv { background: var(--team-a, var(--gold)); }
-.guide .sw.s1 { background: #22c55e; } .guide .sw.s2 { background: var(--vice-pink); } .guide .sw.s3 { background: var(--vice-aqua); }
+.guide .sw.s1 { background: #22c55e; } .guide .sw.s2 { background: var(--vice-pink); } .guide .sw.s3 { background: var(--vice-aqua); } .guide .sw.s4 { background: #ff8a1f; }
 @media (max-width: 520px) { .guide dl > div { grid-template-columns: 1fr; } }
 .type-row .seg button { padding-inline: 14px; }
 #optView { flex-wrap: nowrap; flex: 1 1 auto; min-width: 0; }
@@ -411,6 +411,7 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
 .pad .throw.s1, .side .throw.s1 { background: var(--vice-aqua); border-color: var(--vice-aqua); color: #04201f; }
 .pad .throw.s2, .side .throw.s2 { background: var(--vice-pink); border-color: var(--vice-pink); color: #24000f; }
 .pad .throw.s3, .side .throw.s3 { background: var(--vice-purple); border-color: var(--vice-purple); color: #f6efff; }
+.pad .throw.s4, .side .throw.s4 { background: #ff8a1f; border-color: #ff8a1f; color: #2a1000; }
 /* a shot that can be played right now breathes; the serve ball glows inside its red ring */
 @keyframes shot-ready { 0%, 100% { box-shadow: 0 0 0 0 rgba(242,239,230,.55), 0 2px 10px rgba(0,0,0,.45); transform: scale(1); }
   50% { box-shadow: 0 0 0 9px rgba(242,239,230,0), 0 2px 10px rgba(0,0,0,.45); transform: scale(1.045); } }
@@ -535,7 +536,7 @@ body.hvp .pick-label, body.hvp .picker { display: none !important; }
       <li><b>Who you play.</b> Under each team, Played by has a switch for the front-court player and one for the back-court player: set each to Player 1 or CPU. Set both to Player 1 and the game hands you whichever player can reach the ball. Set one to CPU and you stay on that position while the CPU plays your partner.</li>
       <li><b>Score.</b> Every throw must hit the front wall above the low red line, and the wall is good all the way up to the gold line at its top. A ball that goes over the top of the front or back wall is out. Miss, or let the ball bounce twice, and the other team scores.</li>
       <li><b>Run and catch.</b> Push the joystick under your right thumb to run: a nudge walks, a full push runs. In Amateur and the throwback modes, push right to run toward the front wall and left toward the back wall. In Pro the camera is behind you, so up runs toward the front wall, down toward the back wall, and left and right step across the court toward the side wall or the open side. You can also hold a finger on the court to run to that spot, or use the arrow keys on a keyboard. Any ball that passes one of your players is caught, from the floor up to a full stretch overhead, on the fly or after one bounce; only a ball well over his head goes by. In Pro you also have to be across the court to the ball to catch it. In doubles the front courter plays from the front wall back to line 10 and the back courter from line 7 to the back wall.</li>
-      <li><b>Shots.</b> Saque (Serve) starts the point: it must bounce between the two red lines on the floor at lines 4 and 7, or it is a fault. In play, Pelotazo (Throw) is the normal throw, straight to the front wall. Rebota (Rebound) carries long, to come off the back wall. Cortada (Cut) goes low and hard into the front wall first, then comes back into the side wall around line 3 and kicks across the court. Dos Paredes (Two-Wall) takes the side wall first and then the front wall. Amateur, 90s Throwback, 80s Retro and 50s Vintage give you Pelotazo and Rebota; Pro adds Cortada and Dos Paredes, and holding left or right on the joystick as you throw sends the ball to that side. When the pelota comes off the back wall and one of your players catches it, it must go back to the front wall in one motion: you have three seconds at Slow pace, two at Normal and one at Fast to press a shot button, or the ball drops and the other team scores. Each shot draws its own path on court; a red path is a fault. The button under the stack switches every name between Spanish and English.</li>
+      <li><b>Shots.</b> Saque (Serve) starts the point: it must bounce between the two red lines on the floor at lines 4 and 7, or it is a fault. In play, Pelotazo (Throw) is the normal throw, straight to the front wall. Rebota (Rebound) carries long, to come off the back wall. Cortada (Cut) goes low and hard into the front wall first, then comes back into the side wall around line 3 and kicks across the court. Dos Paredes (Two-Wall) takes the side wall first and then the front wall, and dies short at a sharp angle. Costado (Side Wall) is a backhand off the side wall up by line 2, then the front wall, and comes back deep and low. Amateur, 90s Throwback, 80s Retro and 50s Vintage give you Pelotazo, Rebota and Costado; Pro adds Cortada and Dos Paredes, and holding left or right on the joystick as you throw sends the ball to that side. When the pelota (ball) comes off the back wall and one of your players catches it, it must go back to the front wall in one motion: you have three seconds at Slow pace, two at Normal and one at Fast to press a shot button, or the ball drops and the other team scores. Each shot draws its own path on court; a red path is a fault. The button under the stack switches every name between Spanish and English.</li>
       <li><b>Music.</b> On the hosted game the ♪ Music button in the Menu / Mode / Music / Pause row plays the playlist for the mode you are in: one tap starts it, the next pauses it, and the next carries on from the same spot. While it plays the ball and crowd sounds stand down so the music is clear.</li>
       </ul>
       <h3>Your buttons</h3>
@@ -544,7 +545,8 @@ body.hvp .pick-label, body.hvp .picker { display: none !important; }
         <div><dt><i class="sw"></i>Pelotazo &middot; Throw</dt><dd>A hard throw aimed high on the front wall, meant to drive the ball deep over your opponent's head. The safe way to keep a rally going.</dd></div>
         <div><dt><i class="sw s1"></i>Rebota &middot; Rebound</dt><dd>The big throw: it comes off the front wall hard enough to carry all the way to the back wall. It is also the shot you use to save a ball played over your head, catching the carom off the back wall and sending it straight back in one motion.</dd></div>
         <div><dt><i class="sw s2"></i>Cortada &middot; Cut <small>(Pro)</small></dt><dd>Caught in the front of the court and thrown low and hard into the middle of the front wall. It bounces and tails sharply into the side wall, and the speed and tight angle make it very hard to reach.</dd></div>
-        <div><dt><i class="sw s3"></i>Dos Paredes &middot; Two-Wall <small>(Pro)</small></dt><dd>A kill shot: the ball hits the side wall first, then the front wall, and bounces away at a sharp angle toward the screen. Running it down is close to impossible.</dd></div>
+        <div><dt><i class="sw s3"></i>Dos Paredes &middot; Two-Wall <small>(Pro)</small></dt><dd>A kill shot: the ball hits the side wall first, then the front wall, comes off dead and drops short, angling away across the court. Running it down is close to impossible.</dd></div>
+        <div><dt><i class="sw s4"></i>Costado &middot; Side Wall</dt><dd>A stylish, difficult backhand played off the side wall up by line 2 before the front wall. Where the Dos Paredes dies short, the Costado kicks off the front wall and carries deep and low, skidding along the floor down the side-wall half of the court.</dd></div>
       </dl>
       <h3>Calls you will see on court</h3>
       <dl>
@@ -629,8 +631,8 @@ var Core = (function () {
   function advance(b, f, h) {
     b.vy += C.GRAV * h; b.x += b.vx * h; b.y += b.vy * h;
     if (b.y < C.CEIL) return 'ceiling';
-    // cortada and costado touch the side wall on the way to the front wall
-    if (f.shot === 3 && !f.side && !f.hitFront && b.vx > 0 && b.x >= f.sideX) { f.side = true; b.vx *= 0.94; b.vy -= 130; return 'side'; }   // dos paredes: the side wall first, then the front wall
+    // dos paredes and costado take the side wall on the way to the front wall; the cortada takes it coming back
+    if ((f.shot === 3 || f.shot === 4) && !f.side && !f.hitFront && b.vx > 0 && b.x >= f.sideX) { f.side = true; b.vx *= 0.94; b.vy -= f.shot === 4 ? 90 : 130; return 'side'; }   // the side wall first, then the front wall
     if (f.shot === 2 && f.hitFront && !f.side && b.vx < 0 && b.x <= f.sideX) { f.side = true; b.vx *= 0.88; b.vy += 90; return 'side'; }      // cortada: off the front wall, then it tails hard into the side wall
     if (b.x >= C.FRONT - C.R && b.vx > 0) {
       b.x = C.FRONT - C.R;
@@ -639,7 +641,8 @@ var Core = (function () {
         if (b.y > C.CHAPA) return 'under';
         f.hitFront = true;
         if (f.shot === 2) { b.vx = -b.vx * 0.58; b.vy = Math.max(b.vy, 0) * 0.5 + 190; }       // cortada: low and hard off the middle of the front wall, still carrying
-        else if (f.shot === 3) { b.vx = -b.vx * 0.9; b.vy = b.vy * 0.92 - 180; }                // costado: kicks off the wall and carries deep
+        else if (f.shot === 3) { b.vx = -b.vx * 0.6; b.vy = b.vy * 0.6 + 120; }                 // dos paredes: comes off dead and drops short, angling away across the court
+        else if (f.shot === 4) { b.vx = -b.vx * 0.9; b.vy = b.vy * 0.92 - 180; }                // costado: kicks off the wall and carries deep
         else { b.vx = -b.vx * C.E_FRONT; b.vy *= 0.92; }
         return 'front';
       }
@@ -662,7 +665,8 @@ var Core = (function () {
         if (b.x <= C.BACK + C.R + 30) return 'chula';              // into the seam of floor and back wall: it rolls out, no return possible
         if (b.x <= C.BACK + C.R + 170) f.cc = true;                // floor just before the back wall: chic-chac
       }
-      if (f.shot === 3) { b.vy = -b.vy * 0.36; b.vx *= 0.86; }                                  // a costado skids low off the floor
+      if (f.shot === 4) { b.vy = -b.vy * 0.36; b.vx *= 0.86; }                                  // a costado skids low off the floor
+      else if (f.shot === 3) { b.vy = -b.vy * 0.42; b.vx *= 0.7; }                              // a dos paredes sits down and dies
       else { b.vy = -b.vy * C.E_FLOOR; b.vx *= C.F_FLOOR; }
       return 'bounce';
     }
@@ -695,16 +699,17 @@ var Core = (function () {
   }
 
   function hand(p) { return { x: p.x + 34, y: C.FEET - 128 }; }
-  /* shots: 0 throw, 1 rebota (carries to the back wall), 2 cortada (cut off the side wall, drops by the front wall), 3 costado (backhand off the side wall, deep and low) */
+  /* shots: 0 pelotazo, 1 rebota (carries to the back wall), 2 cortada (front wall, then tails into the side wall by line 3),
+     3 dos paredes (side wall by line 3, then the front wall; dies short at a sharp angle), 4 costado (a backhand off the side wall up by line 2; comes back deep and low) */
   function shotOf(serve, s) { return serve ? 0 : (s === true ? 1 : (s | 0)); }
   function launch(p, deg, serve, shot) {
     shot = shotOf(serve, shot);
-    var a = deg * Math.PI / 180, v = serve ? C.VSERVE : [C.V, C.VHARD, C.V * 1.04, C.V * 1.1][shot] || C.V, hp = hand(p);
+    var a = deg * Math.PI / 180, v = serve ? C.VSERVE : [C.V, C.VHARD, C.V * 1.04, C.V * 1.1, C.V * 1.06][shot] || C.V, hp = hand(p);
     return { x: hp.x, y: hp.y, vx: v * Math.cos(a), vy: -v * Math.sin(a) };
   }
   function flagsFor(p, serve, shot) {
     shot = shotOf(serve, shot);
-    var hx = hand(p).x, sx = shot === 2 ? C.LINES[3] : Math.min(C.FRONT - 40, Math.max(hx + 40, C.LINES[3]));   // the two-wall shot clips the side wall on the way up; the cortada tails into it coming back, by line 3
+    var hx = hand(p).x, sx = shot === 2 ? C.LINES[3] : Math.min(C.FRONT - 40, Math.max(hx + 40, shot === 4 ? C.LINES[2] : C.LINES[3]));   // the two-wall shot clips the side wall on the way up; the cortada tails into it coming back, by line 3
     return { hitFront: false, bounces: 0, serve: !!serve, shot: shot, side: false, sideX: sx, x0: hx };
   }
   function sweep(t, serve) {
@@ -734,7 +739,7 @@ var Core = (function () {
     var lv = LV[g.cfg.level], min = serve ? C.SMIN : C.AMIN, max = serve ? C.SMAX : C.AMAX, opts = [];
     var opp = g.players.filter(function (q) { return q.team !== p.team && !q.out; });
     var rnd = Math.random(), hard = !serve && rnd < 0.3;           // about three throws in ten are power throws off the back wall
-    var shot = serve ? 0 : hard ? 1 : rnd < 0.4 ? 2 : rnd < 0.5 ? 3 : 0;   // and now and then a cortada or a costado
+    var shot = serve ? 0 : hard ? 1 : rnd < 0.38 ? 2 : rnd < 0.45 ? 3 : rnd < 0.53 ? 4 : 0;   // and now and then a cortada, dos paredes or costado
     for (var a = min; a <= max; a += 1) {
       var pr = predict(launch(p, a, serve, shot), flagsFor(p, serve, shot));
       var m = -9;
@@ -853,9 +858,10 @@ var Core = (function () {
     var s = pr.s, i, tF = 0, mx = -1e9, tB = pr.endT || (s.length ? s[s.length - 1].t : 1), tS = 0.3, z0 = p.z, zT, shot = f.shot | 0;
     for (i = 0; i < s.length; i++) if (s[i].x > mx) { mx = s[i].x; tF = s[i].t; }
     for (i = 0; i < s.length; i++) if (s[i].n >= 1) { tB = s[i].t; break; }
-    if (p.human) zT = shot === 2 ? (lat < 0 ? 0.1 : lat > 0 ? 0.34 : 0.2) : shot >= 2 ? (lat < 0 ? 0.42 : lat > 0 ? 0.88 : 0.66) : (lat < 0 ? 0.2 : lat > 0 ? 0.8 : 0.5);
+    if (p.human) zT = shot === 2 ? (lat < 0 ? 0.1 : lat > 0 ? 0.34 : 0.2) : shot === 4 ? (lat < 0 ? 0.14 : lat > 0 ? 0.44 : 0.28) : shot >= 2 ? (lat < 0 ? 0.42 : lat > 0 ? 0.88 : 0.66) : (lat < 0 ? 0.2 : lat > 0 ? 0.8 : 0.5);
     else if (shot === 2) zT = 0.08 + 0.24 * Math.random();                       // the cortada dies along the side wall
-    else if (shot >= 2) zT = 0.5 + 0.38 * Math.random();
+    else if (shot === 4) zT = 0.16 + 0.24 * Math.random();                       // the costado runs back deep down the side-wall half
+    else if (shot >= 2) zT = 0.66 + 0.22 * Math.random();                       // dos paredes angles away across to the open side
     else {
       var rz = 0, rn = 0; g.players.forEach(function (q) { if (q.team !== p.team && !q.out) { rz += q.z; rn++; } }); rz = rn ? rz / rn : 0.5;
       var off = ({ easy: 0.1, normal: 0.24, hard: 0.38 })[g.cfg.level] || 0.24;
@@ -1160,7 +1166,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var sheet = sheetFor(p.team); if (!sheet) return false;
     var name = 'ready', t = game.t;
     if (st.arc > 0) name = 'jump';
-    else if (st.throwing) name = p.shot === 3 ? 'backhand' : st.u < 0.36 ? 'windup' : 'release';
+    else if (st.throwing) name = p.shot === 4 ? 'backhand' : st.u < 0.36 ? 'windup' : 'release';
     else if (st.holding) name = p.holdT < 0.16 ? 'catch' : 'ready';          // cradle it out front, where the throw leaves from
     else if (st.mv > 0.12) name = Math.sin(st.ph * 1.7) > 0 ? 'run1' : 'run2';   // quicker stride so two poses read as a run
     else if (st.receiving && game.flags.hitFront && Math.abs(game.ball.x - p.x) < 300) name = 'catch';
@@ -1573,8 +1579,9 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (window.FL_PLAY === 'mobile') return window.innerWidth > viewH();
     return window.innerWidth > viewH() * 1.15;                   // any window wider than it is tall: shots left, joystick right
   }
-  var SHOT_ES = ['Saque', 'Pelotazo', 'Rebota', 'Cortada', 'Dos Paredes'];
-  var SHOT_EN = ['Serve', 'Throw', 'Rebound', 'Cut', 'Two-Wall'];
+  var SHOT_ES = ['Saque', 'Pelotazo', 'Rebota', 'Cortada', 'Dos Paredes', 'Costado'];
+  var SHOT_EN = ['Serve', 'Throw', 'Rebound', 'Cut', 'Two-Wall', 'Side Wall'];
+  function shotSet() { return view === 'aerial' ? [0, 1, 2, 3, 4] : [0, 1, 4]; }   // core shots: Pro has all five; every other mode Pelotazo, Rebota and Costado
   function shotNames() { return cfg.lang === 'en' ? SHOT_EN : SHOT_ES; }
   function langBtn() {                                              // the other language waits under the stack, one tap away
     return '<button type="button" class="langbtn" data-mini="lang" aria-label="Switch the shot names">' + (cfg.lang === 'en' ? 'Espa\u00f1ol' : 'English') + '</button>';
@@ -1604,15 +1611,16 @@ if (typeof module !== 'undefined') module.exports = Core;
         if (AER) { L = '<button type="button" id="pad' + s + 'A" data-seat="' + s + '" data-act="A" aria-label="Step toward the side wall">' + ARW(270) + '</button>' + L; R += '<button type="button" id="pad' + s + 'D" data-seat="' + s + '" data-act="D" aria-label="Step toward the open side">' + ARW(90) + '</button>'; }
         moveL = '<div class="runs' + (AER ? ' four' : '') + '">' + L + R + '</div>';
       }
-      var NAMES = shotNames(), CLS = ['sv', 'sn', 's1', 's2', 's3'];   // the serve, a normal throw, then the three power moves
+      var NAMES = shotNames(), CLS = ['sv', 'sn', 's1', 's2', 's3', 's4'];   // the serve, a normal throw, then the power moves
       var TIP = ['Serve: hit the front wall and land in the red box between lines 4 and 7.',
         'A hard throw high on the front wall, to drive the ball deep over your opponent.',
         'The big throw: off the front wall hard enough to carry to the back wall.',
         'Low and hard into the middle of the front wall, tailing into the side wall.',
-        'The side wall first, then the front wall, away at a sharp angle.'];
+        'The side wall first, then the front wall: it dies short at a sharp angle.',
+        'A backhand off the side wall up by line 2, then the front wall: it comes back deep and low.'];
       var sb = function (only, k, extra) { return '<button type="button" class="throw idle ' + CLS[k] + (extra || '') + '" data-seat="' + s + '" data-only="' + only + '" data-sv="' + (k ? 0 : 1) + '" data-shot="' + Math.max(0, k - 1) + '" data-act="T" title="' + NAMES[k] + ' \u2014 ' + TIP[k] + '">' + NAMES[k] + '</button>'; };
       var four = function (only) {                                 // Amateur plays the two plain shots; Pro adds the two that take the side wall
-        var set = view === 'aerial' ? [1, 2, 3, 4] : [1, 2], out = '';   // only Pro carries the two side-wall shots
+        var set = shotSet().map(function (k) { return k + 1; }), out = '';   // button index = core shot + 1
         for (var q = 0; q < set.length; q++) out += sb(only, set[q]);
         return out + langBtn();
       };
@@ -2104,7 +2112,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       if (bd < 320 && game.flags.hitFront) { hx = Math.max(-14, bdx / bd * 46); hy = bdy / bd * 46; }   // reach for the ball
     }
     if (holding) { a = -2.72 - ((p.aim || 20) - 20) * 0.008; hx = Math.cos(a) * 47; hy = Math.sin(a) * 47; lean = -0.27; crouch = 6; ox = 30; oy = -2; stance = 17; }
-    if (throwing && p.shot === 3) { a = 2.5 - u * 2.7; hx = Math.cos(a) * 49; hy = Math.sin(a) * 49; lean = 0.2 - u * 0.3; crouch = 9 - u * 3; ox = -20 + u * 30; oy = 10; stance = 17; }   // costado: a low backhand sweep
+    if (throwing && p.shot === 4) { a = 2.5 - u * 2.7; hx = Math.cos(a) * 49; hy = Math.sin(a) * 49; lean = 0.2 - u * 0.3; crouch = 9 - u * 3; ox = -20 + u * 30; oy = 10; stance = 17; }   // costado: a low backhand sweep
     else if (throwing) { a = -2.72 + u * 2.75; hx = Math.cos(a) * 49; hy = Math.sin(a) * 49; lean = -0.27 + u * 0.72; crouch = 6 + u * 4; ox = 30 - u * 50; oy = -2 + u * 26; stance = 17; }
     if (won) { hop = Math.abs(Math.sin(t * 7 + p.i)) * 12; hx = 10 + Math.sin(t * 9 + p.i) * 6; hy = -46; ox = -6 - Math.sin(t * 9 + p.i) * 6; oy = -44; lean = -0.06; }
     if (lost) { lean = 0.3; hx = 8; hy = 42; ox = -4; oy = 40; crouch = 5; }
@@ -2234,7 +2242,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     }
   }
 
-  var SHOTCOL = ['#fff', '#22c55e', '#ff2e97', '#1fd5d9'];
+  var SHOTCOL = ['#fff', '#22c55e', '#ff2e97', '#1fd5d9', '#ff8a1f'];
   function shotCall(k) { return (shotNames()[k + 1] || '').toUpperCase(); }   // shot 1-3 -> the name on its button
   function call(t, c, x, y) { fx.call = { t: t, c: c, x: Math.max(240, Math.min(C.W - 240, x)), y: y, life: 1 }; }
   function drawAim(p) {
@@ -2260,7 +2268,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     };
     var pr;
     if (serve) pr = arc(0, '#fff', 4, 0.95);
-    else { pr = arc(0, '#fff', 5, 0.9); arc(1, SHOTCOL[1], 5, 0.9); arc(2, SHOTCOL[2], 5, 0.9); arc(3, SHOTCOL[3], 5, 0.9); }   // in play: one path per shot, in its button's color
+    else { var ss = shotSet(); pr = arc(0, '#fff', 5, 0.9); for (k = 1; k < ss.length; k++) arc(ss[k], SHOTCOL[ss[k]], 5, 0.9); }   // in play: one path per shot, in its button's color
     var bad = pr.fault;
     ctx.globalAlpha = 1;
     if (serve && pr.bounceX != null && !bad) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(pr.bounceX, C.FEET - 4, 24, 7, 0, 0, 6.3); ctx.stroke(); }
@@ -2594,7 +2602,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     // aim: one dotted path per shot, in the button colors
     var holder = game.holder >= 0 ? P[game.holder] : null;
     if (holder && holder.human && game.phase !== 'point' && (!net.role || holder.team === solo)) {
-      var shots = f.serve ? [0] : [0, 1, 2, 3];
+      var shots = f.serve ? [0] : shotSet();
       for (n = 0; n < shots.length; n++) { var pr = Core.predict(Core.launch(holder, holder.aim, f.serve, shots[n]), Core.flagsFor(holder, f.serve, shots[n]), true); rc.fillStyle = pr.fault ? '#ff2e4d' : SHOTCOL[shots[n]];
         for (i = 2; i < pr.s.length; i += pr.fault ? 9 : 5) rc.fillRect(q(pr.s[i].x), q(pr.s[i].y), 1, 1); }
     }
@@ -2623,7 +2631,6 @@ if (typeof module !== 'undefined') module.exports = Core;
       else { rc.fillRect(hh.x - e, hh.y, e * 2 + 1, 1); rc.fillRect(hh.x, hh.y - e, 1, e * 2 + 1); }
     }
     if (fx.call) rText(fx.call.t, Math.max(40, Math.min(RW - 40, q(fx.call.x))), Math.max(76, q(fx.call.y) - 10), blink ? fx.call.c : '#ffffff', 1, true);
-    if (serving && holder && holder.human && (!net.role || holder.team === solo)) rText('PRESS SERVE - LAND IT BETWEEN LINES 4 AND 7', 200, 13, blink ? '#ffd21f' : '#ffffff', 1, true);
     // blow the little screen up with hard pixel edges, then lay scanlines over it
     ctx.imageSmoothingEnabled = false; ctx.drawImage(rcv, 0, 0, C.W, C.H); ctx.imageSmoothingEnabled = true;
     if (!rScan) { rScan = document.createElement('canvas'); rScan.width = 4; rScan.height = 5; var sx = rScan.getContext('2d'); sx.fillStyle = 'rgba(0,0,0,.28)'; sx.fillRect(0, 4, 4, 1); rScan = ctx.createPattern(rScan, 'repeat'); }
@@ -2653,14 +2660,13 @@ if (typeof module !== 'undefined') module.exports = Core;
     for (i = 0; i < 4; i++) { rc.fillRect(sp[i][0], 40, 53, 1); rc.fillRect(sp[i][0], 67, 53, 1); rText(sp[i][1], sp[i][0] + 26, 46, W, 1, true); rText(sp[i][2], sp[i][0] + 26, 56, W, 1, true); }
     var ax = RW - ((rT * 26) % 2600), ai;                                                         // crawling ad line
     for (ai = 0; ai < ADS.length * 2; ai++) { var s = ADS[ai % ADS.length].replace(/\s+/g, ' ').replace(/[·•]/g, '-'); if (ax < RW && ax + s.length * 4 > 0) rText(s, Math.round(ax), 2, W); ax += s.length * 4 + 24; }
-    rText('LIVE - IN GLORIOUS BLACK & WHITE', 200, 12, blink ? W : '#000', 1, true);
     // the stands: heads, glowing tips and smoke climbing off them in single specks
     for (n = 2; n < RW; n += 6) { k = (n * 7) % 5; rc.fillRect(n, FL + 14 + k % 3, 3, 3); rc.fillRect(n - 1, FL + 17 + k % 3, 5, 6); }
     for (n = 0; n < 18; n++) { var a = (t * (0.11 + (n % 5) * 0.02) + n * 0.173) % 1, sx2 = (n * 53 + 11) % RW + Math.round(Math.sin(a * 9 + n) * 3); if (a < 0.86 || blink) rc.fillRect(sx2, FL + 12 - Math.round(a * 30), a > 0.5 ? 2 : 1, 1); }
     // aim: each shot has its own spacing of dots, and its name at the far end
     var holder = game.holder >= 0 ? P[game.holder] : null;
     if (holder && holder.human && game.phase !== 'point' && (!net.role || holder.team === solo)) {
-      var shots = f.serve ? [0] : [0, 1, 2, 3], nm = ['PELOTAZO', 'REBOTA', 'CORTADA', 'COSTADO'], placed = [];
+      var shots = f.serve ? [0] : shotSet(), nm = ['PELOTAZO', 'REBOTA', 'CORTADA', 'DOS PAREDES', 'COSTADO'], placed = [];
       for (n = 0; n < shots.length; n++) { var sh = shots[n], pr = Core.predict(Core.launch(holder, holder.aim, f.serve, sh), Core.flagsFor(holder, f.serve, sh), true); if (pr.fault) continue;
         for (i = 2; i < pr.s.length; i += 4 + sh * 2) rc.fillRect(q(pr.s[i].x), q(pr.s[i].y), sh & 1 ? 2 : 1, sh & 1 ? 1 : 1);
         if (!f.serve) { var e = pr.s[Math.min(pr.s.length - 1, 14 + sh * 7)], lw = nm[sh].length * 2 + 2, ex = Math.max(BK + lw, Math.min(FR - lw, q(e.x))), ey = Math.max(TP + 4, q(e.y) - 8), tries = 0, hit = true;
@@ -2738,7 +2744,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var sheet = sheetFor(p.team); if (!sheet) return;
     var name = 'ready', t = game.t;
     if (st.arc > 0) name = 'jump';
-    else if (st.throwing) name = p.shot === 3 ? 'backhand' : st.u < 0.36 ? 'windup' : 'release';
+    else if (st.throwing) name = p.shot === 4 ? 'backhand' : st.u < 0.36 ? 'windup' : 'release';
     else if (st.holding) name = p.holdT < 0.16 ? 'catch' : 'ready';
     else if (st.mv > 0.12) name = Math.sin(st.ph * 1.7) > 0 ? 'run1' : 'run2';
     else if (st.receiving && game.flags.hitFront && Math.abs(game.ball.x - p.x) < 300) name = 'catch';
@@ -2780,7 +2786,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     }
   }
   function v3aim(p) {                                              // for each shot: where it strikes the front wall and where it comes down
-    var serve = game.flags.serve, shots = serve ? [0] : [0, 1, 2, 3], n, i;
+    var serve = game.flags.serve, shots = serve ? [0] : shotSet(), n, i;
     for (n = 0; n < shots.length; n++) {
       var shot = shots[n], fl = Core.flagsFor(p, serve, shot), pr = Core.predict(Core.launch(p, p.aim, serve, shot), fl, true), s = pr.s, col = pr.fault ? RED : SHOTCOL[shot];
       var wi = 0; for (i = 1; i < s.length; i++) if (s[i].x > s[wi].x) wi = i;
