@@ -1502,7 +1502,10 @@ if (typeof module !== 'undefined') module.exports = Core;
       var serveBall = function (only) { return sb(only, 0, ' ball'); };
       // four shot buttons sit above a box naming the player they belong to
       var box = function (only) { return '<div class="shotbox" data-box="' + only + '"><div class="shots">' + four(only) + '</div><div class="shot-label">' + (cfg.singles ? 'Singles' : only % 2 ? 'Back Court' : 'Front Court') + '</div></div>'; };
-      var minis ='<div class="minis"><button type="button" class="mini" id="miniPause" data-mini="pause"' + (net.role === 'guest' ? ' hidden' : '') + '>Pause</button><button type="button" class="mini" data-mini="menu" aria-label="New match">Menu</button>' + (MULTI && !window.FL_VIEW3 ? '<button type="button" class="mini" data-mini="view" aria-label="Change the mode and camera">Mode</button>' : '') + (window.FL_MUSIC && MUSIC[view] ? '<button type="button" class="mini" id="miniMusic" data-mini="music" aria-label="Era music: on or off">\u266a Music</button>' : '') + '</div>';
+      var minis = '<div class="minis"><button type="button" class="mini" data-mini="menu" aria-label="New match">Menu</button>' +
+        (MULTI && !window.FL_VIEW3 ? '<button type="button" class="mini" data-mini="view" aria-label="Change the mode and camera">Mode</button>' : '') +
+        (window.FL_MUSIC && MUSIC[view] ? '<button type="button" class="mini" id="miniMusic" data-mini="music" aria-label="Era music: on or off">\u266a Music</button>' : '') +
+        '<button type="button" class="mini" id="miniPause" data-mini="pause"' + (net.role === 'guest' ? ' hidden' : '') + '>Pause</button></div>';
       // one player, either way up: the shots stand in a column on the left, movement and the serve on the right,
       // and the small controls sit under the court bar between them. Sideways they flank the court; upright they sit under it.
       if (sidesOn || hs.length === 1) {
