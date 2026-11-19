@@ -914,10 +914,10 @@ var Core = (function () {
       p.vx += Math.max(-acc, Math.min(acc, want - p.vx));
       var x0 = p.x;
       p.x += p.vx * dt;
-      // doubles: the front courter works the front wall side of line 7, the back courter the back wall side of it.
+      // doubles: the front courter works from the front wall back to line 10, the back courter from line 7 to the back wall.
       // a player who starts a point outside his half (the server, back at line 10) may walk back into it, never further out.
       var lo = C.PMIN, hi = C.PMAX;
-      if (!g.cfg.singles) { if (i % 2 === 0) lo = C.LINES[7]; else hi = C.LINES[7]; }
+      if (!g.cfg.singles) { if (i % 2 === 0) lo = C.LINES[10]; else hi = C.LINES[7]; }
       lo = Math.max(C.PMIN, Math.min(lo, x0)); hi = Math.min(C.PMAX, Math.max(hi, x0));
       if (p.x < lo) { p.x = lo; p.vx = 0; }
       if (p.x > hi) { p.x = hi; p.vx = 0; }
