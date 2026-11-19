@@ -1489,7 +1489,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   function musBar(on) {
     var box = $('musicBox'); if (!box) return;
     box.classList.toggle('mbar', !!on); box.hidden = !on && !spCtl;
-    if (on) musPlace();
+    layout(); if (on) musPlace();
   }
   function musPlace() {                                            // sit right under Menu / Mode / Music / Pause; above them when there is no room below
     var box = $('musicBox'); if (!box || !box.classList.contains('mbar')) return;
@@ -2125,7 +2125,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   function layout() {
     fitHeader();
-    var vh = viewH(), avail;
+    var mb = document.getElementById('musicBox'), vh = viewH() - (sidesOn && mode === 'match' && mb && mb.classList.contains('mbar') ? 88 : 0), avail;   // sideways: the court gives up a strip at the bottom for the music player
     var w = stage.clientWidth;
     if (mode === 'match') {
       var below = (elPads.hidden ? 0 : elPads.offsetHeight + 10) + (elAfter.hidden ? 0 : elAfter.offsetHeight + 10);
