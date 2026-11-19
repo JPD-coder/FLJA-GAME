@@ -1882,9 +1882,9 @@ if (typeof module !== 'undefined') module.exports = Core;
   /* ---------- matchup poster (preview build only): a still court, a Tap to Play button, then the poster while the match loads ---------- */
   var POSTER = !!window.FL_POSTER;
   if (POSTER) document.body.classList.add('poster-on');
-  var POSTERS = { '0m': 'poster-0-m.jpg?v=4', '1m': 'poster-1-m.jpg?v=4', '2m': 'poster-2-m.jpg?v=4', '3m': 'poster-3-m.jpg?v=4', '4m': 'poster-4-m.jpg?v=4', '5m': 'poster-5-m.jpg?v=4' };   // roster index + m/w. Each half faces right; missing ones fall back to the team badge
-  function posterHalf(el, t) {
-    var r = ROSTER[t], key = t + (cfg.who === 'women' ? 'w' : 'm'), src = POSTERS[key] || (cfg.who === 'mixed' ? POSTERS[t + 'm'] : null);
+  var POSTERS = { '0m': 'poster-0-m.jpg?v=4', '1m': 'poster-1-m.jpg?v=4', '2m': 'poster-2-m.jpg?v=4', '3m': 'poster-3-m.jpg?v=4', '4m': 'poster-4-m.jpg?v=4', '5m': 'poster-5-m.jpg?v=4', '0w': 'poster-0-w.jpg?v=1', '1w': 'poster-1-w.jpg?v=1', '2w': 'poster-2-w.jpg?v=1', '3w': 'poster-3-w.jpg?v=1', '4w': 'poster-4-w.jpg?v=1', '5w': 'poster-5-w.jpg?v=1' };   // roster index + m/w. Each half faces right; missing ones fall back to the team badge
+  function posterHalf(el, t, side) {                              // mixed: a man on the left, a woman on the right
+    var r = ROSTER[t], g = cfg.who === 'women' || (cfg.who === 'mixed' && side) ? 'w' : 'm', src = POSTERS[t + g] || POSTERS[t + 'm'];
     el.innerHTML = ''; el.style.backgroundImage = '';
     if (src) { el.style.backgroundImage = 'url("' + src + '")'; return; }
     var c = r.ui || '#888';
@@ -1897,7 +1897,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var p = $('poster'); if (!p) { tryStart(); return; }
     var a = cfg.pick[0], b = cfg.pick[1], pz = p.querySelector('.pz'), L = p.querySelector('.ph.l'), R = p.querySelector('.ph.r');
     if (cfg.comp === 'hvp') { L.style.display = 'none'; R.style.display = 'none'; pz.style.background = 'url("hvp-door.jpg?v=2") center top / cover'; }
-    else { L.style.display = ''; R.style.display = ''; pz.style.background = ''; posterHalf(L, a); posterHalf(R, b); }
+    else { L.style.display = ''; R.style.display = ''; pz.style.background = ''; posterHalf(L, a, 0); posterHalf(R, b, 1); }
     p.querySelector('.pn').innerHTML = '<span style="color:' + (TEAM[0].ui || '#fff') + '">' + esc(cfg.names[0]) + '</span><i>vs</i><span style="color:' + (TEAM[1].ui || '#fff') + '">' + esc(cfg.names[1]) + '</span>';
     unlock(); p.hidden = false; void p.offsetWidth; p.classList.add('on');
     clearTimeout(posterT);
