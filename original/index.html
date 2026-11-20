@@ -4018,7 +4018,7 @@ window.Table = (function () {
   var TOP = [{ k: 'menu', n: 'MENU' }, { k: 'mode', n: 'MODE' }, { k: 'music', n: '♪' }, { k: 'pause', n: 'PAUSE' }];
   var SHOTCOL = ['#f52f9b', '#3cb5e4', '#fcfc04', '#c6ee32', '#8f0bcd'];
   /* painted on the floor: three club logos in a line between lines 1 and 3, three between 12 and 14, all one size, and the Fantasy League mark in the middle */
-  var FLOOR = [['team-a.png', 3.5, 0.2], ['team-b.png', 4, 0.5], ['logo-skunk-apes.png', 3.5, 0.8], ['logo-don-juans.png', 12.5, 0.2], ['logo-booties.png', 12, 0.5], ['logo-seamen.png', 12.5, 0.8]];   // [logo, line, across]: at each end the two outer logos sit nearer the wall and the middle one comes half a line out toward mid-court, the tip of a small triangle
+  var FLOOR = [];                                                  // the floor carries only the Fantasy League mark, in the middle
   var CALLS = { over: 'OVER THE LINE', under: 'TOO LOW', short: 'SHORT', serveOut: 'SERVE OUT', double: 'TWO BOUNCES', chula: 'CHULA!', ceiling: 'CEILING', backOver: 'OVER THE BACK WALL', held: 'HELD TOO LONG' };
   var GOLD = '#c9a55c', TOUCH = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
   var img = {}, bg = null;
