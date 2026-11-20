@@ -1161,7 +1161,7 @@ if (typeof module !== 'undefined') module.exports = Core;
    The game notes, in this browser only, which of the six modes a tester has started a match in. Once all six have been played, the
    survey opens the next time they are between matches. They give their name and answer ten short questions; the answers are posted to
    the relay (window.FL_FEEDBACK, set on the hosted game only). A "Give Feedback" link on the selection page opens it at any time.
-   Where there is nowhere to post to (the Claude preview), the answers can be copied as text instead. */
+   Where there is nowhere to post to (the Claude preview), the form says so and collects nothing. */
 window.FLFeedback = (function () {
   'use strict';
   var MODES = [['aerial', 'Professional'], ['side', 'Amateur'], ['table', 'Cocktail Table'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', '50s Vintage']];
@@ -1222,11 +1222,8 @@ window.FLFeedback = (function () {
     box.hidden = false; box.scrollTop = 0; document.body.classList.add('fb-open');
   }
   function close() { if (box) box.hidden = true; document.body.classList.remove('fb-open'); }
-  function text(row) { return ['Name: ' + row.name].concat(Q.map(function (q) { return q[1] + ' ' + (row[q[0]] || '-'); })).concat(['Modes played: ' + row.modes]).join('\n'); }
   function thanks(msg, row) {
     var f = box.firstChild; f.hidden = true; var t = el('div', 'fb-thanks'); t.appendChild(el('h2', null, 'Thank you!')); t.appendChild(el('p', null, msg));
-    if (row) { var ta = el('textarea'); ta.readOnly = true; ta.rows = 10; ta.value = text(row); t.appendChild(ta); var cp = el('button', 'fb-send', 'Copy my answers'); cp.type = 'button';
-      cp.addEventListener('click', function () { ta.select(); try { navigator.clipboard.writeText(ta.value).then(function () { cp.textContent = 'Copied'; }, function () { /* the text stays selected to copy by hand */ }); } catch (e) { /* same */ } }); t.appendChild(cp); }
     var ok = el('button', 'fb-later', 'Back to the game'); ok.type = 'button'; ok.addEventListener('click', close); t.appendChild(ok); box.appendChild(t); box.scrollTop = 0;
   }
   function submit(ni, note, send) {
@@ -1234,7 +1231,7 @@ window.FLFeedback = (function () {
     var o = playedSet(), row = { name: name, modes: MODES.filter(function (m) { return o[m[0]]; }).map(function (m) { return m[1]; }).join(', ') || 'none yet' };
     Q.forEach(function (q) { row[q[0]] = (ans[q[0]] || '').trim(); });
     var url = window.FL_FEEDBACK;
-    if (!url || (window.claude && window.claude.use)) { thanks('This preview copy cannot send answers. Copy them below and text or email them to us.', row); return; }
+    if (!url || (window.claude && window.claude.use)) { note.textContent = 'This preview copy does not collect answers. Feedback is sent from the live game.'; return; }
     send.disabled = true; send.textContent = 'Sending...'; note.textContent = '';
     var timer = setTimeout(fail, 12000), finished = false;
     function fail() { if (finished) return; finished = true; clearTimeout(timer); send.disabled = false; send.textContent = 'Send Feedback'; note.textContent = 'That did not go through. Check your connection and tap Send again.'; }
