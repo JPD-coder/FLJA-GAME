@@ -1301,6 +1301,7 @@ window.FLFeedback = (function () {
     { name: 'Hooters', logo: 'hoots-crest.png', ui: '#ff7a1a', hv: 'hoots', kit: { jersey: '#ffffff', sash: '#ff6a13', helm: '#ff6a13', num: '#ff6a13' } },
     { name: 'Twin Peaks', logo: 'peaks-crest.png', ui: '#ff3b3b', hv: 'peaks', kit: { jersey: '#17171a', sash: '#d81e2c', helm: '#17171a', num: '#d81e2c' } }
   );
+  if (window.FL_PROMO && window.FL_PROMO.extra) window.FL_PROMO.extra.forEach(function (r) { ROSTER.push(r); });   // a match-up page can bring a uniform of its own (Fantasy League white)
   window.FL_ROSTER = ROSTER;                                      // the opening film shows the same crests and flags
   var TEAM = [{ ui: '#a8e22a', legs: '#1c4a0b' }, { ui: '#3bb4e6', legs: '#ef1a8c' }];
   var GOLD = '#c9a55c', CHALK = '#f2efe6', MUTED = '#9b9ca6', RED = '#ff5a4d';
@@ -1395,7 +1396,7 @@ window.FLFeedback = (function () {
   function sheetFor(team, p) {
     if (HVP) return hvSheet(team, p ? hvBlonde(p) : false);
     if (!sprImg || !sprImg.complete || !sprImg.naturalWidth) return null;
-    var kit = KIT[team], nk = kit.nk || null, key = (VIEW3 ? 'b' : 's') + kit.jersey + kit.helm + (nk ? 'n' + nk.belt : '');
+    var kit = KIT[team], nk = kit.nk || null, key = (VIEW3 ? 'b' : 's') + kit.jersey + kit.helm + (nk ? 'n' + nk.belt : '') + (kit.belt ? 'b' + kit.belt : '');
     if (sprSheets[key]) return sprSheets[key];
     var cvs = document.createElement('canvas'); cvs.width = sprImg.naturalWidth; cvs.height = sprImg.naturalHeight;
     var x = cvs.getContext('2d'); x.drawImage(sprImg, 0, 0);
@@ -1418,6 +1419,9 @@ window.FLFeedback = (function () {
               if (hue >= 29.5 && hue < 44) { v = 16 + (mx - 140) * 0.3; px[i] = v; px[i + 1] = v; px[i + 2] = v + 3; }                                  // wicker
             }
           }
+        } else if (kit.belt) {                                       // a kit that names its own belt (the match-up page's all-white uniform): the red belt takes that color
+          var BB = rgbOf(kit.belt);
+          for (i = 0; i < px.length; i += 4) { r = px[i]; if (px[i + 3] > 8 && r > 90 && r > px[i + 1] * 1.9 && r > px[i + 2] * 1.9) { v = Math.min(1, r / 205); for (k = 0; k < 3; k++) px[i + k] = Math.min(255, BB[k] * (0.82 + 0.18 * v)); } }
         }
         for (i = 0; i < px.length; i += 4) {
           r = px[i]; g = px[i + 1]; b = px[i + 2];
@@ -1540,7 +1544,7 @@ window.FLFeedback = (function () {
   }
   function applyTeams() {
     var p = cfg.pick;
-    if (!p || !ROSTER[p[0]] || !ROSTER[p[1]] || p[0] === p[1]) p = cfg.pick = [0, 1];
+    if (!p || !ROSTER[p[0]] || !ROSTER[p[1]] || (p[0] === p[1] && !(PROMO && p[0] === PROMO.shared))) p = cfg.pick = [0, 1];   // a match-up page lets both wear its own white
     if (cfg.comp !== 'league' && cfg.comp !== 'world' && cfg.comp !== 'hvp') cfg.comp = 'league';
     HVT = [ROSTER[p[0]].hv || null, ROSTER[p[1]].hv || null]; HVP = !!(MULTI && HVT[0] && HVT[1]);
     document.body.classList.toggle('hvp', HVP);
@@ -1550,7 +1554,7 @@ window.FLFeedback = (function () {
     if ([9, 15, 21].indexOf(cfg.target) < 0) cfg.target = 9;      // older saved setups used 5, 7 or 10
     for (var t = 0; t < 2; t++) {
       var r = ROSTER[p[t]];
-      TEAM[t] = { ui: r.ui, legs: r.kit.sash, flag: r.flag || null, flagImg: !!r.flagImg }; KIT[t] = r.kit; cfg.names[t] = PROMO ? promoName(p[t], r.name) : r.name;
+      TEAM[t] = { ui: r.ui, legs: r.kit.sash, flag: r.flag || null, flagImg: !!r.flagImg }; KIT[t] = r.kit; cfg.names[t] = PROMO ? promoWhoT(t).name : r.name;
       if (r.logo && img[t].getAttribute('src') !== r.logo) img[t].src = r.logo;
       document.documentElement.style.setProperty(t ? '--team-b' : '--team-a', r.ui);
       document.documentElement.style.setProperty(t ? '--team-b-ink' : '--team-a-ink', inkFor(r.ui));
@@ -1825,9 +1829,9 @@ window.FLFeedback = (function () {
   function faceFor(p) {                                            // your photo rides on your own player in a singles match
     faceNow = null; faceLook = 0;
     if (PROMO) {                                                   // a match-up page: each of the two players wears his own face
-      var pf = promoFaces.get(cfg.pick[p.team]);
+      var pf = promoWhoT(p.team)._img;
       if (!game.cfg.singles || mode !== 'match' || p.i % 2 || !pf || !pf.complete || !pf.naturalWidth) return false;
-      faceNow = pf; faceLook = (promoWho(cfg.pick[p.team]) || {}).look || 0; return true;
+      faceNow = pf; faceLook = promoWhoT(p.team).look || 0; return true;
     }
     if (!faceImg || !game.cfg.singles || mode !== 'match' || p.i % 2) return false;
     if (solo >= 0 ? p.team === solo : p.human) { faceNow = faceImg; return true; }
@@ -1836,9 +1840,9 @@ window.FLFeedback = (function () {
   function changeView(v) {                                         // same match, different camera: allowed at any moment
     if (!MULTI) return;
     if (v === 'table') { cfg.table = true; save(); buildSetup(); show(); return; }                    // Cocktail Table is its own screen: it opens when the match starts
-    if (!v && view === 'side' && mode === 'match' && !net.role && window.Table) { var tsc = game ? game.score.slice() : null; cfg.table = true; save(); startDemo(); openTable(tsc); return; }   // cycling modes in a match: Amateur, then Cocktail Table
+    if (!v && view === (PROMO ? 'aerial' : 'side') && mode === 'match' && !net.role && window.Table) { var tsc = game ? game.score.slice() : null; cfg.table = true; save(); startDemo(); openTable(tsc); return; }   // cycling modes in a match: Amateur, then Cocktail Table
     cfg.table = false;
-    var order = ['aerial', 'side', 'vintage', 'retro', 'sixties'].filter(viewOK); if (!v) v = order[(order.indexOf(view) + 1) % order.length];
+    var order = (PROMO ? ['side', 'aerial'] : ['aerial', 'side', 'vintage', 'retro', 'sixties']).filter(viewOK); if (!v) v = order[(order.indexOf(view) + 1) % order.length];
     setView(v); cfg.view = view; save(); trail = []; v3trail.length = 0; v3hits.length = 0;
     for (var i = 0; game && i < 4; i++) { game.players[i]._pose = null; game.players[i]._tip = null; game.players[i]._tipS = null; }
     lastHolder = -99; sidesOn = null; buildSetup(); show();
@@ -2319,11 +2323,11 @@ window.FLFeedback = (function () {
   function openTable(score) {
     if (window.FLFeedback) window.FLFeedback.played('table');
     var tm = [0, 1].map(function (t) { var r = ROSTER[cfg.pick[t]] || ROSTER[t], k = r.kit || {}, nk = k.nk || {};
-      return { n: cfg.names[t] || r.name, face: PROMO ? promoFaceSrc(cfg.pick[t]) : null, one: !!PROMO, logo: r.crest || r.logo, c1: nk.helm || r.ui || k.jersey || '#f2efe6', c2: nk.belt || k.sash || '#c9a55c' }; });   // USA wears its crest, the other countries their flag, Hooters and Twin Peaks their own marks
+      return { n: cfg.names[t] || r.name, face: PROMO ? promoWhoT(t).face : null, one: !!PROMO, logo: r.crest || r.logo, c1: nk.helm || r.ui || k.jersey || '#f2efe6', c2: nk.belt || k.sash || '#c9a55c' }; });   // USA wears its crest, the other countries their flag, Hooters and Twin Peaks their own marks
     track('start', (cfg.singles ? 'singles' : 'doubles') + '.' + cfg.comp + '.table');
     window.Table.open({ teams: tm, singles: !!cfg.singles, target: cfg.target, level: cfg.level, pace: PACE[cfg.pace] || 0.88, rebHold: rebHold(), sound: !!cfg.sound, names: shotNames(), score: score || null, intro: false, ads: window.FL_ADS ? adEvery() : 0, hooks: {
       menu: function () { window.Table.close(); startDemo(); },
-      mode: function (sc) { window.Table.close(); cfg.table = false; var nx = viewOK('vintage') ? 'vintage' : 'aerial'; setView(nx); cfg.view = view; save(); startMatch(sc || undefined); },   // on to the next mode, same match
+      mode: function (sc) { window.Table.close(); cfg.table = false; var nx = PROMO ? 'side' : viewOK('vintage') ? 'vintage' : 'aerial'; setView(nx); cfg.view = view; save(); startMatch(sc || undefined); },   // on to the next mode, same match
       music: window.FL_MUSIC ? function () { musToggle(); } : null, musicOn: function () { return !!spLive; } } });
     try { musicUI(); } catch (e) { /* no player on this page */ }   // if music is already on, it moves to the 80s list
   }
@@ -3695,11 +3699,9 @@ window.FLFeedback = (function () {
   /* ---------- limited-edition match-up page (only where window.FL_PROMO is set) ----------
      The page opens on the match-up art. Under it: who you play as, the mode, and two ways to play (with sponsor pop-outs, or without).
      Everything else is the game as it is: same engine, same teams and kits, same modes. Menu comes back here. */
-  var promoEl = null, promoMode = 'aerial', promoMe = 0, promoTeams = PROMO ? PROMO.people.map(function (w) { return w.team; }) : [];   // promoTeams[i]: the team person i is wearing
-  function promoWho(ri) { var i = promoTeams.indexOf(ri); return i >= 0 ? PROMO.people[i] : null; }
-  function promoName(ri, fallback) { var w = PROMO && promoWho(ri); return w ? w.name : fallback; }
-  function promoFaceSrc(ri) { var w = PROMO && promoWho(ri); return w ? w.face : null; }
-  var promoFaces = { get: function (ri) { var w = PROMO && promoWho(ri); return w ? w._img : null; } };
+  var promoEl = null, promoMode = PROMO ? PROMO.modes[0] : 'aerial', promoMe = 0, promoTeams = PROMO ? PROMO.people.map(function (w) { return w.team; }) : [];   // promoTeams[i]: the team person i is wearing
+  function promoWhoT(t) { return PROMO ? PROMO.people[t === 0 ? promoMe : 1 - promoMe] : null; }   // side 0 is you, side 1 the CPU
+  function promoTeamName(ti) { var n = ROSTER[ti].name; return n === 'USA' ? 'Team USA' : n; }
   function promoShow() {
     if (!promoEl) promoBuild();
     promoEl.hidden = false; document.body.classList.add('promo-open');
@@ -3718,12 +3720,12 @@ window.FLFeedback = (function () {
   function promoPaint() {                                          // the art, the names and the team marks follow who wears which uniform and who you play
     var P = PROMO, el = promoEl;
     P.people.forEach(function (w, i) {
-      var r = ROSTER[promoTeams[i]], nb = el.querySelector('.pm-name[data-i="' + i + '"]');
+      var r = ROSTER[promoTeams[i]], tc = r.ui === '#f2efe6' ? '#c9a55c' : r.ui, nb = el.querySelector('.pm-name[data-i="' + i + '"]');
       el.querySelector('.pm-half[data-i="' + i + '"]').src = w.art[promoTeams[i]];
-      nb.style.setProperty('--tc', r.ui); nb.setAttribute('aria-pressed', String(i === promoMe));
+      nb.style.setProperty('--tc', tc); nb.setAttribute('aria-pressed', String(i === promoMe));
       nb.querySelector('em').textContent = i === promoMe ? 'You' : 'CPU';
-      var sel = el.querySelector('.pm-team[data-i="' + i + '"]'); sel.value = String(promoTeams[i]); sel.style.setProperty('--tc', r.ui);
-      [].forEach.call(sel.options, function (o) { o.disabled = +o.value === promoTeams[1 - i]; });   // the two players never wear the same uniform
+      var sel = el.querySelector('.pm-team[data-i="' + i + '"]'); sel.value = String(promoTeams[i]); sel.style.setProperty('--tc', tc);
+      [].forEach.call(sel.options, function (o) { o.disabled = +o.value === promoTeams[1 - i] && +o.value !== P.shared; });   // never the same team, except the shared Fantasy League white
     });
   }
   function promoBuild() {
@@ -3758,7 +3760,7 @@ window.FLFeedback = (function () {
       '<div class="pm-ctl"><div class="pm-lbl" id="pmAsL">Play as</div>' +
       '<div class="pm-row" role="group" aria-labelledby="pmAsL">' + P.people.map(function (w, i) { return '<button type="button" class="pm-name" data-i="' + i + '"><span>' + esc(w.name) + '</span><em></em></button>'; }).join('') + '</div>' +
       '<div class="pm-row pm-teams">' + P.people.map(function (w, i) { return '<label class="pm-pick"><span class="pm-sr">' + esc(w.name) + ' team</span><select class="pm-team" data-i="' + i + '">' +
-        P.teams.map(function (t) { return '<option value="' + t + '">' + esc(ROSTER[t].name) + '</option>'; }).join('') + '</select></label>'; }).join('') + '</div>' +
+        P.teams.map(function (t) { return '<option value="' + t + '">' + esc(promoTeamName(t)) + '</option>'; }).join('') + '</select></label>'; }).join('') + '</div>' +
       '<div class="pm-row pm-modes" role="group" aria-label="Mode">' + P.modes.map(function (m) { return '<button type="button" data-m="' + m + '" aria-pressed="' + (m === promoMode) + '">' + NAMES[m] + '</button>'; }).join('') + '</div>' +
       '<div class="pm-row pm-go"><button type="button" id="pmAds">Play with Ads</button><button type="button" id="pmFree">Play Ad Free<small>$0.99 per mo.</small></button></div>' +
       '<p class="pm-note">Preview: ad-free play is open at no charge during this test. Nothing is billed.</p></div></div>';
