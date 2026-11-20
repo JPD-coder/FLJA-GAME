@@ -1299,7 +1299,7 @@ window.FLFeedback = (function () {
     return (mode === 'match' && solo === t ? 'YOU' : cfg.names[t].toUpperCase()) + ': ';
   }
   var STORE = 'fronton-doubles';
-  var cfg = { comp: 'league', pick: [0, 1], names: ['Squared Groupers', 'Peloteros'], seats: [1, 1, 0, 0], sv: 2, target: 15, level: 'normal', pace: 'standard', sound: true, singles: true, view: 'aerial', lang: 'en', who: 'men', whoT: ['men', 'men'] };
+  var cfg = { comp: 'league', pick: [0, 1], names: ['Squared Groupers', 'Peloteros'], seats: [1, 1, 0, 0], sv: 2, target: 9, level: 'normal', pace: 'standard', sound: true, singles: true, view: 'aerial', lang: 'en', who: 'men', whoT: ['men', 'men'] };
   try {
     var saved = JSON.parse(localStorage.getItem(STORE) || 'null');
     if (saved && saved.seats && saved.names) for (var k in cfg) if (saved[k] != null) cfg[k] = saved[k];
@@ -1308,7 +1308,7 @@ window.FLFeedback = (function () {
       cfg.seats[st * 2] = cfg.seats[st * 2] ? 1 : 0; cfg.seats[st * 2 + 1] = cfg.seats[st * 2 + 1] ? 1 : 0;
     }
     cfg.sv = 2;
-    cfg.target = 15; cfg.level = 'normal'; cfg.pace = 'standard'; cfg.singles = true;   // every visit opens on singles     // these always start here; they can be changed in Play Settings for the session
+    cfg.target = 9; cfg.level = 'normal'; cfg.pace = 'standard'; cfg.singles = true;   // every visit opens on singles     // these always start here; they can be changed in Play Settings for the session
     cfg.comp = 'league'; cfg.pick = [0, 1];                       // every visit opens on Squared Groupers vs Peloteros
     cfg.view = 'aerial'; cfg.table = false;                       // every visit opens on Professional
     cfg.lang = 'en';                                              // every version opens in English; Espa\u00f1ol is one tap away for the visit
@@ -1520,7 +1520,7 @@ window.FLFeedback = (function () {
     if (HVP && view !== 'aerial' && view !== 'side') { setView('aerial'); cfg.view = view; trail = []; }
     if (!cfg.whoT || cfg.whoT.length !== 2) cfg.whoT = ['men', 'men'];
     for (var wt = 0; wt < 2; wt++) if (cfg.singles && cfg.whoT[wt] === 'mixed') cfg.whoT[wt] = 'men';   // nobody to mix with in singles
-    if ([9, 15, 21].indexOf(cfg.target) < 0) cfg.target = 15;      // older saved setups used 5, 7 or 10
+    if ([9, 15, 21].indexOf(cfg.target) < 0) cfg.target = 9;      // older saved setups used 5, 7 or 10
     for (var t = 0; t < 2; t++) {
       var r = ROSTER[p[t]];
       TEAM[t] = { ui: r.ui, legs: r.kit.sash, flag: r.flag || null, flagImg: !!r.flagImg }; KIT[t] = r.kit; cfg.names[t] = r.name;
