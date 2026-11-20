@@ -18,6 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
+window.FL_BUILD = "20261120135002";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -1891,6 +1892,30 @@ window.FLFeedback = (function () {
     if (mode === 'match') return { idle: !!game && game.phase === 'over', live: !net.role && !!game && game.phase !== 'over', pause: function () { if (!paused) { paused = true; show(); } } };
     return { idle: document.body.classList.contains('pv-setup') };
   }); if ($('fbLink')) $('fbLink').addEventListener('click', function () { window.FLFeedback.open(); }); }
+  /* stay current: the hosted game carries its build stamp and compares it with version.json whenever the page opens or comes back to the front.
+     A newer build reloads the page, but never in the middle of a match: it waits for the menu or the final score. */
+  (function () {
+    var mine = window.FL_BUILD, latest = '', K = 'flja-upd';
+    if (!mine || !window.fetch) return;
+    function busy() {
+      if (window.FLFeedback && window.FLFeedback.isOpen()) return true;
+      if (window.Table && window.Table.isOpen()) return window.Table.mode() !== 'over';
+      return mode === 'match' && !!game && game.phase !== 'over';
+    }
+    function go() {
+      if (!latest || latest <= mine || busy()) return;
+      var last = null; try { last = JSON.parse(sessionStorage.getItem(K) || 'null'); } catch (e) { last = null; }
+      if (last && last.v === latest && Date.now() - last.t < 120000) return;      // just tried this one: the host may still be handing out the old page
+      try { sessionStorage.setItem(K, JSON.stringify({ v: latest, t: Date.now() })); } catch (e) { return; }   // without a note of the attempt it could reload in a loop
+      location.replace(location.pathname + '?v=' + latest + (document.body.classList.contains('pv-setup') && !document.body.classList.contains('locked') ? '#setup' : ''));
+    }
+    function check() {
+      fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { if (j && typeof j.v === 'string' && /^\d{14}$/.test(j.v)) { latest = j.v; go(); } }, function () { /* offline: try again next time */ });
+    }
+    check(); setInterval(go, 3000); setInterval(check, 600000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) check(); });
+    window.addEventListener('pageshow', function (e) { if (e.persisted) check(); });
+  })();
   function hvpClean(v) { return String(v || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
   if ($('hvpForm')) {
     $('hvpForm').addEventListener('submit', function (e) {
