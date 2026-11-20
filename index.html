@@ -2102,7 +2102,8 @@ if (typeof module !== 'undefined') module.exports = Core;
       var hs0 = humans();
       solo = hs0.length && (hs0[0] >> 1) === (hs0[hs0.length - 1] >> 1) ? hs0[0] >> 1 : -1;   // every human player on one team: that team is mine
       var p1 = seatsNow.indexOf(1);                                   // Player 1 serves the opening point, and the ball waits in his hand until he presses serve
-      game = Core.newGame({ seats: seatsNow.slice(), solo: soloBoth.slice(), level: cfg.level, target: cfg.target, rebHold: rebHold(), singles: !!cfg.singles, firstServe: p1 >= 0 ? p1 >> 1 : 0 });
+      game = Core.newGame({ seats: seatsNow.slice(), solo: soloBoth.slice(), level: cfg.level, target: cfg.target, rebHold: rebHold(), singles: !!cfg.singles, firstServe: p1 >= 0 ? p1 >> 1 : 0,
+        latK: cfg.singles ? 0.82 * 1.18 : 0, latZ: cfg.singles ? 0.75 * 1.18 : 0 });   // Professional singles: alone on the court, a person's player runs 18% faster, up the court and across it (these only apply in Professional)
     }
     if (score) game.score = score;
     drag = null; cv.style.touchAction = 'none'; cv.style.cursor = '';
