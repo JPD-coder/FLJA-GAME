@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#07070a">
+<title>Table Jai Alai</title>
+<style>html,body{margin:0;height:100%;background:#07070a;overflow:hidden;overscroll-behavior:none}canvas{display:block;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<script>
+window.FL_LOOK2 = 1;
+/* ---------- Jai alai rules + physics (no DOM) ---------- */
+var Core = (function () {
+  'use strict';
+  var C = {
+    W: 2000, H: 895,
+    BACK: 132, FRONT: 1878,          // back wall (rebote) and front wall (frontis)
+    FLOORY: 758, FEET: 774,           // ball bounce height, player feet
+    TOP: 384, CHAPA: 726, CEIL: 92,   // legal front-wall band, ceiling
+    R: 12, GRAV: 1000, V: 1750, VSERVE: 1500, VHARD: 2600,   // VHARD: a power throw that carries to the back wall
+    E_FRONT: 0.8, E_BACK: 0.55, E_FLOOR: 0.5, F_FLOOR: 0.93,
+    // x position of court lines 1..14 on the side wall (line 1 is nearest the front wall)
+    LINES: [0, 1776, 1652, 1534, 1424, 1298, 1185, 1055, 936, 811, 679, 541, 434, 311, 189],
+    SPEED: 320, AMIN: -6, AMAX: 38, SMIN: 16, SMAX: 34,
+    PMIN: 172, PMAX: 1812, REACH_H: 90, REACH_C: 64,
+    PASS_W: 86, PASS_H: 190, JUMP_UP: 80, LEAP_UP: 55,
+    LAT_V: 0.85, LAT_R: 0.2           // across the court (0 = side wall, 1 = open side): how fast a player shuffles sideways, and how far to either side he can take a ball           // a person's catch zone: this far either side, and this high above the floor
+  };
+  /* one standard court for every view: evenly spaced lines, the low red line, and the wall good all the way up to its gold line.
+     Only the height of that gold line differs, because it sits at a different height in each picture. */
+  function setCourt(modern) {
+    for (var ln = 1; ln <= 14; ln++) C.LINES[ln] = Math.round(1820 - (ln - 1) * 124.77);
+    C.TOP = modern ? 300 : 362; C.CHAPA = 741;
+    C.ZONE_NEAR = C.LINES[4];   // serve must land between line 4 ...
+    C.ZONE_FAR = C.LINES[7];    // ... and line 7
+  }
+  setCourt(typeof window !== 'undefined' && !!window.FL_LOOK2);
+
+  var LV = {
+    easy:   { noise: 6.0, pick: 0,    react: 0.60, err: 70, speed: 0.85 },
+    normal: { noise: 4.2, pick: 0.6,  react: 0.42, err: 48, speed: 0.93 },
+    hard:   { noise: 2.6, pick: 0.25, react: 0.24, err: 26, speed: 1.0 }
+  };
+  var FAULTS = { ceiling: 1, over: 1, under: 1, short: 1, serveOut: 1, backOver: 1, held: 1 };
+  C.REBOTE_HOLD = 2;   // seconds a person may hold a ball taken off the back wall
+
+  function gauss() { return (Math.random() + Math.random() + Math.random() + Math.random() - 2) * 0.87; }
+  function tri(x) { x = x - Math.floor(x); return x < 0.5 ? x * 2 : 2 - 2 * x; }
+
+  /* one physics step for a ball in play; returns an event name or null */
+  function advance(b, f, h) {
+    b.vy += C.GRAV * h; b.x += b.vx * h; b.y += b.vy * h;
+    if (b.y < C.CEIL) return 'ceiling';
+    // dos paredes and costado take the side wall on the way to the front wall; the cortada takes it coming back
+    if ((f.shot === 3 || f.shot === 4) && !f.side && !f.hitFront && b.vx > 0 && b.x >= f.sideX) { f.side = true; b.vx *= 0.94; b.vy -= f.shot === 4 ? 90 : 130; return 'side'; }   // the side wall first, then the front wall
+    if (f.shot === 2 && f.hitFront && !f.side && b.vx < 0 && b.x <= f.sideX) { f.side = true; b.vx *= 0.88; b.vy += 90; return 'side'; }      // cortada: off the front wall, then it tails hard into the side wall
+    if (b.x >= C.FRONT - C.R && b.vx > 0) {
+      b.x = C.FRONT - C.R;
+      if (!f.hitFront) {
+        if (b.y < C.TOP) return 'over';
+        if (b.y > C.CHAPA) return 'under';
+        f.hitFront = true;
+        if (f.shot === 2) { b.vx = -b.vx * 0.58; b.vy = Math.max(b.vy, 0) * 0.5 + 190; }       // cortada: low and hard off the middle of the front wall, still carrying
+        else if (f.shot === 3) { b.vx = -b.vx * 0.6; b.vy = b.vy * 0.6 + 120; }                 // dos paredes: comes off dead and drops short, angling away across the court
+        else if (f.shot === 4) { b.vx = -b.vx * 0.9; b.vy = b.vy * 0.92 - 180; }                // costado: kicks off the wall and carries deep
+        else { b.vx = -b.vx * C.E_FRONT; b.vy *= 0.92; }
+        return 'front';
+      }
+      b.vx = -b.vx * C.E_FRONT; return 'wall';
+    }
+    if (b.x <= C.BACK + C.R && b.vx < 0) {
+      b.x = C.BACK + C.R;
+      if (b.y < C.TOP) return 'backOver';                      // above the playing area on the back wall: out, same as the front wall
+      b.vx = -b.vx * C.E_BACK; f.back = true;
+      if (f.cc) { f.cc = false; b.vy *= 0.6; b.vx *= 0.8; return 'chicchac'; }   // floor then back wall in one beat: it comes off dead and fast
+      return 'back';
+    }
+    if (b.y >= C.FLOORY && b.vy > 0) {
+      b.y = C.FLOORY;
+      if (!f.hitFront) return 'short';
+      f.bounces++;
+      if (f.serve && f.bounces === 1 && (b.x < C.ZONE_FAR || b.x > C.ZONE_NEAR)) return 'serveOut';
+      if (f.bounces >= 2) return 'double';
+      if (b.vx < 0 && !f.back) {
+        if (b.x <= C.BACK + C.R + 30) return 'chula';              // into the seam of floor and back wall: it rolls out, no return possible
+        if (b.x <= C.BACK + C.R + 170) f.cc = true;                // floor just before the back wall: chic-chac
+      }
+      if (f.shot === 4) { b.vy = -b.vy * 0.36; b.vx *= 0.86; }                                  // a costado skids low off the floor
+      else if (f.shot === 3) { b.vy = -b.vy * 0.42; b.vx *= 0.7; }                              // a dos paredes sits down and dies
+      else { b.vy = -b.vy * C.E_FLOOR; b.vx *= C.F_FLOOR; }
+      return 'bounce';
+    }
+    return null;
+  }
+
+  /* dead ball after a point: just let it bounce around */
+  function loose(b, h) {
+    b.vy += C.GRAV * h; b.x += b.vx * h; b.y += b.vy * h;
+    if (b.x > C.FRONT - C.R) { b.x = C.FRONT - C.R; b.vx = -Math.abs(b.vx) * 0.6; }
+    if (b.x < C.BACK + C.R) { b.x = C.BACK + C.R; b.vx = Math.abs(b.vx) * 0.6; }
+    if (b.y > C.FLOORY) { b.y = C.FLOORY; b.vy = -Math.abs(b.vy) * 0.55; b.vx *= 0.8; if (Math.abs(b.vy) < 60) b.vy = 0; }
+    if (b.y < C.CEIL) { b.y = C.CEIL; b.vy = Math.abs(b.vy) * 0.4; }
+  }
+
+  function predict(b0, f0, untilBounce) {
+    var b = { x: b0.x, y: b0.y, vx: b0.vx, vy: b0.vy };
+    var f = { hitFront: f0.hitFront, bounces: f0.bounces, serve: f0.serve, shot: f0.shot | 0, side: !!f0.side, sideX: f0.sideX, back: !!f0.back, cc: !!f0.cc };
+    var h = 1 / 120, t = 0, s = [], res = { s: s, end: null, endT: 0, frontY: null, bounceX: null, fault: false };
+    while (t < 6) {
+      var ev = advance(b, f, h); t += h;
+      if (ev === 'front' || ev === 'over' || ev === 'under') res.frontY = b.y;
+      if ((ev === 'bounce' || ev === 'double' || ev === 'serveOut' || ev === 'chula') && res.bounceX == null) res.bounceX = b.x;
+      s.push({ t: t, x: b.x, y: b.y, n: f.bounces, c: f.hitFront && (!f.serve || f.bounces >= 1) });
+      if (ev && (FAULTS[ev] || ev === 'double' || ev === 'chula')) { res.end = ev; res.endT = t; break; }
+      if (untilBounce && ev === 'bounce') break;
+    }
+    res.fault = !!FAULTS[res.end];
+    return res;
+  }
+
+  function hand(p) { return { x: p.x + 34, y: C.FEET - 128 }; }
+  /* shots: 0 pelotazo, 1 rebota (carries to the back wall), 2 cortada (front wall, then tails into the side wall by line 3),
+     3 dos paredes (side wall by line 3, then the front wall; dies short at a sharp angle), 4 costado (a backhand off the side wall up by line 2; comes back deep and low) */
+  function shotOf(serve, s) { return serve ? 0 : (s === true ? 1 : (s | 0)); }
+  function launch(p, deg, serve, shot) {
+    shot = shotOf(serve, shot);
+    var a = deg * Math.PI / 180, v = serve ? C.VSERVE : [C.V, C.VHARD, C.V * 1.04, C.V * 1.1, C.V * 1.06][shot] || C.V, hp = hand(p);
+    return { x: hp.x, y: hp.y, vx: v * Math.cos(a), vy: -v * Math.sin(a) };
+  }
+  function flagsFor(p, serve, shot) {
+    shot = shotOf(serve, shot);
+    var hx = hand(p).x, sx = shot === 2 ? C.LINES[3] : Math.min(C.FRONT - 40, Math.max(hx + 40, shot === 4 ? C.LINES[2] : C.LINES[3]));   // the two-wall shot clips the side wall on the way up; the cortada tails into it coming back, by line 3
+    return { hitFront: false, bounces: 0, serve: !!serve, shot: shot, side: false, sideX: sx, x0: hx };
+  }
+  function sweep(t, serve) {
+    if (serve) return C.SMIN + (C.SMAX - C.SMIN) * tri(t * 0.42);
+    return C.AMIN + (C.AMAX - C.AMIN) * tri(t * 0.8 + 0.2308);
+  }
+
+  function reachOf(p) { return p.human ? C.REACH_H : C.REACH_C; }
+  function speedOf(g, p) { return C.SPEED * (p.human ? 1.12 : LV[g.cfg.level].speed) * (p.single ? 1.35 : 1); }   // alone on court, a player covers more ground
+  function allow(y, reach) {
+    var dy = Math.abs(y - (C.FEET - 95));
+    return dy < reach ? Math.sqrt(reach * reach - dy * dy) * 0.75 : -1;
+  }
+  /* best time margin (s) a player has to get under the ball; negative = can't reach */
+  function bestMargin(pr, q, tNow, speed, reach) {
+    var best = -9, s = pr.s;
+    for (var i = 0; i < s.length; i++) {
+      var k = s[i]; if (!k.c || k.t <= tNow) continue;
+      var al = allow(k.y, reach); if (al < 0) continue;
+      var m = (k.t - tNow) - Math.max(0, Math.abs(k.x - q.x) - al) / speed;
+      if (m > best) best = m;
+    }
+    return best;
+  }
+
+  function chooseAngle(g, p, serve) {
+    var lv = LV[g.cfg.level], min = serve ? C.SMIN : C.AMIN, max = serve ? C.SMAX : C.AMAX, opts = [];
+    var opp = g.players.filter(function (q) { return q.team !== p.team && !q.out; });
+    var rnd = Math.random(), hard = !serve && rnd < 0.3;           // about three throws in ten are power throws off the back wall
+    var shot = serve ? 0 : hard ? 1 : rnd < 0.38 ? 2 : rnd < 0.45 ? 3 : rnd < 0.53 ? 4 : 0;   // and now and then a cortada, dos paredes or costado
+    for (var a = min; a <= max; a += 1) {
+      var pr = predict(launch(p, a, serve, shot), flagsFor(p, serve, shot));
+      var m = -9;
+      if (!pr.fault) for (var j = 0; j < opp.length; j++) m = Math.max(m, bestMargin(pr, opp[j], 0, C.SPEED, C.REACH_C));
+      var rb = false;                                              // does it come off the back wall on the fly, above head height?
+      if (hard && !pr.fault) for (var k = 0; k < pr.s.length; k++) if (pr.s[k].x <= C.BACK + C.R + 1) { rb = pr.s[k].n === 0 && pr.s[k].y < C.FEET - 175; break; }
+      opts.push({ a: a, ok: !pr.fault, m: m, rb: rb });
+    }
+    p.ai.hard = shot;
+    var ok = function (i) { return opts[i] && opts[i].ok; };
+    var val = opts.filter(function (o, i) { return ok(i) && ok(i - 1) && ok(i + 1) && ok(i - 2) && ok(i + 2); });
+    if (!val.length) val = opts.filter(function (o, i) { return ok(i) && ok(i - 1) && ok(i + 1); });
+    if (!val.length) val = opts.filter(function (o) { return o.ok; });
+    if (!val.length) { p.ai.hard = 0; return 22; }
+    if (hard) { var off = val.filter(function (o) { return o.rb; }); if (off.length) val = off; }
+    var pick;
+    if (!lv.pick) pick = val[Math.floor(Math.random() * val.length)];
+    else {
+      val.sort(function (x, y) { return x.m - y.m; });
+      pick = val[Math.floor(Math.random() * Math.max(1, Math.ceil(val.length * lv.pick)))];
+    }
+    return pick.a + gauss() * lv.noise;
+  }
+
+  function newGame(cfg) {
+    var g = {
+      cfg: cfg, score: [0, 0], players: [], ball: { x: 0, y: 0, vx: 0, vy: 0, z: 0.5, vz: 0 }, lat: false,
+      flags: { hitFront: false, bounces: 0, serve: true },
+      phase: 'serve', holder: -1, lastTeam: 0, server: 0, t: 0, flightT: 0, pred: null,
+      msg: null, msgT: 0, events: [], winner: -1, rally: 0, pointWinner: 0, act: [-1, -1], hc: [0, 0], hard: false
+    };
+    var solo = cfg.solo || [cfg.soloTeam === 0, cfg.soloTeam === 1]; cfg.solo = solo;   // solo[t]: one person runs both players of team t
+    for (var i = 0; i < 4; i++) {
+      g.players.push({ i: i, team: i >> 1, role: i % 2 ? 'B' : 'F', human: !!cfg.seats[i] || solo[i >> 1], x: 0, z: (i >> 1) ? 0.66 : 0.36, zh: (i >> 1) ? 0.66 : 0.36, face: 1, vx: 0,
+        holdT: 0, cool: 0, anim: 0, run: 0, aim: 20, jump: 0, wall: false, ai: {},
+        out: !!cfg.singles && i % 2 === 1, single: !!cfg.singles });   // singles: the back-court players sit out
+    }
+    setServe(g, cfg.firstServe || 0);
+    return g;
+  }
+
+  function setServe(g, team) {
+    var P = g.players, o = 1 - team;
+    g.phase = 'serve'; g.server = team; g.lastTeam = team; g.rally = 0; g.pred = null;
+    P[team * 2].x = C.LINES[10] - 14; P[team * 2 + 1].x = C.LINES[13];
+    P[o * 2].x = g.cfg.singles ? C.LINES[7] : (C.LINES[5] + C.LINES[6]) / 2; P[o * 2 + 1].x = C.LINES[12] - 20;
+    P.forEach(function (p) { p.holdT = 0; p.cool = 0; p.vx = 0; p.anim = 0; p.ai = {}; p.z = p.zh; });
+    g.holder = team * 2;
+    if (g.cfg.solo[0]) g.act[0] = 0;
+    if (g.cfg.solo[1]) g.act[1] = 2;
+    g.flags = { hitFront: false, bounces: 0, serve: true }; g.reb = false;
+    var hp = hand(P[team * 2]); g.ball.x = hp.x; g.ball.y = hp.y; g.ball.vx = g.ball.vy = 0;
+    plan(g, P[team * 2], true);
+  }
+
+  function plan(g, p, serve) {
+    if (p.human) return;
+    p.ai.angle = chooseAngle(g, p, serve);
+    p.ai.hold = serve ? 1.15 : 0.24 + Math.random() * 0.2;
+  }
+
+  function home(p) { return p.single ? 820 : p.role === 'F' ? 1300 : 375; }   // back-court players wait deep, near lines 12 to 13
+  function inZone(p, x) { return p.role === 'F' ? x >= 1000 : x <= 1120; }
+
+  function intercept(g, p, zoneOnly) {
+    var s = g.pred.s, sp = speedOf(g, p), reach = reachOf(p), tNow = g.flightT, best = null, bestShort = 1e9;
+    for (var i = 0; i < s.length; i++) {
+      var k = s[i]; if (!k.c || k.t <= tNow) continue;
+      if (zoneOnly && !inZone(p, k.x)) continue;
+      var al = allow(k.y, reach); if (al < 0) continue;
+      var short = Math.max(0, Math.abs(k.x - p.x) - al) - sp * (k.t - tNow);
+      if (short <= 0) return { x: k.x, t: k.t, ok: true, short: 0 };
+      if (short < bestShort) { bestShort = short; best = { x: k.x, t: k.t, ok: false, short: short }; }
+    }
+    return best;
+  }
+
+  /* is this player being steered by a person right now? */
+  function ctl(g, p) { return p.human && (!g.cfg.solo[p.team] || g.act[p.team] === p.i); }
+  function coverDir(g, p) {
+    if (g.phase !== 'rally') return 0;
+    var dx = home(p) - p.x; return Math.abs(dx) < 9 ? 0 : (dx > 0 ? 1 : -1);
+  }
+  function chooseActive(g, team) {
+    var best = g.act[team], bs = 1e9;
+    for (var i = team * 2; i < team * 2 + 2; i++) {
+      if (g.players[i].out) continue;
+      var it = intercept(g, g.players[i], false), sc = !it ? 1e8 : (it.ok ? it.t : 100 + it.short);
+      if (sc < bs - 0.0001) { bs = sc; best = i; }
+    }
+    return best;
+  }
+
+  function cpuDir(g, p) {
+    if (g.phase !== 'rally') return 0;
+    var target = home(p);
+    if (g.holder < 0 && p.team !== g.lastTeam && g.pred && g.flightT >= (p.ai.react || 0)) {
+      var mate = g.players[p.i ^ 1], mine = intercept(g, p, mate.human && !mate.out);
+      if (mine) {
+        var go = true;
+        if (!mate.human && !mate.out) {
+          var theirs = intercept(g, mate, false);
+          if (theirs && theirs.ok && (!mine.ok || theirs.t < mine.t - 0.001 || (theirs.t <= mine.t + 0.001 && mate.i < p.i))) go = false;
+        }
+        if (go) target = mine.x + (p.ai.err || 0);
+      }
+    }
+    var dx = target - p.x;
+    return Math.abs(dx) < 9 ? 0 : (dx > 0 ? 1 : -1);
+  }
+
+  /* Across the court. A throw drifts sideways at a steady rate, so it comes back off the front wall at the angle it went in;
+     a cortada or costado runs to the side wall first and comes off it across the court. zT is where it first lands.
+     A person steers it by holding left or right as they throw; the CPU places it away from the receivers. */
+  function latPlan(g, p, f, pr, lat) {
+    var s = pr.s, i, tF = 0, mx = -1e9, tB = pr.endT || (s.length ? s[s.length - 1].t : 1), tS = 0.3, z0 = p.z, zT, shot = f.shot | 0;
+    for (i = 0; i < s.length; i++) if (s[i].x > mx) { mx = s[i].x; tF = s[i].t; }
+    for (i = 0; i < s.length; i++) if (s[i].n >= 1) { tB = s[i].t; break; }
+    if (p.human) zT = shot === 2 ? (lat < 0 ? 0.1 : lat > 0 ? 0.34 : 0.2) : shot === 4 ? (lat < 0 ? 0.14 : lat > 0 ? 0.44 : 0.28) : shot >= 2 ? (lat < 0 ? 0.42 : lat > 0 ? 0.88 : 0.66) : (lat < 0 ? 0.2 : lat > 0 ? 0.8 : 0.5);
+    else if (shot === 2) zT = 0.08 + 0.24 * Math.random();                       // the cortada dies along the side wall
+    else if (shot === 4) zT = 0.16 + 0.24 * Math.random();                       // the costado runs back deep down the side-wall half
+    else if (shot >= 2) zT = 0.66 + 0.22 * Math.random();                       // dos paredes angles away across to the open side
+    else {
+      var rz = 0, rn = 0; g.players.forEach(function (q) { if (q.team !== p.team && !q.out) { rz += q.z; rn++; } }); rz = rn ? rz / rn : 0.5;
+      var off = ({ easy: 0.1, normal: 0.24, hard: 0.38 })[g.cfg.level] || 0.24;
+      zT = rz + (rz > 0.5 ? -1 : 1) * off * (0.4 + Math.random());
+      if (f.serve) zT = 0.35 + 0.3 * Math.random();
+    }
+    zT = Math.max(0.12, Math.min(0.88, zT));
+    if (shot === 2) {                                                            // the cortada meets the wall after the front wall, not before
+      for (i = 0; i < s.length; i++) if (s[i].t > tF && s[i].x <= f.sideX) { tS = s[i].t; break; }
+      tS = Math.max(0.12, tS);
+      return { vz: -z0 / tS, vzOut: 0.12, zT: zT, zF: Math.max(0, z0 * (1 - Math.max(0, tF) / tS)) };
+    }
+    if (shot >= 2) {
+      for (i = 0; i < s.length; i++) if (s[i].x >= f.sideX) { tS = s[i].t; break; }
+      return { vz: -z0 / Math.max(0.05, tS), vzOut: zT / Math.max(0.15, tB - tS), zT: zT, zF: zT * Math.max(0, tF - tS) / Math.max(0.15, tB - tS) };
+    }
+    return { vz: (zT - z0) / Math.max(0.2, tB), vzOut: 0, zT: zT, zF: z0 + (zT - z0) * tF / Math.max(0.2, tB) };
+  }
+
+  function doThrow(g, p, deg, hard, lat) {
+    deg = Math.max(-12, Math.min(60, deg));
+    var serve = g.flags.serve, shot = shotOf(serve, hard), b = launch(p, deg, serve, shot), lv = LV[g.cfg.level];
+    g.hard = shot; p.shot = shot; g.reb = false;
+    g.ball.x = b.x; g.ball.y = b.y; g.ball.vx = b.vx; g.ball.vy = b.vy;
+    g.lastTeam = p.team; g.flags = flagsFor(p, serve, shot);
+    g.holder = -1; g.flightT = 0; g.phase = 'rally'; g.rally++;
+    g.pred = predict(g.ball, g.flags);
+    var lp = latPlan(g, p, g.flags, g.pred, lat || 0); g.ball.z = p.z; g.ball.vz = lp.vz; g.flags.vzOut = lp.vzOut; g.flags.zT = lp.zT;
+    if (g.cfg.solo[1 - p.team]) g.act[1 - p.team] = chooseActive(g, 1 - p.team);
+    p.cool = 0.4; p.anim = 0.28; p.aim = deg;
+    g.players.forEach(function (q) {
+      if (q.team !== p.team && !q.human) q.ai = { react: lv.react * (0.7 + Math.random() * 0.6), err: gauss() * lv.err };
+    });
+    g.events.push('throw');
+  }
+
+  function point(g, ev) {
+    var w = FAULTS[ev] ? 1 - g.lastTeam : g.lastTeam;
+    g.score[w]++; g.pointWinner = w; g.msg = { ev: ev, winner: w }; g.msgT = 2.1; g.phase = 'point';
+    if (g.score[w] >= g.cfg.target) g.winner = w;
+    g.events.push(g.winner >= 0 ? 'win' : 'point');
+  }
+
+  /* inputs[i] = { dir: -1|0|1, throw: bool } for human seats */
+  function step(g, dt, inputs) {
+    var P = g.players, i, p;
+    g.t += dt;
+    for (i = 0; i < 4; i++) {
+      p = P[i]; if (p.out) continue;
+      var dir = ctl(g, p) ? ((inputs[i] && inputs[i].dir) || 0) : (p.human ? coverDir(g, p) : cpuDir(g, p));
+      var max = speedOf(g, p);
+      if (g.holder === i) max *= g.flags.serve ? 0 : 0.35;
+      if (p.anim > 0) max = 0;                 // follow-through after a throw
+      if (g.phase === 'over') dir = 0;
+      if (g.lat && p.human) max *= 0.82;                          // seen from above the court is close: a person's player runs a touch slower
+      var want = dir * max, acc = (g.lat && p.human ? 1900 : 4200) * dt;   // and builds up to it, so a nudge is a step, not a dash
+      p.vx += Math.max(-acc, Math.min(acc, want - p.vx));
+      var x0 = p.x;
+      p.x += p.vx * dt;
+      // doubles: the front courter works from the front wall back to line 10, the back courter from line 7 to the back wall.
+      // a player who starts a point outside his half (the server, back at line 10) may walk back into it, never further out.
+      var lo = C.PMIN, hi = C.PMAX;
+      if (!g.cfg.singles) { if (i % 2 === 0) lo = C.LINES[10]; else hi = C.LINES[7]; }
+      lo = Math.max(C.PMIN, Math.min(lo, x0)); hi = Math.min(C.PMAX, Math.max(hi, x0));
+      if (p.x < lo) { p.x = lo; p.vx = 0; }
+      if (p.x > hi) { p.x = hi; p.vx = 0; }
+      p.run += Math.abs(p.vx) * dt;
+      // sideways: the player a person is steering goes where they point him (when the view calls for it); everyone else shades across to meet the ball
+      var lz = 0;
+      if (g.lat && ctl(g, p)) lz = (inputs[i] && inputs[i].lat) || 0;
+      else {
+        var zt = p.zh;
+        if (g.phase === 'rally' && g.holder < 0 && p.team !== g.lastTeam && g.flightT >= ((p.ai && p.ai.react) || 0)) zt = g.flags.hitFront ? g.ball.z + g.ball.vz * 0.2 : (g.flags.zT != null ? g.flags.zT : p.zh);
+        lz = Math.abs(zt - p.z) < 0.02 ? 0 : (zt > p.z ? 1 : -1);
+      }
+      if (g.holder === i || p.anim > 0 || g.phase === 'over') lz = 0;
+      p.lz = lz;
+      p.z = Math.max(0.08, Math.min(0.92, p.z + lz * (p.human ? C.LAT_V * (g.lat ? 0.75 : 1) : ({ easy: 0.5, normal: 0.68, hard: 0.9 })[g.cfg.level] || 0.68) * dt));
+      if (p.jump > 0 && p.wall) {                                  // up the side wall: the foot is on it as he rises, then he swings back off it
+        var jw = 1 - p.jump / 0.8;
+        p.z = jw < 0.34 ? 0.02 : 0.02 + (p.zh - 0.02) * Math.min(1, (jw - 0.34) / 0.5);
+      }
+      p.cool -= dt; p.anim -= dt; if (p.jump > 0) { p.jump -= dt; if (p.jump <= 0) p.wall = false; }
+      if (g.holder === i || p.anim > 0) p.face = 1;
+      else if (Math.abs(g.ball.x - p.x) > 30) p.face = g.ball.x > p.x ? 1 : -1;
+    }
+
+    if (g.phase === 'over') { loose(g.ball, dt); return; }
+    if (g.phase === 'point') {
+      loose(g.ball, dt);
+      g.msgT -= dt;
+      if (g.msgT <= 0) { if (g.winner >= 0) g.phase = 'over'; else setServe(g, g.pointWinner); }
+      return;
+    }
+
+    if (g.holder >= 0) {
+      p = P[g.holder]; p.holdT += dt;
+      var serve = g.flags.serve, hp = hand(p);
+      g.ball.x = hp.x; g.ball.y = hp.y; g.ball.z = p.z; g.ball.vz = 0;
+      if (p.human) {
+        p.aim = sweep(p.holdT, serve);
+        var inp = inputs[p.i];
+        if (g.reb && !(inp && inp.throw) && p.holdT > (g.cfg.rebHold || C.REBOTE_HOLD)) {   // held a rebote too long: the ball drops and the other team scores
+          g.holder = -1; g.reb = false; g.lastTeam = p.team; g.ball.vx = 60; g.ball.vy = 0; point(g, 'held'); return;
+        }
+        if ((inp && inp.throw) || (!serve && p.holdT > 2.4)) doThrow(g, p, inp && inp.throw && typeof inp.angle === 'number' && isFinite(inp.angle) ? inp.angle : p.aim, inp && inp.throw ? inp.hard : 0, inp ? inp.lat : 0);   // a person's serve waits for them
+      } else {
+        p.aim += (p.ai.angle - p.aim) * Math.min(1, dt * 10);
+        if (p.holdT >= p.ai.hold) doThrow(g, p, p.ai.angle, p.ai.hard);
+      }
+      return;
+    }
+
+    var n = Math.max(1, Math.ceil(dt * 240)), h = dt / n;
+    for (var k = 0; k < n; k++) {
+      var ev = advance(g.ball, g.flags, h);
+      g.flightT += h;
+      g.ball.z += g.ball.vz * h;
+      if (ev === 'side') { g.ball.z = 0; g.ball.vz = g.flags.vzOut || 0.3; }
+      if (g.ball.z < 0) { g.ball.z = -g.ball.z; g.ball.vz = Math.abs(g.ball.vz); }
+      if (g.ball.z > 0.96) { g.ball.z = 0.96; g.ball.vz = 0; }
+      if (ev) {
+        if (FAULTS[ev] || ev === 'double' || ev === 'chula') { if (ev === 'chula') { g.ball.vy = 0; g.ball.vx *= 0.25; } point(g, ev); return; }
+        g.events.push(ev);
+      }
+      // a serve must bounce before the other side may take it. A person's player may also take a good serve on the fly as it comes past him off the front wall
+      var fly = g.flags.serve && g.flags.bounces < 1, flyOk = fly && g.pred && !g.pred.fault;
+      if (g.flags.hitFront && (!fly || flyOk)) {
+        var best = null, bd = 1e9, bestUp = false;
+        for (i = 0; i < 4; i++) {
+          p = P[i]; if (p.out || p.team === g.lastTeam || p.cool > 0 || (fly && !p.human)) continue;
+          if (g.lat && Math.abs(g.ball.z - p.z) > C.LAT_R) continue;   // seen from above, he has to be across to it as well
+          var hy = C.FEET - 95, rr = reachOf(p), top = hy - rr;      // the highest his cesta goes standing
+          var dx = g.ball.x - p.x, dy = g.ball.y - hy, d = Math.sqrt(dx * dx + dy * dy);
+          // above a standing stretch he can still go up for it, but only as far as a leap honestly reaches;
+          // anything higher passes over his head and belongs to whoever is behind him
+          var jmp = Math.abs(dx) < C.PASS_W * 0.8 && g.ball.y < top && g.ball.y >= top - C.JUMP_UP;
+          // at body height or lower it never slips through a person's player, wherever he stands in its path
+          var passing = p.human && Math.abs(dx) < C.PASS_W && g.ball.y >= top && g.ball.y < C.FEET + 14;
+          if ((jmp || passing) && d >= rr) d = rr - 1 + Math.abs(dx) * 0.001;
+          if (d < rr && d < bd) { bd = d; best = p; bestUp = jmp && g.ball.y < top - C.LEAP_UP; }   // only the highest of them is worth leaving the floor for
+        }
+        if (best) {
+          g.holder = best.i; best.holdT = 0; best.aim = 18; g.flags.serve = false; g.flags.shot = 0;
+          if (g.cfg.solo[best.team]) g.act[best.team] = best.i;
+          g.events.push('catch');
+          g.reb = !!g.flags.back;                                  // off the back wall: it must go back in one motion
+          if (g.flags.back) g.events.push(g.flags.bounces === 0 ? 'rabo' : 'rebote');   // taken off the back wall: on the fly it is a rabo
+          // he leaves the floor only for a ball he had to go up for; from line 10 up the court that is a push off the side wall
+          var wallZone = bestUp && best.x >= C.LINES[10] && best.x <= C.LINES[2];
+          if (bestUp && !(best.jump > 0)) { best.jump = 0.8; best.wall = wallZone; g.events.push(wallZone ? 'wallJump' : 'jump'); }
+          plan(g, best, false); return;
+        }
+      }
+    }
+  }
+
+  return { latPlan: latPlan, ctl: ctl, C: C, LV: LV, FAULTS: FAULTS, newGame: newGame, step: step, predict: predict, launch: launch, setCourt: setCourt, flagsFor: flagsFor, hand: hand, sweep: sweep };
+})();
+if (typeof module !== 'undefined') module.exports = Core;
+
+</script>
+<script>
+/* ---------- Fantasy League Jai Alai: the table game (test page) ----------
+   The phone lies flat. The court fills the screen seen from straight above: front wall on the right, the side wall along the top,
+   the couches and the stands along the bottom. One person against the CPU. Touch the court and your player runs to your finger;
+   the small buttons on the left throw. Everything is drawn on one canvas so the whole table can turn with the phone. */
+(function () {
+  'use strict';
+  var C = Core.C, cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  var TEAMS = [{ n: 'Squared Groupers', logo: 'team-a.png', c1: '#c6ee32', c2: '#fcfc04' }, { n: 'Peloteros', logo: 'team-b.png', c1: '#f52f9b', c2: '#3cb5e4' }];
+  var SHOTS = [{ i: 0, n: ['PELO', 'TAZO'] }, { i: 1, n: ['REBOTE'] }, { i: 3, n: ['DOS', 'PAREDES'] }, { i: 2, n: ['CORTADA'] }, { i: 4, n: ['COSTADO'] }];
+  var SHOTCOL = ['#f52f9b', '#3cb5e4', '#fcfc04', '#c6ee32', '#8f0bcd'];
+  var WALL = ['team-a.png', 'team-b.png', 'logo-skunk-apes.png', 'mlj-shield.png', 'logo-don-juans.png', 'logo-booties.png', 'logo-seamen.png'];
+  var CALLS = { over: 'OVER THE LINE', under: 'UNDER THE RED LINE', short: 'SHORT', serveOut: 'SERVE OUT', double: 'TWO BOUNCES', chula: 'CHULA!', ceiling: 'CEILING', backOver: 'OVER THE BACK WALL', held: 'HELD TOO LONG' };
+  var GOLD = '#c9a55c', TARGET = 7;
+  var img = {}, bg = null;
+  WALL.concat(['brand.png']).forEach(function (s) { var i = new Image(); i.onload = function () { bg = null; }; i.src = s; img[s] = i; });
+  function ok(i) { return i && i.complete && i.naturalWidth > 0; }
+
+  /* ---- layout: logical W x H is always landscape; a phone held upright gets the table turned a quarter turn ---- */
+  var vw = 0, vh = 0, dpr = 1, rot = false, W = 0, H = 0, L = {}, fans = [];
+  function layout() {
+    vw = window.innerWidth; vh = window.innerHeight; dpr = Math.min(window.devicePixelRatio || 1, 2.5); rot = vh > vw;
+    W = rot ? vh : vw; H = rot ? vw : vh;
+    cv.width = Math.round(vw * dpr); cv.height = Math.round(vh * dpr); cv.style.width = vw + 'px'; cv.style.height = vh + 'px';
+    var bw = Math.max(64, Math.min(112, W * 0.105)), backW = W * 0.04, frontW = W * 0.028;
+    L = { bw: bw, wallY: 0, wallH: H * 0.125, cx: bw + backW, cy: H * 0.125, cw: W - bw - backW - frontW, ch: H * 0.475, backW: backW, frontW: frontW };
+    L.woodY = L.cy + L.ch; L.woodH = H * 0.04; L.vipY = L.woodY + L.woodH; L.vipH = H * 0.13; L.standY = L.vipY + L.vipH; L.standH = H - L.standY;
+    L.u = L.cw / (C.FRONT - C.BACK);
+    buildFans(); bg = null;
+  }
+  function X(x) { return L.cx + (x - C.BACK) * L.u; }
+  function Z(z) { return L.cy + z * L.ch; }
+  function toLogical(e) { return rot ? { x: e.clientY, y: vw - e.clientX } : { x: e.clientX, y: e.clientY }; }
+  function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r); c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h); c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r); c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath(); }
+
+  /* ---- the crowd ---- */
+  var SKIN = ['#f0c9a0', '#dcaa7c', '#b97d55', '#8a5a3c', '#f5d6b8'], HAIR = ['#1a1410', '#3a2616', '#6b4a2a', '#d9b56a', '#111'], GOWN = ['#c9a04a', '#15151a', '#e0398c', '#7a1fa2', '#d8d0c0'];
+  var seed = 11; function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+  var couches = [];
+  function buildFans() {
+    seed = 11; fans = []; couches = [];
+    var rf = Math.max(5, H * 0.021), x, n, i, k;
+    var cwid = H * 0.17, gap = H * 0.085; n = Math.floor((L.cw + gap) / (cwid + gap)); var x0 = L.cx + (L.cw - (n * cwid + (n - 1) * gap)) / 2;
+    for (i = 0; i < n; i++) { x = x0 + i * (cwid + gap); couches.push({ x: x, w: cwid, table: i < n - 1 ? x + cwid + gap / 2 : null });
+      for (k = 0; k < 2; k++) fans.push({ x: x + cwid * (0.3 + k * 0.4), y: L.vipY + L.vipH * 0.5, r: rf * 1.05, vip: true, c: k ? GOWN[Math.floor(rnd() * 5)] : '#141418', s: SKIN[Math.floor(rnd() * 5)], h: HAIR[Math.floor(rnd() * 5)], ph: rnd() * 6.3, t: rnd() < 0.5 ? 0 : 1 }); }
+    var rows = Math.max(2, Math.floor(L.standH / (rf * 2.7)));
+    for (k = 0; k < rows; k++) { var y = L.standY + L.standH * (k + 0.55) / rows, m = Math.floor(L.cw / (rf * 2.5));
+      for (i = 0; i < m; i++) { if (rnd() < 0.1) continue; var t = rnd() < 0.5 ? 0 : 1;
+        fans.push({ x: L.cx + (i + 0.5 + (k % 2) * 0.5) * (L.cw / m), y: y, r: rf, vip: false, t: t, c: rnd() < 0.85 ? (rnd() < 0.7 ? TEAMS[t].c1 : TEAMS[t].c2) : '#1c1c20', s: SKIN[Math.floor(rnd() * 5)], h: HAIR[Math.floor(rnd() * 5)], ph: rnd() * 6.3 }); } }
+  }
+
+  /* ---- the table itself, painted once per layout ---- */
+  function paintBg() {
+    bg = document.createElement('canvas'); bg.width = Math.round(W * dpr); bg.height = Math.round(H * dpr); var c = bg.getContext('2d'); c.scale(dpr, dpr);
+    c.fillStyle = '#07070a'; c.fillRect(0, 0, W, H);
+    /* side wall, folded back flat: grid, gold LED, the banners */
+    var g = c.createLinearGradient(0, 0, 0, L.wallH); g.addColorStop(0, '#0a0a0d'); g.addColorStop(1, '#17181d'); c.fillStyle = g; c.fillRect(L.cx - L.backW, 0, L.cw + L.backW + L.frontW, L.wallH);
+    c.strokeStyle = 'rgba(255,255,255,.05)'; c.lineWidth = 1; var s = L.wallH / 5, i, x;
+    for (x = L.cx - L.backW; x < W; x += s) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, L.wallH); c.stroke(); } for (i = 1; i < 5; i++) { c.beginPath(); c.moveTo(L.cx - L.backW, i * s); c.lineTo(W, i * s); c.stroke(); }
+    var bs = L.wallH * 0.74, n = WALL.length, gap = Math.min(bs * 0.6, (L.cw - n * bs) / (n + 1)), x0 = L.cx + (L.cw - (n * bs + (n - 1) * gap)) / 2;
+    WALL.forEach(function (w, k) { var bx = x0 + k * (bs + gap), by = (L.wallH - bs) / 2 - 1; c.fillStyle = '#0b0c0f'; c.fillRect(bx, by, bs, bs); c.strokeStyle = GOLD; c.lineWidth = 1.5; c.strokeRect(bx, by, bs, bs);
+      if (ok(img[w])) { var im = img[w], a = im.naturalWidth / im.naturalHeight, dw = bs * 0.84 * Math.min(1, a), dh = dw / a; if (dh > bs * 0.84) { dh = bs * 0.84; dw = dh * a; } c.drawImage(im, bx + (bs - dw) / 2, by + (bs - dh) / 2, dw, dh); } });
+    /* court floor */
+    g = c.createLinearGradient(0, L.cy, 0, L.cy + L.ch); g.addColorStop(0, '#1b1c21'); g.addColorStop(0.5, '#141519'); g.addColorStop(1, '#1d1e24'); c.fillStyle = g; c.fillRect(L.cx, L.cy, L.cw, L.ch);
+    g = c.createRadialGradient(L.cx + L.cw * 0.5, L.cy + L.ch * 0.4, 10, L.cx + L.cw * 0.5, L.cy + L.ch * 0.5, L.cw * 0.6); g.addColorStop(0, 'rgba(255,220,160,.10)'); g.addColorStop(1, 'rgba(255,220,160,0)'); c.fillStyle = g; c.fillRect(L.cx, L.cy, L.cw, L.ch);
+    /* serve zone, lines, numbers */
+    c.fillStyle = 'rgba(224,57,44,.07)'; c.fillRect(X(C.ZONE_FAR), L.cy, X(C.ZONE_NEAR) - X(C.ZONE_FAR), L.ch);
+    c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '800 ' + Math.max(9, L.ch * 0.075) + 'px system-ui,Arial,sans-serif';
+    for (i = 1; i <= 14; i++) { x = X(C.LINES[i]); var red = i === 4 || i === 7; c.fillStyle = red ? '#e0392c' : 'rgba(244,241,232,.9)'; c.fillRect(x - (red ? 1.6 : 1), L.cy, red ? 3.2 : 2, L.ch);
+      c.fillStyle = '#141519'; c.fillRect(x + 3, L.cy + L.ch - L.ch * 0.13, L.ch * 0.12, L.ch * 0.1); c.fillStyle = red ? '#ff6a5c' : 'rgba(244,241,232,.85)'; c.fillText(i, x + 3 + L.ch * 0.06, L.cy + L.ch - L.ch * 0.078); }
+    /* back wall with neon palms, front wall, gold LED frame */
+    c.fillStyle = '#0d0e11'; c.fillRect(L.cx - L.backW, L.cy, L.backW, L.ch); c.fillRect(L.cx + L.cw, L.cy, L.frontW, L.ch);
+    for (i = 0; i < 4; i++) { var py = L.cy + L.ch * (0.14 + i * 0.24), pxm = L.cx - L.backW * 0.5, col = i % 2 ? '#ffc94d' : '#ff3fb4', col2 = i % 2 ? '#ff3fb4' : '#ffc94d';
+      c.save(); c.shadowColor = col; c.shadowBlur = 10; c.lineCap = 'round';
+      for (var a2 = 0; a2 < 8; a2++) { c.strokeStyle = a2 % 2 ? col : col2; c.lineWidth = 2; c.beginPath(); c.moveTo(pxm, py); c.lineTo(pxm + Math.cos(a2 * 0.785) * L.backW * 0.42, py + Math.sin(a2 * 0.785) * L.backW * 0.42); c.stroke(); }
+      c.fillStyle = col; c.beginPath(); c.arc(pxm, py, 2.4, 0, 6.3); c.fill(); c.restore(); }
+    c.save(); c.shadowColor = '#ffc35a'; c.shadowBlur = 12; c.strokeStyle = '#ffc35a'; c.lineWidth = 2.5; c.strokeRect(L.cx - L.backW + 1.5, 1.5, L.cw + L.backW + L.frontW - 3, L.cy + L.ch - 3); c.beginPath(); c.moveTo(L.cx - L.backW, L.cy); c.lineTo(W, L.cy); c.stroke(); c.restore();
+    c.fillStyle = '#e0392c'; c.fillRect(L.cx + L.cw - 2, L.cy, 3, L.ch);                 // the low red line on the front wall, seen edge on
+    /* the net, the wood, the lounge, the stands */
+    g = c.createLinearGradient(0, L.woodY, 0, L.woodY + L.woodH); g.addColorStop(0, '#c98a34'); g.addColorStop(1, '#8a5a1e'); c.fillStyle = g; c.fillRect(L.cx - L.backW, L.woodY, L.cw + L.backW + L.frontW, L.woodH);
+    c.strokeStyle = 'rgba(60,34,8,.5)'; c.lineWidth = 1; for (x = L.cx - L.backW; x < W; x += L.woodH * 2.2) { c.beginPath(); c.moveTo(x, L.woodY); c.lineTo(x, L.woodY + L.woodH); c.stroke(); }
+    c.strokeStyle = 'rgba(10,10,12,.9)'; c.lineWidth = 1; for (x = L.cx - L.backW; x < W; x += 4) { c.beginPath(); c.moveTo(x, L.woodY - 1.5); c.lineTo(x, L.woodY + 2.5); c.stroke(); }
+    c.fillStyle = '#101116'; c.fillRect(L.cx - L.backW, L.vipY, L.cw + L.backW + L.frontW, H - L.vipY);
+    c.fillStyle = '#d13cff'; c.save(); c.shadowColor = '#d13cff'; c.shadowBlur = 8; c.fillRect(L.cx - L.backW, L.vipY, L.cw + L.backW + L.frontW, 1.6); c.fillRect(L.cx - L.backW, L.standY, L.cw + L.backW + L.frontW, 1.6); c.restore();
+    couches.forEach(function (q) { var y = L.vipY + L.vipH * 0.22, h = L.vipH * 0.62; c.fillStyle = '#e9dec4'; rr(c, q.x, y, q.w, h, h * 0.25); c.fill(); c.fillStyle = '#d6c8a6'; rr(c, q.x, y + h * 0.66, q.w, h * 0.34, h * 0.16); c.fill();
+      c.fillStyle = '#cfae6a'; c.fillRect(q.x + q.w * 0.04, y + h * 0.2, q.w * 0.08, h * 0.4); c.fillRect(q.x + q.w * 0.88, y + h * 0.2, q.w * 0.08, h * 0.4);
+      if (q.table != null) { c.save(); c.shadowColor = '#ffd27a'; c.shadowBlur = 10; c.fillStyle = '#dcb45c'; c.beginPath(); c.arc(q.table, y + h * 0.5, h * 0.3, 0, 6.3); c.fill(); c.fillStyle = '#fff2c8'; c.beginPath(); c.arc(q.table, y + h * 0.5, h * 0.11, 0, 6.3); c.fill(); c.restore(); } });
+    /* the button column */
+    g = c.createLinearGradient(0, 0, L.bw, 0); g.addColorStop(0, '#0b0c10'); g.addColorStop(1, '#12131a'); c.fillStyle = g; c.fillRect(0, 0, L.bw, H); c.fillStyle = GOLD; c.fillRect(L.bw - 1, 0, 1, H);
+  }
+
+  /* ---- sound ---- */
+  var ac = null;
+  function audio() { if (ac) return; try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; } }
+  function tone(f, d, type, vol, f2) { if (!ac) return; var o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime; o.type = type || 'sine'; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + d); g.gain.setValueAtTime(vol || 0.2, t); g.gain.exponentialRampToValueAtTime(0.001, t + d); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + d + 0.02); }
+  function crowd(d, vol) { if (!ac) return; var n = Math.floor(ac.sampleRate * d), b = ac.createBuffer(1, n, ac.sampleRate), a = b.getChannelData(0), i; for (i = 0; i < n; i++) a[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * i / n);
+    var s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); s.buffer = b; f.type = 'bandpass'; f.frequency.value = 1100; f.Q.value = 0.6; g.gain.value = vol || 0.25; s.connect(f); f.connect(g); g.connect(ac.destination); s.start(); }
+
+  /* ---- the match ---- */
+  var game = null, mode = 'intro', target = null, lastZ = 0.5, throwReq = null, fx = { rings: [], trail: [], bits: [], texts: [] }, cheer = [0, 0], wave = null, T = 0, pressed = -1, pressT = 0;
+  function newMatch() { game = Core.newGame({ seats: [1, 0, 0, 0], solo: [false, false], singles: true, target: TARGET, level: 'normal', firstServe: 0 }); game.lat = true; target = null; throwReq = null; fx.trail = []; cheer = [0, 0]; mode = 'play'; }
+  function pickAngle(p, serve, shot) {
+    var min = serve ? C.SMIN : C.AMIN, max = serve ? C.SMAX : C.AMAX, a, opts = [], best = null, run = [], runs = [];
+    for (a = min; a <= max; a += 1) { var pr = Core.predict(Core.launch(p, a, serve, shot), Core.flagsFor(p, serve, shot)), rb = false; if (shot === 1 && !pr.fault) for (var k = 0; k < pr.s.length; k++) if (pr.s[k].x <= C.BACK + C.R + 1) { rb = pr.s[k].n === 0; break; } opts.push({ a: a, ok: !pr.fault, rb: rb }); }
+    if (shot === 1 && opts.some(function (o) { return o.ok && o.rb; })) opts.forEach(function (o) { o.ok = o.ok && o.rb; });
+    opts.forEach(function (o) { if (o.ok) run.push(o.a); else { if (run.length) runs.push(run); run = []; } }); if (run.length) runs.push(run);
+    runs.forEach(function (r) { if (!best || r.length > best.length) best = r; });
+    if (!best) return 22;
+    return best[Math.floor(best.length / 2)] + (Math.random() * 2 - 1) * Math.min(1.5, best.length / 4);
+  }
+  function ring(x, y, c, big) { fx.rings.push({ x: x, y: y, c: c, life: 0.6, big: big || 1 }); }
+  function say(t, c, x, y, big) { fx.texts.push({ t: t, c: c, x: x, y: y, life: big ? 2 : 1.1, big: !!big }); }
+  function confetti(x, y, n, cols) { for (var i = 0; i < n; i++) fx.bits.push({ x: x, y: y, vx: (Math.random() - 0.5) * 260, vy: -Math.random() * 240 - 40, c: cols[i % cols.length], life: 1.2 + Math.random() * 0.8 }); }
+  function events() {
+    var b = game.ball, bx = X(b.x), bz = Z(b.z), col = SHOTCOL[game.hard | 0] || '#fff';
+    game.events.forEach(function (ev) {
+      if (ev === 'throw') { tone(520, 0.12, 'triangle', 0.12, 260); fx.trail = []; }
+      else if (ev === 'front') { tone(170, 0.09, 'square', 0.22, 90); ring(L.cx + L.cw, bz, col, 1.4); }
+      else if (ev === 'side') { tone(210, 0.07, 'square', 0.16, 120); ring(bx, L.cy, col, 1.2); }
+      else if (ev === 'back' || ev === 'chicchac') { tone(140, 0.09, 'square', 0.2, 80); ring(L.cx, bz, col, 1.2); }
+      else if (ev === 'bounce') { tone(300, 0.05, 'sine', 0.14, 180); ring(bx, bz, 'rgba(255,255,255,.9)', 0.8); }
+      else if (ev === 'catch') { tone(760, 0.06, 'sine', 0.16, 980); if (game.holder === 0 && navigator.vibrate) { try { navigator.vibrate(12); } catch (e) { /* ignore */ } } }
+      else if (ev === 'rebote' || ev === 'rabo') say(ev === 'rabo' ? 'RABO!' : 'REBOTE!', '#3cb5e4', bx, bz - 20);
+      else if (ev === 'point' || ev === 'win') { var w = game.pointWinner; cheer[w] = 1; cheer[1 - w] = 0; crowd(ev === 'win' ? 2.6 : 1.3, ev === 'win' ? 0.4 : 0.26); tone(w === 0 ? 660 : 330, 0.25, 'triangle', 0.15, w === 0 ? 990 : 220);
+        say((CALLS[game.msg.ev] ? CALLS[game.msg.ev] + ' · ' : '') + 'POINT ' + TEAMS[w].n.toUpperCase(), TEAMS[w].c1, L.cx + L.cw / 2, L.cy + L.ch * 0.42, true);
+        confetti(L.cx + L.cw * (0.2 + Math.random() * 0.6), L.standY, ev === 'win' ? 120 : 26, [TEAMS[w].c1, TEAMS[w].c2, '#fff']);
+        if (ev === 'win') mode = 'over'; }
+    });
+    game.events.length = 0;
+  }
+
+  /* ---- input ---- */
+  var ptrs = {};
+  function btnAt(p) { if (p.x > L.bw) return -1; for (var i = 0; i < SHOTS.length; i++) { var b = btnPos(i); if (Math.abs(p.y - b.y) < b.r + 4) return i; } return -1; }
+  function btnPos(i) { var top = H * 0.3, r = Math.min(L.bw * 0.4, (H - top) / SHOTS.length / 2 - 3); return { x: L.bw / 2, y: top + (i + 0.5) * (H - top) / SHOTS.length, r: r }; }
+  function courtPt(p) { return { x: Math.max(C.PMIN, Math.min(C.PMAX, C.BACK + (p.x - L.cx) / L.u)), z: Math.max(0.08, Math.min(0.92, (p.y - L.cy) / L.ch)) }; }
+  function down(e) {
+    e.preventDefault(); audio(); if (ac && ac.state === 'suspended') ac.resume();
+    var p = toLogical(e);
+    if (p.x > W - 44 && p.y < 40) { location.href = './#setup'; return; }
+    if (mode !== 'play') { newMatch(); return; }
+    var b = btnAt(p);
+    if (b >= 0) { pressed = b; pressT = T; if (game.holder === 0) throwReq = game.flags.serve ? 0 : SHOTS[b].i; else tone(120, 0.05, 'sine', 0.05); return; }
+    if (p.x <= L.bw) return;
+    if (p.y > L.vipY + 4) { wave = { x: p.x, t: 0 }; crowd(0.9, 0.2); say('¡OLÉ!', GOLD, p.x, p.y - 16); return; }
+    ptrs[e.pointerId] = 1; var c = courtPt(p); target = c; lastZ = c.z;
+  }
+  function move(e) { if (!ptrs[e.pointerId]) return; e.preventDefault(); var c = courtPt(toLogical(e)); target = c; lastZ = c.z; }
+  function up(e) { delete ptrs[e.pointerId]; }
+  cv.addEventListener('pointerdown', down); cv.addEventListener('pointermove', move); cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  var keys = {}; addEventListener('keydown', function (e) { keys[e.key.toLowerCase()] = 1; var n = '12345'.indexOf(e.key); if (e.key === ' ') n = 0; if (n >= 0 && mode === 'play' && game.holder === 0) { throwReq = game.flags.serve ? 0 : SHOTS[n].i; pressed = n; pressT = T; } else if (mode !== 'play' && (e.key === ' ' || e.key === 'Enter')) newMatch(); });
+  addEventListener('keyup', function (e) { keys[e.key.toLowerCase()] = 0; });
+
+  /* ---- drawing ---- */
+  function drawFan(f) {
+    var lift = 0.06 * Math.sin(T * 2 + f.ph), c = cheer[f.t] || 0, j = c ? Math.abs(Math.sin(T * 9 + f.ph)) * c : 0, wv = 0;
+    if (wave) { var d = (f.x - wave.x) / (H * 0.5), tt = wave.t * 2.2; wv = Math.max(0, 1 - Math.abs(Math.abs(d) - tt) * 3); }
+    var up2 = Math.max(j, wv), r = f.r * (1 + lift * 0.3 + up2 * 0.32), y = f.y - up2 * f.r * 0.5, lean = game ? Math.max(-1, Math.min(1, (X(game.ball.x) - f.x) / (W * 0.5))) * f.r * 0.14 : 0;
+    ctx.fillStyle = f.c; ctx.beginPath(); ctx.ellipse(f.x, y + r * 0.25, r * 1.05, r * 0.72, 0, 0, 6.3); ctx.fill();
+    if (up2 > 0.25) { ctx.strokeStyle = f.s; ctx.lineWidth = r * 0.34; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(f.x - r * 0.9, y); ctx.lineTo(f.x - r * 1.15, y - r * 1.1 * up2); ctx.moveTo(f.x + r * 0.9, y); ctx.lineTo(f.x + r * 1.15, y - r * 1.1 * up2); ctx.stroke(); }
+    ctx.fillStyle = f.h; ctx.beginPath(); ctx.arc(f.x + lean, y - r * 0.02, r * 0.62, 0, 6.3); ctx.fill(); ctx.fillStyle = f.s; ctx.beginPath(); ctx.arc(f.x + lean, y - r * 0.22, r * 0.44, 0, 6.3); ctx.fill();
+  }
+  function drawPlayer(p, me) {
+    var t = TEAMS[p.team], u = L.u * 2.0, x = X(p.x), y = Z(p.z), f = p.face >= 0 ? 1 : -1, jump = p.jump > 0 ? Math.sin((1 - p.jump / 0.8) * Math.PI) : 0, sc = 1 + jump * 0.3, st = Math.sin(p.run * 0.045) * (Math.abs(p.vx) > 20 || p.lz ? 1 : 0);
+    ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.beginPath(); ctx.ellipse(x + 3 + jump * 8, y + 4 + jump * 10, 34 * u, 26 * u, 0, 0, 6.3); ctx.fill();
+    if (me) { ctx.strokeStyle = GOLD; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(x, y, 44 * u, 38 * u, 0, 0, 6.3); ctx.stroke(); }
+    ctx.save(); ctx.translate(x, y); ctx.scale(f * sc, sc);
+    ctx.fillStyle = '#f4f4f0'; ctx.beginPath(); ctx.ellipse(8 * u + st * 9 * u, -12 * u, 10 * u, 6 * u, 0, 0, 6.3); ctx.fill(); ctx.beginPath(); ctx.ellipse(8 * u - st * 9 * u, 12 * u, 10 * u, 6 * u, 0, 0, 6.3); ctx.fill();   // shoes
+    var sw = p.anim > 0 ? (1 - p.anim / 0.28) : (game.holder === p.i ? -0.25 : 0.1), ang = -1.9 + sw * 2.5;                                                                 // the cesta arm: wound back, then through
+    ctx.save(); ctx.translate(2 * u, 24 * u); ctx.rotate(ang); ctx.strokeStyle = '#d9a577'; ctx.lineWidth = 9 * u; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 24 * u); ctx.stroke();
+    ctx.strokeStyle = '#17171b'; ctx.lineWidth = 8 * u; ctx.beginPath(); ctx.moveTo(0, 22 * u); ctx.quadraticCurveTo(14 * u, 46 * u, 2 * u, 66 * u); ctx.stroke(); ctx.strokeStyle = '#3a3a42'; ctx.lineWidth = 2.5 * u; ctx.beginPath(); ctx.moveTo(0, 24 * u); ctx.quadraticCurveTo(12 * u, 46 * u, 2 * u, 64 * u); ctx.stroke(); ctx.restore();
+    ctx.strokeStyle = '#d9a577'; ctx.lineWidth = 8 * u; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(2 * u, -24 * u); ctx.lineTo(14 * u, -32 * u); ctx.stroke();                                // off arm
+    ctx.fillStyle = '#141418'; rr(ctx, -13 * u, -29 * u, 28 * u, 58 * u, 13 * u); ctx.fill();                                                                               // shoulders, black jersey
+    ctx.fillStyle = t.c1; ctx.fillRect(-13 * u, -29 * u, 28 * u, 7 * u); ctx.fillStyle = t.c2; ctx.fillRect(-13 * u, 22 * u, 28 * u, 7 * u); ctx.fillStyle = t.c1; ctx.fillRect(-13 * u, -3 * u, 5 * u, 6 * u);
+    ctx.fillStyle = '#f4f4f0'; ctx.beginPath(); ctx.arc(3 * u, 0, 15 * u, 0, 6.3); ctx.fill(); ctx.strokeStyle = '#c8c8c2'; ctx.lineWidth = 1.5 * u; ctx.beginPath(); ctx.moveTo(-10 * u, 0); ctx.lineTo(16 * u, 0); ctx.stroke(); ctx.fillStyle = t.c1; ctx.beginPath(); ctx.arc(14 * u, 0, 3.2 * u, 0, 6.3); ctx.fill();   // helmet
+    ctx.restore();
+  }
+  function drawBall() {
+    var b = game.ball, x = X(b.x), y = Z(b.z), h = Math.max(0, C.FLOORY - b.y), lift = h * L.u * 0.22, r = Math.max(3.2, L.u * 13) * (1 + h / 700), col = SHOTCOL[game.hard | 0] || '#fff';
+    if (game.holder < 0 && game.phase === 'rally') { fx.trail.push({ x: x, y: y - lift }); if (fx.trail.length > 16) fx.trail.shift(); }
+    for (var i = 1; i < fx.trail.length; i++) { ctx.strokeStyle = col; ctx.globalAlpha = i / fx.trail.length * 0.7; ctx.lineWidth = r * 1.2 * i / fx.trail.length; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(fx.trail[i - 1].x, fx.trail[i - 1].y); ctx.lineTo(fx.trail[i].x, fx.trail[i].y); ctx.stroke(); } ctx.globalAlpha = 1;
+    ctx.fillStyle = 'rgba(0,0,0,' + Math.max(0.12, 0.5 - h / 900) + ')'; ctx.beginPath(); ctx.ellipse(x, y, r * (1 + h / 500), r * 0.7 * (1 + h / 500), 0, 0, 6.3); ctx.fill();
+    ctx.save(); ctx.shadowColor = '#fff'; ctx.shadowBlur = 8; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y - lift, r, 0, 6.3); ctx.fill(); ctx.restore();
+  }
+  function drawGuides() {
+    var me = game.players[0];
+    if (target && game.holder !== 0) { var tx = X(target.x), tz = Z(target.z); ctx.strokeStyle = 'rgba(201,165,92,.55)'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]); ctx.beginPath(); ctx.moveTo(X(me.x), Z(me.z)); ctx.lineTo(tx, tz); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.arc(tx, tz, 6, 0, 6.3); ctx.stroke(); }
+    if (game.phase === 'rally' && game.holder < 0 && game.lastTeam === 1 && game.pred && game.pred.bounceX != null && !game.pred.fault) {         // where the ball they threw is going to land
+      var lx = X(game.pred.bounceX), lz = Z(game.flags.zT != null ? game.flags.zT : 0.5), pu = 0.5 + 0.5 * Math.sin(T * 9), col = SHOTCOL[game.hard | 0] || '#fff';
+      ctx.strokeStyle = col; ctx.lineWidth = 2.5; ctx.globalAlpha = 0.9; ctx.beginPath(); ctx.ellipse(lx, lz, (16 + pu * 6), (12 + pu * 5), 0, 0, 6.3); ctx.stroke(); ctx.globalAlpha = 0.25; ctx.fillStyle = col; ctx.fill(); ctx.globalAlpha = 1; }
+    if (game.holder === 0) { var lane = lastZ < 0.38 ? 0.2 : lastZ > 0.62 ? 0.8 : 0.5, ax = L.cx + L.cw - 14, az = Z(lane); ctx.fillStyle = GOLD; ctx.globalAlpha = 0.6 + 0.4 * Math.sin(T * 8); ctx.beginPath(); ctx.moveTo(ax, az); ctx.lineTo(ax - 12, az - 8); ctx.lineTo(ax - 12, az + 8); ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1; }
+  }
+  function drawColumn() {
+    var i, me = game && game.holder === 0, serve = game && game.flags.serve;
+    for (i = 0; i < 2; i++) { var y = H * (0.035 + i * 0.125), s = H * 0.1, lg = img[TEAMS[i].logo]; if (ok(lg)) { var a = lg.naturalWidth / lg.naturalHeight; ctx.drawImage(lg, 6, y, s * Math.min(1, a), s * Math.min(1, a) / a); } else { ctx.fillStyle = TEAMS[i].c1; ctx.fillRect(6, y, s, s); }
+      ctx.fillStyle = '#f2efe6'; ctx.font = '900 ' + H * 0.085 + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillText(game ? game.score[i] : 0, L.bw - 8, y + s / 2 + 1);
+      if (game && game.server === i && game.phase !== 'over') { ctx.fillStyle = GOLD; ctx.beginPath(); ctx.arc(8 + s + 5, y + s / 2, 2.6, 0, 6.3); ctx.fill(); } }
+    ctx.fillStyle = 'rgba(242,239,230,.5)'; ctx.font = '700 ' + Math.max(8, H * 0.026) + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.fillText('FIRST TO ' + TARGET, L.bw / 2, H * 0.275);
+    for (i = 0; i < SHOTS.length; i++) { var b = btnPos(i), col = serve ? '#ffffff' : SHOTCOL[SHOTS[i].i], on = me && (!serve || i === 0), hit = pressed === i && T - pressT < 0.18;
+      ctx.globalAlpha = on ? 1 : 0.28; ctx.save(); if (on) { ctx.shadowColor = col; ctx.shadowBlur = 10 + 6 * Math.sin(T * 7); } ctx.fillStyle = col; ctx.beginPath(); ctx.arc(b.x, b.y, b.r * (hit ? 0.9 : 1), 0, 6.3); ctx.fill(); ctx.restore();
+      if (serve && i === 0) { ctx.strokeStyle = '#e0392c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(b.x, b.y, b.r - 2, 0, 6.3); ctx.stroke(); }
+      var nm = serve && i === 0 ? ['SERVE'] : SHOTS[i].n, fs = Math.max(6.5, b.r * (nm.length > 1 ? 0.36 : 0.34)); ctx.fillStyle = (SHOTS[i].i === 4 && !serve) ? '#fff' : '#0b0c0f'; ctx.font = '900 ' + fs + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      nm.forEach(function (ln, k) { ctx.fillText(ln, b.x, b.y + (k - (nm.length - 1) / 2) * fs * 1.05); }); ctx.globalAlpha = 1; }
+  }
+  function drawFx(dt) {
+    fx.rings = fx.rings.filter(function (r) { r.life -= dt; if (r.life <= 0) return false; var k = 1 - r.life / 0.6; ctx.strokeStyle = r.c; ctx.globalAlpha = 1 - k; ctx.lineWidth = 3 * (1 - k) + 0.5; ctx.beginPath(); ctx.arc(r.x, r.y, (6 + k * 26) * r.big, 0, 6.3); ctx.stroke(); ctx.globalAlpha = 1; return true; });
+    fx.bits = fx.bits.filter(function (b) { b.life -= dt; if (b.life <= 0) return false; b.vy += 320 * dt; b.x += b.vx * dt; b.y += b.vy * dt; ctx.globalAlpha = Math.min(1, b.life); ctx.fillStyle = b.c; ctx.fillRect(b.x, b.y, 4, 4); ctx.globalAlpha = 1; return true; });
+    fx.texts = fx.texts.filter(function (t) { t.life -= dt; if (t.life <= 0) return false; var fs = t.big ? Math.min(H * 0.085, L.cw / (t.t.length * 0.62)) : Math.max(11, H * 0.04); ctx.globalAlpha = Math.min(1, t.life * 2.2); ctx.font = '900 ' + fs + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.lineWidth = fs * 0.16; ctx.strokeStyle = 'rgba(5,6,10,.85)'; ctx.strokeText(t.t, t.x, t.y - (t.big ? 0 : (1.1 - t.life) * 18)); ctx.fillStyle = t.c; ctx.fillText(t.t, t.x, t.y - (t.big ? 0 : (1.1 - t.life) * 18)); ctx.globalAlpha = 1; return true; });
+  }
+  function panel(lines, sub) {
+    ctx.fillStyle = 'rgba(5,6,10,.78)'; ctx.fillRect(0, 0, W, H); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    var y = H * 0.3; if (ok(img['brand.png'])) { var s = H * 0.2; ctx.drawImage(img['brand.png'], W / 2 - s / 2, H * 0.06, s, s * img['brand.png'].naturalHeight / img['brand.png'].naturalWidth); y = H * 0.36; }
+    lines.forEach(function (l, i) { ctx.font = (i ? '700 ' : '900 ') + (i ? H * 0.045 : Math.min(H * 0.1, W / (l.length * 0.62))) + 'px system-ui,Arial,sans-serif'; ctx.fillStyle = i ? '#f2efe6' : GOLD; ctx.fillText(l, W / 2, y); y += i ? H * 0.068 : H * 0.11; });
+    var bw2 = Math.min(W * 0.4, 280), bh = H * 0.12; ctx.fillStyle = GOLD; rr(ctx, W / 2 - bw2 / 2, H * 0.8 - bh / 2, bw2, bh, bh / 2); ctx.fill(); ctx.fillStyle = '#0b0c0f'; ctx.font = '900 ' + bh * 0.4 + 'px system-ui,Arial,sans-serif'; ctx.fillText(sub, W / 2, H * 0.8 + 1);
+  }
+
+  var last = 0;
+  function frame(now) {
+    requestAnimationFrame(frame);
+    var dt = Math.min(0.05, (now - last) / 1000 || 0); last = now; T += dt;
+    if (window.innerWidth !== vw || window.innerHeight !== vh) layout();
+    if (!bg) paintBg();
+    if (game && mode !== 'intro') {
+      var me = game.players[0], inp = { dir: 0, lat: 0 };
+      var kx = (keys.arrowright || keys.d ? 1 : 0) - (keys.arrowleft || keys.a ? 1 : 0), kz = (keys.arrowdown || keys.s ? 1 : 0) - (keys.arrowup || keys.w ? 1 : 0);
+      if (kx || kz) { target = null; inp.dir = kx; inp.lat = kz; if (kz) lastZ = kz < 0 ? 0.2 : 0.8; }
+      else if (target) { var dx = target.x - me.x, dz = target.z - me.z; if (Math.abs(dx) > 16) inp.dir = dx > 0 ? 1 : -1; if (Math.abs(dz) > 0.03) inp.lat = dz > 0 ? 1 : -1; if (!inp.dir && !inp.lat && !Object.keys(ptrs).length) target = null; }
+      if (throwReq != null && game.holder === 0) { var serve = game.flags.serve, shot = serve ? 0 : throwReq; inp.throw = true; inp.hard = shot; inp.angle = pickAngle(me, serve, shot); inp.lat = lastZ < 0.38 ? -1 : lastZ > 0.62 ? 1 : 0; }
+      throwReq = null;
+      Core.step(game, dt * 0.88, [inp, {}, {}, {}]); events();
+      cheer[0] = Math.max(0, cheer[0] - dt * 0.45); cheer[1] = Math.max(0, cheer[1] - dt * 0.45);
+    }
+    if (wave) { wave.t += dt; if (wave.t > 1.6) wave = null; }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (rot) { ctx.translate(vw, 0); ctx.rotate(Math.PI / 2); }
+    ctx.drawImage(bg, 0, 0, W, H);
+    fans.forEach(drawFan);
+    if (game) { drawGuides(); var P = game.players.filter(function (p) { return !p.out; }).sort(function (a, b) { return a.z - b.z; }); P.forEach(function (p) { drawPlayer(p, p.i === 0); }); drawBall(); }
+    drawFx(dt); drawColumn();
+    ctx.fillStyle = 'rgba(242,239,230,.6)'; ctx.font = '700 ' + Math.max(14, H * 0.05) + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('×', W - 20, 20);
+    if (mode === 'intro') panel(['TABLE JAI ALAI', 'Lay your phone flat on the table.', 'Touch the court and your player runs to your finger.', 'Tap a button on the left to serve and throw.', 'Tap the crowd to start a wave.'], 'TAP TO PLAY');
+    else if (mode === 'over') panel([TEAMS[game.winner].n.toUpperCase() + ' WIN', game.score[0] + ' – ' + game.score[1]], 'PLAY AGAIN');
+  }
+  window.__table = { game: function () { return game; }, start: newMatch, L: function () { return L; }, X: X, Z: Z, btnPos: btnPos, mode: function () { return mode; } };
+  layout(); requestAnimationFrame(frame);
+})();
+
+</script>
+</body>
+</html>
