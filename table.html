@@ -341,7 +341,7 @@ var Core = (function () {
       if (p.anim > 0) max = 0;                 // follow-through after a throw
       if (g.phase === 'over') dir = 0;
       if (g.lat && p.human) max *= (g.cfg.latK || 0.82);                          // seen from above the court is close: a person's player runs a touch slower
-      var want = dir * max, acc = (g.lat && p.human ? (g.cfg.latAcc || 1900) : 4200) * dt;   // and builds up to it, so a nudge is a step, not a dash
+      var want = dir * max, acc = (p.human ? (g.cfg.latAcc || 1e6) : 4200) * dt;   // a person's player is at pace at once and stops at once, in every mode: no build-up, no coasting. How fast he goes is the size of the push   // and builds up to it, so a nudge is a step, not a dash
       p.vx += Math.max(-acc, Math.min(acc, want - p.vx));
       var x0 = p.x;
       p.x += p.vx * dt;

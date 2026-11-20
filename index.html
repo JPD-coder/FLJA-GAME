@@ -1027,7 +1027,7 @@ var Core = (function () {
       if (p.anim > 0) max = 0;                 // follow-through after a throw
       if (g.phase === 'over') dir = 0;
       if (g.lat && p.human) max *= (g.cfg.latK || 0.82);                          // seen from above the court is close: a person's player runs a touch slower
-      var want = dir * max, acc = (g.lat && p.human ? (g.cfg.latAcc || 1900) : 4200) * dt;   // and builds up to it, so a nudge is a step, not a dash
+      var want = dir * max, acc = (p.human ? (g.cfg.latAcc || 1e6) : 4200) * dt;   // a person's player is at pace at once and stops at once, in every mode: no build-up, no coasting. How fast he goes is the size of the push   // and builds up to it, so a nudge is a step, not a dash
       p.vx += Math.max(-acc, Math.min(acc, want - p.vx));
       var x0 = p.x;
       p.x += p.vx * dt;
@@ -1874,20 +1874,21 @@ if (typeof module !== 'undefined') module.exports = Core;
   /* the joystick: which way it is pushed, and how far, is how fast the player runs.
      What each live hand is doing is held here, not in the key state, so a redrawn pad or a
      reset between points can never strand a push and leave a player running on his own. */
-  var DEAD = 0.1, sticks = {}, joy = {};
+  var DEAD = 0.12, sticks = {}, joy = {}, sorg = {};                 // sorg: where each thumb came down. That spot is the stick's centre, so a thumb that lands off the middle does not send him running
   function stickAt(el, e) {
-    var r = el.getBoundingClientRect(), two = el.classList.contains('two');
+    var r = el.getBoundingClientRect(), two = el.classList.contains('two'), og = sorg[e.pointerId] || (sorg[e.pointerId] = { x: e.clientX, y: e.clientY });
     var kn = el.querySelector('.stick-knob'), kr = (kn.offsetWidth || 60) / 2;
     var half = Math.min(r.width, r.height) / 2 - kr * 0.6;         // one centre of gravity, the same throw every way
-    var ax = (e.clientX - (r.left + r.width / 2)) / half;
-    var ay = (e.clientY - (r.top + r.height / 2)) / half;
+    var ax = (e.clientX - og.x) / half;
+    var ay = (e.clientY - og.y) / half;
     var m = Math.sqrt(ax * ax + ay * ay);
-    if (m > 1) { ax /= m; ay /= m; m = 1; }                        // the ball never leaves its base
-    kn.style.transform =                                           // it follows the hand wherever it is pushed
-      'translate(' + (half * ax).toFixed(1) + 'px,' + (half * ay).toFixed(1) + 'px)';
+    if (m > 1) { og.x += (ax - ax / m) * half; og.y += (ay - ay / m) * half; ax /= m; ay /= m; m = 1; }   // a thumb that drags past the rim takes the centre with it, so it never loses the stick
+    var kx = og.x - (r.left + r.width / 2) + half * ax, ky = og.y - (r.top + r.height / 2) + half * ay, kl = Math.sqrt(kx * kx + ky * ky), kmax = half * 1.25;
+    if (kl > kmax) { kx *= kmax / kl; ky *= kmax / kl; }
+    kn.style.transform = 'translate(' + kx.toFixed(1) + 'px,' + ky.toFixed(1) + 'px)';   // the ball sits under the thumb
     if (m < DEAD) return { x: 0, z: 0 };                           // a hand resting at the centre is a player standing still
-    var k = Math.min(1, (m - DEAD) / ((two ? 0.95 : 0.76) - DEAD));   // full pace at the rim (Pro) or just short of it
-    k = Math.pow(k, two ? 1.6 : 0.8);                              // Pro: a small push is a careful step, only a full push runs
+    var k = Math.min(1, (m - DEAD) / ((two ? 0.8 : 0.7) - DEAD));    // flat out well before the rim
+    k = Math.pow(k, two ? 1.25 : 0.9);                             // Pro: a small push is still a careful step
     // the aerial camera turns the court on its side: up the screen is up the court, left and right go across it
     return two ? { x: -ay / m * k, z: ax / m * k } : { x: ax / m * k, z: 0 };
   }
@@ -1901,7 +1902,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     return Math.max(-1, Math.min(1, v));
   }
   function stickEnd(pid) {
-    var el = sticks[pid]; delete joy[pid]; delete sticks[pid];     // let go and he stops where he stands
+    var el = sticks[pid]; delete joy[pid]; delete sticks[pid]; delete sorg[pid];   // let go and he stops where he stands
     if (!el) return;
     el.classList.remove('live');
     var kn = el.querySelector('.stick-knob'); if (kn) kn.style.transform = '';
@@ -1912,7 +1913,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (st) {
       e.preventDefault(); unlock();
       try { st.setPointerCapture(e.pointerId); } catch (x) { /* ignore */ }
-      sticks[e.pointerId] = st;                                    // one hand per control, so two people never cross
+      sticks[e.pointerId] = st; delete sorg[e.pointerId];          // one hand per control, so two people never cross
       st.classList.add('live'); joyPut(e.pointerId, st, stickAt(st, e));
       return;
     }
@@ -1946,9 +1947,13 @@ if (typeof module !== 'undefined') module.exports = Core;
     for (var hi = 0; hd >= 0 && hi < hs.length; hi++) if (hs[hi] === hd || (soloBoth[hs[hi] >> 1] && (hd >> 1) === (hs[hi] >> 1))) { mine0 = hs[hi]; break; }
     if (mine0 >= 0) { startCharge(mine0); cvChg = true; try { cv.setPointerCapture(e.pointerId); } catch (x) { /* ignore */ } return; }
     try { cv.setPointerCapture(e.pointerId); } catch (x) { /* ignore */ }
-    drag = { id: e.pointerId, x: courtX(e) };
+    drag = { id: e.pointerId, x: courtX(e), z: courtZ(e) };
   });
-  cv.addEventListener('pointermove', function (e) { if (drag && e.pointerId === drag.id) drag.x = courtX(e); });
+  function courtZ(e) {                                             // Pro: how far across the floor you touch, from the side wall (0) to the open side (1)
+    if (!AER) return null; var r = cv.getBoundingClientRect(), X = (e.clientX - r.left) / r.width * C.W, ya = (e.clientY - r.top) / r.height * C.H / A_K, xl = 628 - 0.7287 * (ya - 285), wd = 1078 + 0.6213 * (ya - 283) - xl;
+    return Math.max(0.08, Math.min(0.92, ((X - A_OX) / A_K - xl) / wd));
+  }
+  cv.addEventListener('pointermove', function (e) { if (drag && e.pointerId === drag.id) { drag.x = courtX(e); drag.z = courtZ(e); } });
   function endDrag(e) {
     if (cvChg) { cvChg = false; var hs = humans(); for (var ci = 0; ci < hs.length; ci++) { if (e.type === 'pointercancel') seatsOf(hs[ci]).forEach(function (s) { chg[s] = 0; }); else if (chg[seatsOf(hs[ci])[0]]) endCharge(hs[ci]); } }
     if (drag && e.pointerId === drag.id) drag = null;
@@ -3339,7 +3344,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   /* fill in the other person's controls for this frame */
   function netInputs(inputs) {
     var i, now = performance.now(), f = net.peer && net.peer.presence.fl, mineA = solo * 2;
-    if (net.myDir !== inputs[mineA].dir) { net.myDir = inputs[mineA].dir; net.dirty = true; }
+    var qd = Math.round(inputs[mineA].dir * 4) / 4; if (net.myDir !== qd) { net.myDir = qd; net.dirty = true; }   // sent in quarter steps, so an eased approach does not flood the line
     if (net.role === 'guest') {
       for (i = 0; i < 2; i++) {
         if (inputs[2 + i].throw && game.holder === 2 + i) {
@@ -3490,11 +3495,13 @@ if (typeof module !== 'undefined') module.exports = Core;
         var jx = joyRead(src, 'x');                                // either hand, or both
         if (!dir && jx) dir = jx;                                  // a nudge of the thumb walks, a full push runs
         if (!dir && drag && mode === 'match' && (soloBoth[i >> 1] ? game.act[i >> 1] === i : humans()[0] === i)) {
-          var dd = drag.x - game.players[i].x; dir = Math.abs(dd) > 16 ? (dd > 0 ? 1 : -1) : 0;
+          var dd = drag.x - game.players[i].x; dir = Math.abs(dd) > 6 ? Math.max(-1, Math.min(1, dd / 60)) : 0;   // flat out to the finger, easing over the last step so he stops on it
         }
         var latIn = ((h.D || h.kD) ? 1 : 0) - ((h.A || h.kA) ? 1 : 0);
+        if (dir && latIn && !jx) { dir *= 0.7071; latIn *= 0.7071; }   // keys: a diagonal is no faster than straight
         var jz = joyRead(src, 'z');
-        if (!latIn && jz) latIn = jz; if (solo >= 0 && (i >> 1) === solo) curLat = latIn;
+        if (!latIn && jz) latIn = jz;
+        if (!latIn && !jz && !jx && drag && drag.z != null && game.lat && mode === 'match' && (soloBoth[i >> 1] ? game.act[i >> 1] === i : humans()[0] === i)) { var dzz = drag.z - game.players[i].z; latIn = Math.abs(dzz) > 0.012 ? Math.max(-1, Math.min(1, dzz / 0.07)) : 0; }   // Pro: he comes across to the finger as well if (solo >= 0 && (i >> 1) === solo) curLat = latIn;
         inputs.push({ dir: dir, lat: latIn, throw: !!throwQ[i], hard: hardQ[i] | 0 });   // in play a plain throw (key or court tap) is a rebota; a serve ignores the shot
         game.players[i].pw = 0;
       }
