@@ -4051,7 +4051,7 @@ window.Table = (function () {
     L.u = L.ch / (C.FRONT - C.BACK); L.barY = H - barH; L.jr = Math.min(barH * 0.36, W * 0.135); L.jx = W / 2; L.jy = L.barY + barH / 2 + 2;
     var sw = W / 2 - L.jr - 10; L.br = Math.min(barH * 0.215, sw * 0.24);
     L.tw = Math.max(34, Math.min(58, W * 0.108)); L.th = wallH * 0.6;
-    bg = null;
+    bg = null; tune();
   }
   function Y(x) { return L.cy + (C.FRONT - x) * L.u; }                 // up the phone is up the court
   function Xz(z) { return L.cx + z * L.cw; }                           // the side wall is on the left
@@ -4093,13 +4093,17 @@ window.Table = (function () {
 
   /* ---- the match ---- */
   var tip = false;
-  var game = null, mode = 'intro', paused = false, target = null, joy = { id: null, x: 0, y: 0 }, lastZ = 0.5, throwReq = null, fx = { rings: [], trail: [], bits: [], texts: [] }, T = 0, pressed = -1, pressT = 0, topHit = -1, topT = 0, glowPh = 0, serveOK = false;
+  var game = null, mode = 'intro', paused = false, target = null, joy = { id: null, x: 0, y: 0, ox: 0, oy: 0 }, tapT = 0, VRUN = 1350, lastZ = 0.5, throwReq = null, fx = { rings: [], trail: [], bits: [], texts: [] }, T = 0, pressed = -1, pressT = 0, topHit = -1, topT = 0, glowPh = 0, serveOK = false;
   function newMatch(score) {
     game = Core.newGame({ seats: O.singles ? [1, 0, 0, 0] : [1, 1, 0, 0], solo: [!O.singles, false], singles: !!O.singles, target: O.target, level: O.level, rebHold: O.rebHold, firstServe: 0,
-      latK: O.singles ? 2.1 : 2.7, latAcc: 22000, latZ: 2.7 });                       // a long court under one finger: the player you steer covers it faster here
+      latK: 1, latAcc: 1e6, latZ: 1 }); tune();
     game.lat = true; if (score) game.score = score.slice(0, 2);
     target = null; throwReq = null; fx.trail = []; fx.texts = []; paused = false; mode = 'play';
   }
+  /* one speed, the same in every direction ON THE GLASS. The engine runs the length of the court in court units and the width as a fraction, so the two are
+     matched here from the real size of the court on this screen: VRUN court units a second lengthwise (the whole court in about a second and a half), and
+     exactly that many pixels a second sideways. No build-up and no coasting: the engine is told to reach speed at once (latAcc), so he moves when you do and stops when you stop. */
+  function tune() { if (!game) return; var base = C.SPEED * 1.12 * (game.cfg.singles ? 1.35 : 1); game.cfg.latK = VRUN / base; game.cfg.latZ = (VRUN * L.u / L.cw) / C.LAT_V; game.cfg.latAcc = 1e6; }
   function mine() { return game.cfg.singles ? game.players[0] : game.players[game.act[0] >= 0 ? game.act[0] : 0]; }                 // the player I am steering
   function holding() { return game && game.holder >= 0 && game.holder < 2; }
   function pickAngle(p, shot) {                                      // in a rally the button picks a safe line; only the serve is on your timing
@@ -4137,7 +4141,7 @@ window.Table = (function () {
   function btnAt(p) { for (var i = 0; i < BTNS.length; i++) { var b = btnPos(i); if (Math.hypot(p.x - b.x, p.y - b.y) < b.r + 5) return i; } return -1; }
   function topAt(p) { if (p.y > L.wallH + 6) return -1; for (var i = 0; i < 4; i++) { var b = topPos(i); if (p.x >= b.x - 3 && p.x <= b.x + b.w + 3) return i; } return -1; }
   function courtPt(p) { return { x: Math.max(C.PMIN, Math.min(C.PMAX, C.FRONT - (p.y - L.cy) / L.u)), z: Math.max(0.08, Math.min(0.92, (p.x - L.cx) / L.cw)) }; }
-  function setJoy(p) { var dx = (p.x - L.jx) / L.jr, dy = (p.y - L.jy) / L.jr, m = Math.hypot(dx, dy); if (m > 1) { dx /= m; dy /= m; } joy.x = dx; joy.y = dy; }
+  function setJoy(p) { var dx = (p.x - joy.ox) / L.jr, dy = (p.y - joy.oy) / L.jr, m = Math.hypot(dx, dy); if (m > 1) { joy.ox += (dx - dx / m) * L.jr; joy.oy += (dy - dy / m) * L.jr; dx /= m; dy /= m; } joy.x = dx; joy.y = dy; }   // the stick's centre is wherever the thumb came down, and it follows a thumb that drags past the rim, so the thumb never loses it
   function fire(i) { pressed = i; pressT = T; if (!holding() || paused) { tone(120, 0.05, 'sine', 0.05); return; } var s = BTNS[i].s, serve = game.flags.serve; if (serve ? s === -1 : s >= 0) throwReq = serve ? 0 : s; else tone(120, 0.05, 'sine', 0.05); }
   function topDo(i) { topHit = i; topT = T; var k = TOP[i].k, h = O.hooks || {};
     if (k === 'pause') { if (mode === 'play') paused = !paused; }
@@ -4151,13 +4155,14 @@ window.Table = (function () {
     if (mode !== 'play') { newMatch(); return; }
     if (tip) { tip = false; return; }
     if (paused) { paused = false; return; }
-    if (p.y >= L.barY) { var b = btnAt(p); if (b >= 0) { fire(b); return; } if (Math.hypot(p.x - L.jx, p.y - L.jy) < L.jr * 1.7) { joy.id = e.pointerId; setJoy(p); target = null; } return; }
-    if (p.y > L.cy) { ptrs[e.pointerId] = 1; var c = courtPt(p); target = c; lastZ = c.z; }
+    if (p.y >= L.barY) { var b = btnAt(p); if (b >= 0) { fire(b); return; } if (Math.abs(p.x - L.jx) < W / 2 - L.br * 4.4 || Math.hypot(p.x - L.jx, p.y - L.jy) < L.jr * 1.5) { joy.id = e.pointerId; joy.ox = p.x; joy.oy = p.y; joy.x = joy.y = 0; target = null; } return; }
+    if (p.y > L.cy) { ptrs[e.pointerId] = 1; tapT = T; var c = courtPt(p); target = c; lastZ = c.z; }
   }
   function move(e) { if (!running) return; if (e.pointerId === joy.id) { e.preventDefault(); setJoy(toLogical(e)); return; } if (!ptrs[e.pointerId]) return; e.preventDefault(); var c = courtPt(toLogical(e)); target = c; lastZ = c.z; }
   var topDown = -1;
   function up(e) { if (topDown >= 0) { var tu = topDown; topDown = -1; if (running && e.type === 'pointerup' && topAt(toLogical(e)) === tu) topDo(tu); return; }   // Menu, Mode, Music and Pause act when the finger lifts: a phone only lets sound start from a finished tap
-    if (e.pointerId === joy.id) { joy.id = null; joy.x = joy.y = 0; } delete ptrs[e.pointerId]; }
+    if (e.pointerId === joy.id) { joy.id = null; joy.x = joy.y = 0; }
+    if (ptrs[e.pointerId]) { delete ptrs[e.pointerId]; if (T - tapT > 0.22 && !Object.keys(ptrs).length) target = null; } }   // lift a finger that was steering and he stops there; a quick tap still sends him to the spot
   var keys = {};
   function kd(e) { if (!running) return; keys[e.key.toLowerCase()] = 1; var n = ' 12345'.indexOf(e.key); if (e.key.toLowerCase() === 'p') { topDo(3); return; } if (n >= 0 && mode === 'play' && !tip) { if (n === 0 && holding() && !game.flags.serve) n = 1; fire(n); e.preventDefault(); } else if (mode !== 'play' && (e.key === ' ' || e.key === 'Enter')) { newMatch(); e.preventDefault(); } else if (tip && (e.key === ' ' || e.key === 'Enter')) { tip = false; e.preventDefault(); } e.stopPropagation(); }
   function ku(e) { keys[e.key.toLowerCase()] = 0; }
@@ -4222,9 +4227,9 @@ window.Table = (function () {
       if (s < 0) { ctx.strokeStyle = '#e0392c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(b.x, b.y, b.r - 2.5, 0, 6.3); ctx.stroke(); }
       var nm = String(O.names[s + 1]).toUpperCase().split(/[\s-]+/).slice(0, 2), ml = Math.max(nm[0].length, (nm[1] || '').length), fs = Math.max(7, Math.min(b.r * 0.4, b.r * 1.75 / (ml * 0.64))); ctx.fillStyle = s === 4 ? '#fff' : '#0b0c0f'; ctx.font = '900 ' + fs + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       nm.forEach(function (ln, k) { ctx.fillText(ln, b.x, b.y + (k - (nm.length - 1) / 2) * fs * 1.05); }); ctx.globalAlpha = 1; }
-    ctx.fillStyle = 'rgba(10,11,15,.7)'; ctx.strokeStyle = 'rgba(242,239,230,.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(L.jx, L.jy, L.jr, 0, 6.3); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = 'rgba(242,239,230,.35)'; var q = L.jr * 0.82; [[0, -q, 0], [q, 0, 1.57], [0, q, 3.14], [-q, 0, 4.71]].forEach(function (a) { ctx.save(); ctx.translate(L.jx + a[0], L.jy + a[1]); ctx.rotate(a[2]); ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(5, 3); ctx.lineTo(-5, 3); ctx.closePath(); ctx.fill(); ctx.restore(); });
-    ctx.save(); ctx.shadowColor = '#ff3a2a'; ctx.shadowBlur = joy.id != null ? 14 : 4; ctx.fillStyle = '#e0261c'; ctx.beginPath(); ctx.arc(L.jx + joy.x * L.jr * 0.55, L.jy + joy.y * L.jr * 0.55, L.jr * 0.42, 0, 6.3); ctx.fill(); ctx.restore();
+    ctx.fillStyle = 'rgba(10,11,15,.7)'; ctx.strokeStyle = 'rgba(242,239,230,.5)'; ctx.lineWidth = 2; ctx.beginPath(); var JX = joy.id != null ? joy.ox : L.jx, JY = joy.id != null ? joy.oy : L.jy; ctx.arc(JX, JY, L.jr, 0, 6.3); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(242,239,230,.35)'; var q = L.jr * 0.82; [[0, -q, 0], [q, 0, 1.57], [0, q, 3.14], [-q, 0, 4.71]].forEach(function (a) { ctx.save(); ctx.translate(JX + a[0], JY + a[1]); ctx.rotate(a[2]); ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(5, 3); ctx.lineTo(-5, 3); ctx.closePath(); ctx.fill(); ctx.restore(); });
+    ctx.save(); ctx.shadowColor = '#ff3a2a'; ctx.shadowBlur = joy.id != null ? 14 : 4; ctx.fillStyle = '#e0261c'; ctx.beginPath(); ctx.arc(JX + joy.x * L.jr * 0.6, JY + joy.y * L.jr * 0.6, L.jr * 0.42, 0, 6.3); ctx.fill(); ctx.restore();
   }
   function drawFx(dt) {
     if (paused) dt = 0;
@@ -4250,9 +4255,10 @@ window.Table = (function () {
       var me = mine(), inp = { dir: 0, lat: 0 };
       var kx = (keys.arrowright || keys.d ? 1 : 0) - (keys.arrowleft || keys.a ? 1 : 0), ky = (keys.arrowup || keys.w ? 1 : 0) - (keys.arrowdown || keys.s ? 1 : 0);
       var jx = joy.id != null ? joy.x : kx, jy = joy.id != null ? -joy.y : ky;          // stick up = up the court, toward the front wall
-      var DZ = 0.16, ax2 = Math.abs(jx), ay2 = Math.abs(jy);                             // a small dead middle, then full pace by half a push; let go and he stops
-      if (ax2 > DZ || ay2 > DZ) { target = null; inp.dir = ay2 > DZ ? (jy > 0 ? 1 : -1) * Math.min(1, (ay2 - DZ) / 0.34) : 0; inp.lat = ax2 > DZ ? (jx > 0 ? 1 : -1) * Math.min(1, (ax2 - DZ) / 0.34) : 0; lastZ = jx < -0.3 ? 0.2 : jx > 0.3 ? 0.8 : 0.5; }
-      else if (target) { var dx = target.x - me.x, dz = target.z - me.z; if (Math.abs(dx) > 6) inp.dir = Math.max(-1, Math.min(1, dx / 110)); if (Math.abs(dz) > 0.012) inp.lat = Math.max(-1, Math.min(1, dz / 0.1)); if (!inp.dir && !inp.lat && !Object.keys(ptrs).length) target = null; }   // flat out to your finger, easing in over the last step so he stops on it
+      var DZ = 0.14, jm = Math.hypot(jx, jy);                                              // round dead middle; past it, pace rises with the push and is flat out from 60% of the way; the same pace on a diagonal as straight
+      if (jm > DZ) { var jk = Math.min(1, (jm - DZ) / (0.6 - DZ)); jk = jk * (0.35 + 0.65 * jk) / jm; target = null; inp.dir = jy * jk; inp.lat = jx * jk; lastZ = jx < -0.35 ? 0.2 : jx > 0.35 ? 0.8 : 0.5; }
+      else if (target) { var sx = (target.z - me.z) * L.cw, sy = (target.x - me.x) * L.u, sd = Math.hypot(sx, sy);   // to the finger in a straight line, measured in pixels: flat out until the last 26, then easing so he lands on it
+        if (sd > 3) { var sk = Math.min(1, sd / 26) / sd; inp.dir = sy * sk; inp.lat = sx * sk; } else if (!Object.keys(ptrs).length) target = null; }
       else if (!holding()) lastZ = 0.5;
       if (throwReq != null && holding()) { var hp = game.players[game.holder], serve = game.flags.serve; inp.throw = true; inp.hard = serve ? 0 : throwReq; if (!serve) inp.angle = pickAngle(hp, throwReq); inp.lat = lastZ < 0.38 ? -1 : lastZ > 0.62 ? 1 : 0; }   // the serve goes at whatever the sweep is on right now
       throwReq = null;
