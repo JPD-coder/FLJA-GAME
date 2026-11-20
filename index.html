@@ -4048,7 +4048,7 @@ window.Table = (function () {
     else { W = vw; H = vh; }
     cv.width = Math.round(vw * dpr); cv.height = Math.round(vh * dpr); cv.style.width = vw + 'px'; cv.style.height = vh + 'px';
     var wallH = Math.max(46, H * 0.07), barH = Math.max(140, Math.min(190, H * 0.19)), backH = Math.max(10, H * 0.018), side = 5;
-    L = { wallH: wallH, barH: barH, backH: backH, side: side, cx: side, cw: W - side - 2, cy: wallH, ch: H - wallH - barH - backH };
+    L = { wallH: wallH, barH: barH, backH: backH, side: side, cx: side, cw: W - side * 2, cy: wallH, ch: H - wallH - barH - backH };
     L.u = L.ch / (C.FRONT - C.BACK); L.barY = H - barH; L.jr = Math.min(barH * 0.36, W * 0.135); L.jx = W / 2; L.jy = L.barY + barH / 2 + 2;
     var sw = W / 2 - L.jr - 10; L.br = Math.min(barH * 0.215, sw * 0.24);
     L.tw = Math.max(34, Math.min(58, W * 0.108)); L.th = wallH * 0.6;
@@ -4071,7 +4071,7 @@ window.Table = (function () {
     function decal(src, x, z, s, a) { var im = img[src]; if (!ok(im)) return; var b = inkBox(src), iw = im.naturalWidth * b.w, ih = im.naturalHeight * b.h, k = s / Math.max(iw, ih), dw = iw * k, dh = ih * k;   // s is the longest side of the visible art
       c.globalAlpha = a; c.drawImage(im, im.naturalWidth * b.x, im.naturalHeight * b.y, iw, ih, Xz(z) - dw / 2, Y(x) - dh / 2, dw, dh); c.globalAlpha = 1; }
     var ls = (C.LINES[1] - C.LINES[2]) * L.u, ts = Math.min(W * 0.19, ls * 1.7);                                  // one size for every club logo; the Fantasy League mark is exactly twice it
-    decal('brand.png', (C.LINES[7] + C.LINES[8]) / 2, 0.5, ts * 2, 0.24);
+    decal('brand.png', (C.LINES[7] + C.LINES[8]) / 2, 0.5, Math.min(W * 0.68, ls * 6.2), 0.24);
     FLOOR.forEach(function (f) { var l0 = Math.floor(f[1]); decal(f[0], C.LINES[l0] + (C.LINES[l0 + 1] - C.LINES[l0]) * (f[1] - l0), f[2], ts, 0.34); });
     /* lines, with their numbers down the side wall: 1 is nearest the front wall, 4 and 7 are the serve lines */
     c.textAlign = 'center'; c.textBaseline = 'middle'; var fs = Math.max(10, W * 0.036); c.font = '800 ' + fs + 'px system-ui,Arial,sans-serif';
@@ -4081,8 +4081,7 @@ window.Table = (function () {
     g = c.createLinearGradient(0, 0, 0, L.wallH); g.addColorStop(0, '#0a0a0d'); g.addColorStop(1, '#191a20'); c.fillStyle = g; c.fillRect(0, 0, W, L.wallH);
     c.strokeStyle = 'rgba(255,255,255,.05)'; c.lineWidth = 1; for (var x2 = 0; x2 < W; x2 += L.wallH / 3) { c.beginPath(); c.moveTo(x2, 0); c.lineTo(x2, L.wallH); c.stroke(); }
     c.fillStyle = '#0d0e11'; c.fillRect(0, L.cy + L.ch, W, L.backH);
-    c.save(); c.shadowColor = '#ffc35a'; c.shadowBlur = 10; c.fillStyle = '#ffc35a'; c.fillRect(0, L.cy, L.side - 1.5, L.ch); c.fillRect(0, L.wallH - 2, W, 2.5); c.fillRect(0, L.cy + L.ch - 1, W, 2); c.restore();
-    c.strokeStyle = 'rgba(10,10,12,.9)'; c.lineWidth = 1; for (var yy = L.cy; yy < L.cy + L.ch; yy += 4) { c.beginPath(); c.moveTo(W - 2.5, yy); c.lineTo(W, yy); c.stroke(); }   // the net down the open side
+    c.save(); c.shadowColor = '#ffc35a'; c.shadowBlur = 10; c.fillStyle = '#ffc35a'; c.fillRect(0, L.cy, L.side - 1.5, L.ch); c.fillRect(W - L.side + 1.5, L.cy, L.side - 1.5, L.ch); c.fillRect(0, L.wallH - 2, W, 2.5); c.fillRect(0, L.cy + L.ch - 1, W, 2); c.restore();
     g = c.createLinearGradient(0, L.barY, 0, H); g.addColorStop(0, '#12131a'); g.addColorStop(1, '#0a0b0f'); c.fillStyle = g; c.fillRect(0, L.barY, W, L.barH); c.fillStyle = GOLD; c.fillRect(0, L.barY, W, 1);
   }
 
