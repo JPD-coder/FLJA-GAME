@@ -1462,9 +1462,11 @@ window.FLFeedback = (function () {
       var fr = 150, wob = Math.sin(t * 4.6 + p.i) * 0.07 + Math.sin(t * 11 + p.i) * 0.05 * st.mv;
       ctx.translate(f.hx - f.ax, f.hy - f.h + 30); ctx.rotate(wob); ctx.translate(0, -fr);
       ctx.beginPath(); ctx.arc(0, 0, fr + 5, 0, 6.3); ctx.fillStyle = '#08090b'; ctx.fill();
-      ctx.save(); ctx.beginPath(); ctx.arc(0, 0, fr, 0, 6.3); ctx.clip(); ctx.scale(p.face, 1); ctx.drawImage(faceNow, -fr, -fr, fr * 2, fr * 2); ctx.restore();
+      var fsx = faceTurn(p, game.ball.x - p.x, 40, p.face);
+      ctx.save(); ctx.beginPath(); ctx.arc(0, 0, fr, 0, 6.3); ctx.clip(); ctx.scale(fsx, 1); ctx.drawImage(faceNow, -fr, -fr, fr * 2, fr * 2); ctx.restore();
+      if (!PROMO) {                                                // a selfie wears the team helmet as a cap; a celebrity's own head goes bare
       ctx.lineCap = 'round'; ctx.strokeStyle = '#08090b'; ctx.lineWidth = 28; ctx.beginPath(); ctx.arc(0, 0, fr + 2, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke();
-      ctx.strokeStyle = (KIT[p.team].nk || KIT[p.team]).helm; ctx.lineWidth = 20; ctx.beginPath(); ctx.arc(0, 0, fr + 2, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke();
+      ctx.strokeStyle = (KIT[p.team].nk || KIT[p.team]).helm; ctx.lineWidth = 20; ctx.beginPath(); ctx.arc(0, 0, fr + 2, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke(); }
     }
     ctx.restore();
     if (!refl) {
@@ -1811,13 +1813,21 @@ window.FLFeedback = (function () {
     rd.readAsDataURL(f);
   });
   $('faceClear').addEventListener('click', function () { try { localStorage.removeItem(FACE_KEY); } catch (e) { /* ignore */ } faceImg = null; faceUI(); });
-  var faceNow = null;                                              // the picture the next bobble head is drawn from
+  var faceNow = null, faceLook = 0;                                // the picture the next bobble head is drawn from, and which way that face looks in it (1 right, -1 left, 0 a selfie)
+  function faceTurn(p, dx, thr, keep) {                            // a celebrity's head turns to keep the ball in sight: flips toward it, with a quick turn rather than a snap
+    if (!faceLook) return keep;
+    var a = ctx.getTransform().a < 0 ? -1 : 1;
+    if (Math.abs(dx) > thr || p._lkT == null) p._lkT = Math.abs(dx) > thr ? (dx > 0 ? 1 : -1) : faceLook;
+    var goal = p._lkT * faceLook; p._lk = p._lk == null ? goal : p._lk + Math.max(-1, Math.min(1, goal - p._lk)) * Math.min(1, (fdt || 0) * 10);
+    var s = Math.abs(p._lk) < 0.14 ? (p._lk < 0 ? -0.14 : 0.14) : p._lk;
+    return s * a;
+  }
   function faceFor(p) {                                            // your photo rides on your own player in a singles match
-    faceNow = null;
+    faceNow = null; faceLook = 0;
     if (PROMO) {                                                   // a match-up page: each of the two players wears his own face
       var pf = promoFaces.get(cfg.pick[p.team]);
       if (!game.cfg.singles || mode !== 'match' || p.i % 2 || !pf || !pf.complete || !pf.naturalWidth) return false;
-      faceNow = pf; return true;
+      faceNow = pf; faceLook = (promoWho(cfg.pick[p.team]) || {}).look || 0; return true;
     }
     if (!faceImg || !game.cfg.singles || mode !== 'match' || p.i % 2) return false;
     if (solo >= 0 ? p.team === solo : p.human) { faceNow = faceImg; return true; }
@@ -2679,11 +2689,12 @@ window.FLFeedback = (function () {
       var fht = tones(kit.helm, false);
       ctx.save(); ctx.translate(hdx + 1, hdy + 9); ctx.rotate(wob); ctx.translate(0, -fr - 2 + Math.sin(t * 9.2 + p.i) * 1.5 * (0.4 + mv));   // pivots on the neck
       ctx.beginPath(); ctx.arc(0, 0, fr + 2.6, 0, 6.3); ctx.fillStyle = '#08090b'; ctx.fill();
-      ctx.save(); ctx.beginPath(); ctx.arc(0, 0, fr, 0, 6.3); ctx.clip(); ctx.scale(p.face, 1);
+      var fsx2 = faceTurn(p, game.ball.x - p.x, 40, p.face);
+      ctx.save(); ctx.beginPath(); ctx.arc(0, 0, fr, 0, 6.3); ctx.clip(); ctx.scale(fsx2, 1);
       ctx.drawImage(faceNow, -fr, -fr, fr * 2, fr * 2); ctx.restore();
-      ctx.lineCap = 'round'; ctx.strokeStyle = '#08090b'; ctx.lineWidth = 15; ctx.beginPath(); ctx.arc(0, 0, fr + 1, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke();   // helmet worn as a cap
+      if (!PROMO) { ctx.lineCap = 'round'; ctx.strokeStyle = '#08090b'; ctx.lineWidth = 15; ctx.beginPath(); ctx.arc(0, 0, fr + 1, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke();   // helmet worn as a cap
       ctx.strokeStyle = fht[1]; ctx.lineWidth = 11; ctx.beginPath(); ctx.arc(0, 0, fr + 1, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke();
-      ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, fr + 2.5, Math.PI * 1.3, Math.PI * 1.55); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, fr + 2.5, Math.PI * 1.3, Math.PI * 1.55); ctx.stroke(); }
       ctx.strokeStyle = 'rgba(255,246,222,.4)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, fr - 1.5, Math.PI * 1.55, Math.PI * 1.95); ctx.stroke();
       ctx.restore();
     } else {
@@ -3258,8 +3269,9 @@ window.FLFeedback = (function () {
       var fr = 150 * k, wob = Math.sin(t * 4.6 + p.i) * 0.07 + Math.sin(t * 11 + p.i) * 0.05 * st.mv;
       ctx.save(); ctx.translate(ox + f.jx * k, oy + (f.hy + 14) * k); ctx.rotate(wob); ctx.translate(0, -fr);
       ctx.beginPath(); ctx.arc(0, 0, fr + 4 * k, 0, 6.3); ctx.fillStyle = '#08090b'; ctx.fill();
-      ctx.save(); ctx.beginPath(); ctx.arc(0, 0, fr, 0, 6.3); ctx.clip(); ctx.drawImage(faceNow, -fr, -fr, fr * 2, fr * 2); ctx.restore();
-      ctx.lineCap = 'round'; ctx.strokeStyle = (KIT[p.team].nk || KIT[p.team]).helm; ctx.lineWidth = 18 * k; ctx.beginPath(); ctx.arc(0, 0, fr + 2 * k, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke();
+      var fsx3 = faceTurn(p, v3p(game.ball.x, game.ball.y, v3lat).X - X, 12, 1);
+      ctx.save(); ctx.beginPath(); ctx.arc(0, 0, fr, 0, 6.3); ctx.clip(); ctx.scale(fsx3, 1); ctx.drawImage(faceNow, -fr, -fr, fr * 2, fr * 2); ctx.restore();
+      if (!PROMO) { ctx.lineCap = 'round'; ctx.strokeStyle = (KIT[p.team].nk || KIT[p.team]).helm; ctx.lineWidth = 18 * k; ctx.beginPath(); ctx.arc(0, 0, fr + 2 * k, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke(); }
       ctx.restore();
     }
     var pk = HVP ? (f.px != null ? [f.px, f.py] : [f.jx + 60, f.jy + 60]) : name === 'catch' ? [214, 44] : [262, 270];
@@ -3710,7 +3722,8 @@ window.FLFeedback = (function () {
       el.querySelector('.pm-half[data-i="' + i + '"]').src = w.art[promoTeams[i]];
       nb.style.setProperty('--tc', r.ui); nb.setAttribute('aria-pressed', String(i === promoMe));
       nb.querySelector('em').textContent = i === promoMe ? 'You' : 'CPU';
-      [].forEach.call(el.querySelectorAll('.pm-team[data-i="' + i + '"]'), function (tb) { tb.setAttribute('aria-pressed', String(+tb.getAttribute('data-t') === promoTeams[i])); });
+      var sel = el.querySelector('.pm-team[data-i="' + i + '"]'); sel.value = String(promoTeams[i]); sel.style.setProperty('--tc', r.ui);
+      [].forEach.call(sel.options, function (o) { o.disabled = +o.value === promoTeams[1 - i]; });   // the two players never wear the same uniform
     });
   }
   function promoBuild() {
@@ -3719,7 +3732,7 @@ window.FLFeedback = (function () {
       '#promo[hidden]{display:none}body.promo-open{overflow:hidden}' +
       '#promo .pm-in{width:100%;max-width:470px;min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:max(10px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}' +
       '#promo .pm-tag{text-align:center;font:800 11px/1.2 ' + F + ';letter-spacing:.2em;text-transform:uppercase;color:#c9a55c}' +
-      '#promo .pm-art{align-self:center;display:flex;height:calc(100dvh - 372px);min-height:170px;max-width:100%;aspect-ratio:1128/1054;border-radius:12px;overflow:hidden;background:#000}' +
+      '#promo .pm-art{align-self:center;display:flex;height:calc(100dvh - 352px);min-height:170px;max-width:100%;aspect-ratio:1128/1054;border-radius:12px;overflow:hidden;background:#000}' +
       '#promo .pm-half{display:block;width:50%;height:100%;object-fit:cover}' +
       '#promo .pm-ctl{display:flex;flex-direction:column;gap:8px}' +
       '#promo .pm-lbl{font:700 10.5px/1 ' + F + ';letter-spacing:.16em;text-transform:uppercase;color:#9a9da6;text-align:center}' +
@@ -3727,10 +3740,9 @@ window.FLFeedback = (function () {
       '#promo .pm-name{flex:1 1 0;min-width:0;min-height:50px;padding:6px 6px;border-radius:10px;border:2px solid var(--tc,#c9a55c);background:#0b0c0f;color:var(--tc,#f2efe6);font:900 15px/1.1 ' + F + ';letter-spacing:.02em;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}' +
       '#promo .pm-name em{font:800 10px/1 ' + F + ';font-style:normal;letter-spacing:.14em;opacity:.8}' +
       '#promo .pm-name[aria-pressed="true"]{background:var(--tc,#c9a55c);color:#0b0c0f}' +
-      '#promo .pm-teams{justify-content:space-between}#promo .pm-pair{flex:1 1 0;display:flex;gap:8px;justify-content:center}' +
-      '#promo .pm-team{width:48px;height:48px;padding:3px;border-radius:50%;border:2px solid #2a2d36;background:#0b0c0f;cursor:pointer;opacity:.5}' +
-      '#promo .pm-team img{display:block;width:100%;height:100%;object-fit:contain}' +
-      '#promo .pm-team[aria-pressed="true"]{border-color:#f2efe6;opacity:1}' +
+      '#promo .pm-pick{flex:1 1 0;min-width:0;display:flex}#promo .pm-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}' +
+      '#promo select.pm-team{flex:1 1 auto;min-width:0;min-height:42px;padding:0 30px 0 10px;border-radius:10px;border:1px solid var(--tc,#2a2d36);background:#0b0c0f url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%278%27%3E%3Cpath d=%27M1 1l5 5 5-5%27 fill=%27none%27 stroke=%27%23c9a55c%27 stroke-width=%272%27/%3E%3C/svg%3E") no-repeat right 11px center;color:#f2efe6;font:700 14px/1.2 ' + F + ';-webkit-appearance:none;appearance:none;cursor:pointer}' +
+      '#promo select.pm-team option:disabled{color:#666}' +
       '#promo .pm-modes button{flex:1 1 0;min-width:0;min-height:44px;padding:6px 4px;border-radius:10px;border:1px solid #2a2d36;background:#12131a;color:#c8cad0;font:700 13px/1.15 ' + F + ';cursor:pointer}' +
       '#promo .pm-modes button[aria-pressed="true"]{background:#f2efe6;color:#0b0c0f;border-color:#f2efe6}' +
       '#promo .pm-go button{flex:1 1 0;min-width:0;min-height:56px;padding:8px 6px;border-radius:12px;border:0;font:900 16px/1.15 ' + F + ';letter-spacing:.02em;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}' +
@@ -3738,29 +3750,25 @@ window.FLFeedback = (function () {
       '#promo .pm-go small{font:700 11.5px/1 ' + F + ';letter-spacing:.04em;opacity:.85}' +
       '#promo .pm-note{margin:0;text-align:center;font:500 11px/1.3 ' + F + ';color:#8d909a}' +
       '#promo button:focus-visible{outline:3px solid #fff;outline-offset:2px}' +
-      '@media (orientation:landscape) and (max-height:560px){#promo .pm-in{max-width:none;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 18px}#promo .pm-tag{flex:0 0 100%}#promo .pm-art{height:calc(100dvh - 50px);max-width:44%}#promo .pm-ctl{flex:0 1 400px;min-width:0;gap:6px}#promo .pm-team{width:38px;height:38px}#promo .pm-name{min-height:42px}#promo .pm-go button{min-height:46px}#promo .pm-modes button{min-height:38px}}';
+      '@media (orientation:landscape) and (max-height:560px){#promo .pm-in{max-width:none;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 18px}#promo .pm-tag{flex:0 0 100%}#promo .pm-art{height:calc(100dvh - 50px);max-width:44%}#promo .pm-ctl{flex:0 1 400px;min-width:0;gap:6px}#promo select.pm-team{min-height:36px}#promo .pm-name{min-height:42px}#promo .pm-go button{min-height:46px}#promo .pm-modes button{min-height:38px}}';
     document.head.appendChild(st);
     var el = document.createElement('div'); el.id = 'promo'; el.hidden = true;
     el.innerHTML = '<div class="pm-in"><div class="pm-tag">' + esc(P.tag) + '</div>' +
       '<div class="pm-art" role="img" aria-label="' + esc(P.people[0].name + ' versus ' + P.people[1].name) + '">' + P.people.map(function (w, i) { return '<img class="pm-half" data-i="' + i + '" alt="">'; }).join('') + '</div>' +
       '<div class="pm-ctl"><div class="pm-lbl" id="pmAsL">Play as</div>' +
       '<div class="pm-row" role="group" aria-labelledby="pmAsL">' + P.people.map(function (w, i) { return '<button type="button" class="pm-name" data-i="' + i + '"><span>' + esc(w.name) + '</span><em></em></button>'; }).join('') + '</div>' +
-      '<div class="pm-lbl" id="pmTmL">Team uniform</div>' +
-      '<div class="pm-row pm-teams">' + P.people.map(function (w, i) { return '<div class="pm-pair" role="group" aria-label="' + esc(w.name) + ' team">' + P.teams.map(function (t) {
-        return '<button type="button" class="pm-team" data-i="' + i + '" data-t="' + t + '" aria-label="' + esc(ROSTER[t].name) + '"><img src="' + esc(ROSTER[t].logo) + '" alt=""></button>'; }).join('') + '</div>'; }).join('') + '</div>' +
+      '<div class="pm-row pm-teams">' + P.people.map(function (w, i) { return '<label class="pm-pick"><span class="pm-sr">' + esc(w.name) + ' team</span><select class="pm-team" data-i="' + i + '">' +
+        P.teams.map(function (t) { return '<option value="' + t + '">' + esc(ROSTER[t].name) + '</option>'; }).join('') + '</select></label>'; }).join('') + '</div>' +
       '<div class="pm-row pm-modes" role="group" aria-label="Mode">' + P.modes.map(function (m) { return '<button type="button" data-m="' + m + '" aria-pressed="' + (m === promoMode) + '">' + NAMES[m] + '</button>'; }).join('') + '</div>' +
       '<div class="pm-row pm-go"><button type="button" id="pmAds">Play with Ads</button><button type="button" id="pmFree">Play Ad Free<small>$0.99 per mo.</small></button></div>' +
       '<p class="pm-note">Preview: ad-free play is open at no charge during this test. Nothing is billed.</p></div></div>';
     document.body.appendChild(el); promoEl = el;
     el.addEventListener('click', function (e) {
-      var nb = e.target.closest('.pm-name'), tb = e.target.closest('.pm-team'), mb = e.target.closest('.pm-modes button[data-m]');
+      var nb = e.target.closest('.pm-name'), mb = e.target.closest('.pm-modes button[data-m]');
       if (nb) { promoMe = +nb.getAttribute('data-i'); promoPaint(); }
-      else if (tb) {                                               // two teams, two players: giving one of them a uniform hands the other uniform to his opponent
-        var who = +tb.getAttribute('data-i'), t = +tb.getAttribute('data-t');
-        promoTeams[who] = t; promoTeams[1 - who] = P.teams[0] === t ? P.teams[1] : P.teams[0]; promoPaint();
-      }
       else if (mb) { promoMode = mb.getAttribute('data-m'); [].forEach.call(el.querySelectorAll('.pm-modes button'), function (x) { x.setAttribute('aria-pressed', String(x === mb)); }); }
     });
+    el.addEventListener('change', function (e) { var s = e.target.closest('select.pm-team'); if (!s) return; promoTeams[+s.getAttribute('data-i')] = +s.value; promoPaint(); });
     $('pmAds').addEventListener('click', function () { promoGo(true); });
     $('pmFree').addEventListener('click', function () { promoGo(false); });
     P.people.forEach(function (w) { var im = new Image(); im.src = w.face; w._img = im; P.teams.forEach(function (t) { var pre = new Image(); pre.src = w.art[t]; }); });
