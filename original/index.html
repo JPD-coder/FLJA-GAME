@@ -143,7 +143,10 @@ body.sides .app { padding-top: 4px; padding-bottom: 4px; gap: 4px; max-width: no
 body.sides .pads { position: relative; z-index: 3; }
 /* sideways the hands sit either side of the court, so the court is given those margins to itself */
 body.sides .stage { margin-left: calc(var(--sc) * 1.42 + 6px); margin-right: calc(var(--sc) * 1.42 + 8px); }
-body.sides .pads { padding-left: calc(var(--sc) * 1.42 + 6px); padding-right: calc(var(--sc) * 1.42 + 8px); }   /* the court keeps everything the hands don't need */
+body.sides .pads { padding-left: calc(var(--sc) * 1.42 + 6px); padding-right: calc(var(--sc) * 1.42 + 8px); }
+/* Professional: the picture has a dark margin down each side, so the court runs in under the hands and uses the whole screen */
+body.sides.aer .stage { margin-left: calc(var(--sc) * .62); margin-right: calc(var(--sc) * .5); }
+body.sides.aer .pads { padding-left: calc(var(--sc) * .62); padding-right: calc(var(--sc) * .5); }   /* the court keeps everything the hands don't need */
 .pad.land { flex-direction: row; align-items: stretch; gap: 8px; }
 .pad.land .runs { flex: 0 0 24%; }
 .pad.land .runs button { height: 100%; }
@@ -2210,6 +2213,11 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   function onResize() { if (wantSides() !== sidesOn) show(); else layout(); }
   window.addEventListener('resize', onResize);
+  /* a phone's browser bars slide away after the page has been measured, and that does not always fire a resize: the court then stays small with empty room under it.
+     So the visible height is watched directly, and the court is fitted again whenever it changes. */
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', onResize);
+  window.addEventListener('orientationchange', function () { setTimeout(onResize, 250); });
+  var seenVH = 0, seenVW = 0; setInterval(function () { var h = viewH(), w2 = window.innerWidth; if (h !== seenVH || w2 !== seenVW) { seenVH = h; seenVW = w2; onResize(); } }, 400);
   window.addEventListener('orientationchange', function () { setTimeout(onResize, 250); });
   if (window.visualViewport) window.visualViewport.addEventListener('resize', onResize);
 
@@ -3143,7 +3151,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     ctx.globalAlpha = 1;
     if (v3flash > 0) { v3flash -= fdt; var bgf = ctx.createLinearGradient(0, C.H - 150, 0, C.H); bgf.addColorStop(0, 'rgba(201,165,92,0)'); bgf.addColorStop(1, 'rgba(201,165,92,' + Math.max(0, v3flash * 1.4) + ')'); ctx.fillStyle = bgf; ctx.fillRect(0, C.H - 150, C.W, 150); }
     if (fx.call) { var cq = v3p(fx.call.x, fx.call.y, v3lat); ctx.globalAlpha = Math.min(1, fx.call.life * 3); ctx.font = '900 ' + Math.max(40, 13 / cssScale) + 'px ' + DISPLAY; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(0,0,0,.8)'; var cX = Math.max(260, Math.min(C.W - 260, cq.X)), cY = Math.max(120, cq.Y - 30); ctx.strokeText(fx.call.t, cX, cY); ctx.fillStyle = fx.call.c; ctx.fillText(fx.call.t, cX, cY); ctx.globalAlpha = 1; }
-    ctx.save(); ctx.translate(AER ? 10 : 20, 50); ctx.scale(AER ? 0.74 : 0.56, AER ? 0.74 : 0.56); ctx.translate(-712, -70); drawBoard(); ctx.restore();
+    ctx.save(); ctx.translate(AER ? (sidesOn ? 10 + 46 / cssScale : 10) : 20, 50); ctx.scale(AER ? 0.74 : 0.56, AER ? 0.74 : 0.56); ctx.translate(-712, -70); drawBoard(); ctx.restore();
     drawTicker();
   }
 
