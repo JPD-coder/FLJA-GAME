@@ -510,16 +510,18 @@ window.Table = (function () {
     function decal(src, x, z, s, a) { var im = img[src]; if (!ok(im)) return; var b = inkBox(src), iw = im.naturalWidth * b.w, ih = im.naturalHeight * b.h, k = s / Math.max(iw, ih), dw = iw * k, dh = ih * k;   // s is the longest side of the visible art
       c.globalAlpha = a; c.drawImage(im, im.naturalWidth * b.x, im.naturalHeight * b.y, iw, ih, Xz(z) - dw / 2, Y(x) - dh / 2, dw, dh); c.globalAlpha = 1; }
     var ls = (C.LINES[1] - C.LINES[2]) * L.u, ts = Math.min(W * 0.19, ls * 1.7);                                  // one size for every club logo; the Fantasy League mark is exactly twice it
-    decal('brand.png', (C.LINES[7] + C.LINES[8]) / 2, 0.5, Math.min(W * 0.68, ls * 6.2), 0.24);
+    decal('brand.png', (C.LINES[7] + C.LINES[8]) / 2, 0.5, Math.min(W * 0.4, ls * 3.6), 0.3);   // dead centre of the court, between lines 7 and 8
     FLOOR.forEach(function (f) { var l0 = Math.floor(f[1]); decal(f[0], C.LINES[l0] + (C.LINES[l0 + 1] - C.LINES[l0]) * (f[1] - l0), f[2], ts, 0.34); });
     /* the four fronton-wall sponsors, painted on the floor and kept bright enough to read: white marks, laid over the dark floor */
-    (function () { var im = img['fronton6.jpg'], w = L.cw * 0.4, yT = Y((C.LINES[2] + C.LINES[3]) / 2), yB = Y((C.LINES[12] + C.LINES[13]) / 2);
-      function mark(crop, cxp, cyp) { if (!ok(im)) return; var sw = im.naturalWidth * crop[2] / 100, sh = im.naturalHeight * crop[3] / 100, k = Math.min(w / sw, (C.LINES[2] - C.LINES[3]) * L.u * 0.86 / sh);
-        c.save(); c.globalCompositeOperation = 'screen'; c.globalAlpha = 0.92; c.drawImage(im, im.naturalWidth * crop[0] / 100, im.naturalHeight * crop[1] / 100, sw, sh, cxp - sw * k / 2, cyp - sh * k / 2, sw * k, sh * k); c.restore(); }
-      mark([10.7, 17.5, 11.6, 9.4], Xz(0.29), yT);                      // Silver Palm Capital, far left
-      mark([22.6, 17.5, 11.6, 9.4], Xz(0.74), yT);                      // The Casino at Dania Beach, far right
-      mark([78.0, 16.2, 11.5, 9.6], Xz(0.74), yB);                      // rewyld, near right
-      c.save(); c.globalAlpha = 0.92; c.translate(Xz(0.29), yB); var kk = w / 250; c.scale(kk, kk); c.font = 'bold 30px Georgia,"Times New Roman",serif'; c.textAlign = 'left'; c.textBaseline = 'middle';   // Open Book, near left: drawn, as on the wall
+    (function () { var im = img['fronton6.jpg'], w = L.cw * 0.62, ln = function (a) { return Y(C.LINES[Math.floor(a)] + (C.LINES[Math.floor(a) + 1] - C.LINES[Math.floor(a)]) * (a - Math.floor(a))); };   // a zig-zag down the court: left, right, left, right, each big enough to cross a line
+      function mark(crop, cxp, cyp) { if (!ok(im)) return; var sw = im.naturalWidth * crop[2] / 100, sh = im.naturalHeight * crop[3] / 100, k = Math.min(w / sw, (C.LINES[2] - C.LINES[3]) * L.u * 1.7 / sh);
+        var oc = document.createElement('canvas'); oc.width = Math.round(sw); oc.height = Math.round(sh); var ox2 = oc.getContext('2d'); ox2.drawImage(im, im.naturalWidth * crop[0] / 100, im.naturalHeight * crop[1] / 100, sw, sh, 0, 0, oc.width, oc.height);
+        try { var id = ox2.getImageData(0, 0, oc.width, oc.height), d = id.data; for (var q = 0; q < d.length; q += 4) { var lum = Math.max(d[q], d[q + 1], d[q + 2]); d[q] = d[q + 1] = d[q + 2] = 255; d[q + 3] = lum < 40 ? 0 : Math.min(255, (lum - 40) * 1.5); } ox2.putImageData(id, 0, 0); } catch (e) { c.globalCompositeOperation = 'screen'; }   // keep only the white mark: the wall behind it drops away
+        c.save(); c.globalAlpha = 0.92; c.drawImage(oc, cxp - sw * k / 2, cyp - sh * k / 2, sw * k, sh * k); c.restore(); c.globalCompositeOperation = 'source-over'; }
+      mark([10.7, 17.5, 11.6, 9.4], Xz(0.37), ln(2));                      // Silver Palm Capital, far left
+      mark([22.6, 17.5, 11.6, 9.4], Xz(0.65), ln(4.5));                      // The Casino at Dania Beach, far right
+      mark([78.0, 16.2, 11.5, 9.6], Xz(0.65), ln(13));                      // rewyld, near right
+      c.save(); c.globalAlpha = 0.92; c.translate(Xz(0.37), ln(10.5)); var kk = w / 250; c.scale(kk, kk); c.font = 'bold 30px Georgia,"Times New Roman",serif'; c.textAlign = 'left'; c.textBaseline = 'middle';   // Open Book, near left: drawn, as on the wall
       var obw = c.measureText('Open Book').width, bx = -(44 + 12 + obw) / 2 + 22, sd;
       for (sd = -1; sd <= 1; sd += 2) { c.fillStyle = '#ffffff'; c.beginPath(); c.moveTo(bx + sd * 1.5, -11); c.quadraticCurveTo(bx + sd * 11, -18, bx + sd * 22, -13); c.lineTo(bx + sd * 22, 11); c.quadraticCurveTo(bx + sd * 11, 6, bx + sd * 1.5, 13); c.closePath(); c.fill();
         c.strokeStyle = '#0d0d0d'; c.lineWidth = 1.6; c.beginPath(); c.moveTo(bx + sd * 6, -7); c.quadraticCurveTo(bx + sd * 12, -10, bx + sd * 18, -7.5); c.moveTo(bx + sd * 6, -1); c.quadraticCurveTo(bx + sd * 12, -4, bx + sd * 18, -1.5); c.stroke(); }
@@ -654,7 +656,7 @@ window.Table = (function () {
       if (!paused) glowPh += dt * 18;
       if (serveOK) { var gl = 0.45 + 0.55 * Math.abs(Math.sin(glowPh)); ctx.save(); ctx.globalAlpha = 0.14 * gl; ctx.fillStyle = '#ff2a1a'; ctx.fillRect(L.cx, Y(C.ZONE_NEAR), L.cw, Y(C.ZONE_FAR) - Y(C.ZONE_NEAR));
         ctx.globalAlpha = gl; ctx.shadowColor = '#ff2a1a'; ctx.shadowBlur = 22; ctx.fillStyle = '#ff2a1a'; ctx.fillRect(L.cx, Y(C.LINES[4]) - 3, L.cw, 6); ctx.fillRect(L.cx, Y(C.LINES[7]) - 3, L.cw, 6); ctx.restore(); }   // lines 4 and 7 are plain white until the throw would land between them: then they flash red
-      ctx.font = '800 ' + Math.max(10, W * 0.032) + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = 'rgba(242,239,230,.85)'; ctx.fillText('SERVE WHEN LINES 4 AND 7 FLASH RED', W / 2, (Y(C.LINES[4]) + Y(C.LINES[7])) / 2 - W * 0.05); }
+      ctx.font = '800 ' + Math.max(10, W * 0.032) + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = 'rgba(242,239,230,.85)'; ctx.fillText('SERVE WHEN LINES 4 AND 7 FLASH RED', W / 2, (Y(C.LINES[5]) + Y(C.LINES[6])) / 2 + W * 0.045); }
     if (target && !holding()) { var tx = Xz(target.z), ty = Y(target.x); ctx.strokeStyle = 'rgba(201,165,92,.55)'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]); ctx.beginPath(); ctx.moveTo(Xz(me.z), Y(me.x)); ctx.lineTo(tx, ty); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.arc(tx, ty, 6, 0, 6.3); ctx.stroke(); }
     if (game.phase === 'rally' && game.holder < 0 && game.lastTeam === 1 && game.pred && game.pred.bounceX != null && !game.pred.fault) {         // where the ball they threw is going to land
       var lx = Xz(game.flags.zT != null ? game.flags.zT : 0.5), ly = Y(game.pred.bounceX), pu = 0.5 + 0.5 * Math.sin(T * 9), c2 = SHOTCOL[game.hard | 0] || '#fff';
