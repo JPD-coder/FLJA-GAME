@@ -1208,7 +1208,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (cfg.names[1] === 'Blue') cfg.names[1] = 'Peloteros';
   } catch (e) { /* storage unavailable: defaults */ }
   /* Hoots vs Peaks has a door of its own. Unlike the main password it is never remembered: every tap on Hoots vs Peaks shows the poster and asks again */
-  var HVP_PASS = 'boobs', hvpWant = false;
+  var HVP_PASS = ['boobs', 'wings'], hvpWant = false;   // either word opens it; capitals do not matter
   try { localStorage.removeItem('flja-hvp-pass'); } catch (e) { /* nothing kept */ }
   function hvpOpen() { return false; }
   if (window.FL_LOOK2 && /[?&]hvp\b/.test(location.search)) { if (hvpOpen()) { cfg.comp = 'hvp'; cfg.pick = [12, 13]; if (cfg.view !== 'side') cfg.view = 'aerial'; } else hvpWant = true; }   // a link straight to Hoots vs Peaks
@@ -1753,7 +1753,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     $('hvpForm').addEventListener('submit', function (e) {
       e.preventDefault();
       var g = $('hvpGate');
-      if ($('hvpPass').value.trim().toLowerCase() === HVP_PASS) {
+      if (HVP_PASS.indexOf($('hvpPass').value.trim().toLowerCase()) >= 0) {
         g.hidden = true; $('hvpPass').blur(); setComp('hvp');
       } else {
         $('hvpNo').textContent = 'Wrong password'; g.classList.remove('wrong'); void g.offsetWidth; g.classList.add('wrong'); $('hvpPass').select();
