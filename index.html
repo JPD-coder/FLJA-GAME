@@ -319,17 +319,17 @@ body:not(.filming) .setup { animation: setup-in .4s ease-out; }
 .guide .sw.sn { background: var(--shot-pelotazo); } .guide .sw.s1 { background: var(--shot-rebota); } .guide .sw.s2 { background: var(--shot-cortada); } .guide .sw.s3 { background: var(--shot-dos); } .guide .sw.s4 { background: var(--shot-costado); }
 @media (max-width: 520px) { .guide dl > div { grid-template-columns: 1fr; } }
 .type-row .seg button { padding-inline: 14px; }
-#optView { flex-wrap: nowrap; flex: 1 1 auto; min-width: 0; }
-#optView button { flex: 1 1 auto; min-width: 0; padding-inline: 8px; white-space: nowrap; }
-@media (max-width: 520px) { #optViewRow { gap: 8px; } #optView button { padding-inline: 3px; font-size: 12px; letter-spacing: 0; } }
-@media (max-width: 380px) { #optView button { font-size: 11px; padding-inline: 2px; } }
+#optView { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; flex: 1 1 auto; min-width: 0; border: 0; border-radius: 0; overflow: visible; }
+#optView button, #optView button + button { border: 1px solid var(--line); border-radius: 4px; min-width: 0; min-height: 36px; padding: 7px 4px; font-size: 13px; letter-spacing: 0; white-space: nowrap; text-align: center; }
+#optViewRow { align-items: flex-start; } #optViewRow .opt-label { padding-top: 10px; }
 body.retro .spot { cursor: pointer; }
 /* 60s Vintage: the court and its controls are shown in black and white only */
 /* the 50s look greys the controls, but the filter goes on each group: on .pads it would anchor the fixed columns to it */
 body.sixties .pads > .pad > .shots, body.sixties .pads > .pad > .shotbox, body.sixties .pads > .pad > .righthand,
 body.sixties .pads > .pad > .boxes, body.sixties .pads > .pad > .move-row, body.sixties .pads > .pad > .pad-label { filter: grayscale(1) contrast(1.18); }
 #optView .vshort { display: none; }
-@media (max-width: 640px) { #optView .vlong { display: none; } #optView .vshort { display: inline; } #optView button { font-size: 14px !important; padding-left: 10px !important; padding-right: 10px !important; } }
+@media (max-width: 520px) { #optView .vlong { display: none; } #optView .vshort { display: inline; } #optView button, #optView button + button { font-size: 12.5px; padding: 7px 2px; } #optViewRow { gap: 8px; } }
+@media (max-width: 365px) { #optView { gap: 4px; } #optView button, #optView button + button { font-size: 11px; padding: 7px 1px; } }
 .face { display: flex; align-items: center; gap: 10px 12px; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
 .face-prev { flex: none; width: 52px; height: 52px; border-radius: 50%; border: 2px dashed var(--line); background: #1a1c22 center / cover no-repeat; }
 .face-prev.has { border: 2px solid var(--gold); }
@@ -1724,8 +1724,8 @@ if (typeof module !== 'undefined') module.exports = Core;
     seg($('optLevel'), [['easy', 'Easy'], ['normal', 'Normal'], ['hard', 'Hard']], cfg.level, 'level');
     seg($('optPace'), [['relaxed', 'Slow'], ['standard', 'Normal'], ['pro', 'Fast']], cfg.pace, 'pace');
     seg($('optSound'), [['on', 'On'], ['off', 'Off']], cfg.sound ? 'on' : 'off', 'sound');
-    $('optViewRow').hidden = !MULTI || !!window.FL_VIEW3; if (MULTI) seg($('optView'), [['aerial', 'Pro'], ['side', 'Amateur'], ['table', 'Coffee Table'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', '50s Vintage']].filter(function (m) { return m[0] === 'table' ? !!window.Table : viewOK(m[0]); }), cfg.table ? 'table' : view, 'view');
-    if (MULTI) { var SHORT = { aerial: 'Pro', side: 'Amateur', table: 'Table', vintage: '90s', retro: '80s', sixties: '50s' }; [].forEach.call($('optView').querySelectorAll('button'), function (vb) { vb.innerHTML = '<span class="vlong">' + esc(vb.textContent) + '</span><span class="vshort">' + SHORT[vb.dataset.v] + '</span>'; }); }
+    $('optViewRow').hidden = !MULTI || !!window.FL_VIEW3; if (MULTI) seg($('optView'), [['aerial', 'Professional'], ['side', 'Amateur'], ['table', 'Coffee Table'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', '50s Vintage']].filter(function (m) { return m[0] === 'table' || viewOK(m[0]); }), cfg.table ? 'table' : view, 'view');
+    if (MULTI) { var SHORT = { aerial: 'Professional', side: 'Amateur', table: 'Coffee Table', vintage: 'Throwback', retro: 'Retro', sixties: 'Vintage' }; [].forEach.call($('optView').querySelectorAll('button'), function (vb) { vb.innerHTML = '<span class="vlong">' + esc(vb.textContent) + '</span><span class="vshort">' + SHORT[vb.dataset.v] + '</span>'; }); }
     seg($('optType'), [['singles', 'Singles'], ['doubles', 'Doubles']], cfg.singles ? 'singles' : 'doubles', 'type');
     $('faceBox').hidden = !cfg.singles; faceUI();
     renderOnline();
@@ -2106,7 +2106,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var tm = [0, 1].map(function (t) { var r = ROSTER[cfg.pick[t]] || ROSTER[t], k = r.kit || {}, nk = k.nk || {};
       return { n: cfg.names[t] || r.name, logo: r.crest || r.logo, c1: nk.helm || r.ui || k.jersey || '#f2efe6', c2: nk.belt || k.sash || '#c9a55c' }; });   // USA wears its crest, the other countries their flag, Hooters and Twin Peaks their own marks
     track('start', (cfg.singles ? 'singles' : 'doubles') + '.' + cfg.comp + '.table');
-    window.Table.open({ teams: tm, singles: !!cfg.singles, target: cfg.target, level: cfg.level, pace: PACE[cfg.pace] || 0.88, rebHold: rebHold(), sound: !!cfg.sound, score: score || null, intro: false, hooks: {
+    window.Table.open({ teams: tm, singles: !!cfg.singles, target: cfg.target, level: cfg.level, pace: PACE[cfg.pace] || 0.88, rebHold: rebHold(), sound: !!cfg.sound, names: shotNames(), score: score || null, intro: false, hooks: {
       menu: function () { window.Table.close(); startDemo(); },
       mode: function (sc) { window.Table.close(); cfg.table = false; var nx = viewOK('vintage') ? 'vintage' : 'aerial'; setView(nx); cfg.view = view; save(); startMatch(sc || undefined); },   // on to the next mode, same match
       music: window.FL_MUSIC ? function () { musToggle(); } : null, musicOn: function () { return !!spLive; } } });
@@ -4015,13 +4015,13 @@ if (typeof module !== 'undefined') module.exports = Core;
 window.Table = (function () {
   'use strict';
   var C = Core.C, cv = null, ctx = null, O = null, running = false, raf = 0, bound = false;
-  var DEF = { teams: [{ n: 'Squared Groupers', logo: 'team-a.png', c1: '#c6ee32', c2: '#fcfc04' }, { n: 'Peloteros', logo: 'team-b.png', c1: '#f52f9b', c2: '#3cb5e4' }], singles: true, target: 15, level: 'normal', pace: 0.88, rebHold: 2, sound: true, score: null, intro: true, hooks: {} };
+  var DEF = { teams: [{ n: 'Squared Groupers', logo: 'team-a.png', c1: '#c6ee32', c2: '#fcfc04' }, { n: 'Peloteros', logo: 'team-b.png', c1: '#f52f9b', c2: '#3cb5e4' }], singles: true, target: 15, level: 'normal', pace: 0.88, rebHold: 2, sound: true, score: null, intro: true, hooks: {}, names: ['Serve', 'Throw', 'Rebound', 'Cut', 'Two-Wall', 'Side Wall'] };   // names[0] is the serve, then the five shots in core order; English unless the game hands over others
   /* six buttons: three to the left of the stick, three to the right. s = core shot index, -1 = the serve */
-  var BTNS = [{ s: -1, n: ['SERVE'] }, { s: 0, n: ['PELO', 'TAZO'] }, { s: 1, n: ['REBOTE'] }, { s: 3, n: ['DOS', 'PAREDES'] }, { s: 2, n: ['CORTADA'] }, { s: 4, n: ['COSTADO'] }];
-  var TOP = [{ k: 'menu', n: 'MENU' }, { k: 'mode', n: 'MODE' }, { k: 'music', n: '♪ MUSIC' }, { k: 'pause', n: 'PAUSE' }];
+  var BTNS = [{ s: -1 }, { s: 0 }, { s: 1 }, { s: 3 }, { s: 2 }, { s: 4 }];
+  var TOP = [{ k: 'menu', n: 'MENU' }, { k: 'mode', n: 'MODE' }, { k: 'music', n: '♪' }, { k: 'pause', n: 'PAUSE' }];
   var SHOTCOL = ['#f52f9b', '#3cb5e4', '#fcfc04', '#c6ee32', '#8f0bcd'];
   /* painted on the floor: three club logos in a line between lines 1 and 3, three between 12 and 14, all one size, and the Fantasy League mark in the middle */
-  var FLOOR = [['team-a.png', 2, 0.2], ['team-b.png', 2, 0.5], ['logo-skunk-apes.png', 2, 0.8], ['logo-don-juans.png', 13, 0.2], ['logo-booties.png', 13, 0.5], ['logo-seamen.png', 13, 0.8]];
+  var FLOOR = [['team-a.png', 3.5, 0.2], ['team-b.png', 3, 0.5], ['logo-skunk-apes.png', 3.5, 0.8], ['logo-don-juans.png', 12.5, 0.2], ['logo-booties.png', 12, 0.5], ['logo-seamen.png', 12.5, 0.8]];   // [logo, line, across]: the middle one sits half a line further up, the tip of a small triangle
   var CALLS = { over: 'OVER THE LINE', under: 'TOO LOW', short: 'SHORT', serveOut: 'SERVE OUT', double: 'TWO BOUNCES', chula: 'CHULA!', ceiling: 'CEILING', backOver: 'OVER THE BACK WALL', held: 'HELD TOO LONG' };
   var GOLD = '#c9a55c', TOUCH = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
   var img = {}, bg = null;
@@ -4057,20 +4057,17 @@ window.Table = (function () {
     c.fillStyle = '#07070a'; c.fillRect(0, 0, W, H);
     var g = c.createLinearGradient(0, L.cy, 0, L.cy + L.ch); g.addColorStop(0, '#1d1e24'); g.addColorStop(0.5, '#141519'); g.addColorStop(1, '#1b1c21'); c.fillStyle = g; c.fillRect(L.cx, L.cy, L.cw, L.ch);
     g = c.createRadialGradient(W / 2, L.cy + L.ch * 0.45, 10, W / 2, L.cy + L.ch * 0.5, L.ch * 0.6); g.addColorStop(0, 'rgba(255,220,160,.09)'); g.addColorStop(1, 'rgba(255,220,160,0)'); c.fillStyle = g; c.fillRect(L.cx, L.cy, L.cw, L.ch);
-    c.fillStyle = 'rgba(224,57,44,.07)'; c.fillRect(L.cx, Y(C.ZONE_NEAR), L.cw, Y(C.ZONE_FAR) - Y(C.ZONE_NEAR));
     function decal(src, x, z, s, a) { var im = img[src]; if (!ok(im)) return; var ar = im.naturalWidth / im.naturalHeight, dw = ar >= 1 ? s : s * ar, dh = ar >= 1 ? s / ar : s; c.globalAlpha = a; c.drawImage(im, Xz(z) - dw / 2, Y(x) - dh / 2, dw, dh); c.globalAlpha = 1; }
     decal('brand.png', (C.LINES[7] + C.LINES[8]) / 2, 0.5, W * 0.42, 0.24);
-    FLOOR.forEach(function (f) { decal(f[0], C.LINES[f[1]], f[2], Math.min(W * 0.2, (C.LINES[1] - C.LINES[3]) * L.u * 0.86), 0.34); });
+    FLOOR.forEach(function (f) { var l0 = Math.floor(f[1]); decal(f[0], C.LINES[l0] + (C.LINES[l0 + 1] - C.LINES[l0]) * (f[1] - l0), f[2], Math.min(W * 0.2, (C.LINES[1] - C.LINES[3]) * L.u * 0.86), 0.34); });
     /* lines, with their numbers down the side wall: 1 is nearest the front wall, 4 and 7 are the serve lines */
     c.textAlign = 'center'; c.textBaseline = 'middle'; var fs = Math.max(10, W * 0.036); c.font = '800 ' + fs + 'px system-ui,Arial,sans-serif';
-    for (var i = 1; i <= 14; i++) { var y = Y(C.LINES[i]), red = i === 4 || i === 7; c.fillStyle = red ? '#e0392c' : 'rgba(244,241,232,.9)'; c.fillRect(L.cx, y - (red ? 1.6 : 1), L.cw, red ? 3.2 : 2);
+    for (var i = 1; i <= 14; i++) { var y = Y(C.LINES[i]), red = false; c.fillStyle = red ? '#e0392c' : 'rgba(244,241,232,.9)'; c.fillRect(L.cx, y - (red ? 1.6 : 1), L.cw, red ? 3.2 : 2);
       c.fillStyle = '#141519'; c.fillRect(L.cx + 2, y - fs * 1.25, fs * 1.6, fs * 1.1); c.fillStyle = red ? '#ff6a5c' : 'rgba(244,241,232,.85)'; c.fillText(i, L.cx + 2 + fs * 0.8, y - fs * 0.68); }
     /* walls: the front wall carries the scoreboard, the side wall is a gold edge on the left, neon palms on the back wall */
     g = c.createLinearGradient(0, 0, 0, L.wallH); g.addColorStop(0, '#0a0a0d'); g.addColorStop(1, '#191a20'); c.fillStyle = g; c.fillRect(0, 0, W, L.wallH);
     c.strokeStyle = 'rgba(255,255,255,.05)'; c.lineWidth = 1; for (var x2 = 0; x2 < W; x2 += L.wallH / 3) { c.beginPath(); c.moveTo(x2, 0); c.lineTo(x2, L.wallH); c.stroke(); }
     c.fillStyle = '#0d0e11'; c.fillRect(0, L.cy + L.ch, W, L.backH);
-    for (i = 0; i < 6; i++) { var px = W * (0.1 + i * 0.16), py = L.cy + L.ch + L.backH / 2, col = i % 2 ? '#ffc94d' : '#ff3fb4'; c.save(); c.shadowColor = col; c.shadowBlur = 8; c.strokeStyle = col; c.lineWidth = 1.6; c.lineCap = 'round';
-      for (var a2 = 0; a2 < 8; a2++) { c.beginPath(); c.moveTo(px, py); c.lineTo(px + Math.cos(a2 * 0.785) * L.backH * 0.48, py + Math.sin(a2 * 0.785) * L.backH * 0.48); c.stroke(); } c.restore(); }
     c.save(); c.shadowColor = '#ffc35a'; c.shadowBlur = 10; c.fillStyle = '#ffc35a'; c.fillRect(0, L.cy, L.side - 1.5, L.ch); c.fillRect(0, L.wallH - 2, W, 2.5); c.fillRect(0, L.cy + L.ch - 1, W, 2); c.restore();
     c.strokeStyle = 'rgba(10,10,12,.9)'; c.lineWidth = 1; for (var yy = L.cy; yy < L.cy + L.ch; yy += 4) { c.beginPath(); c.moveTo(W - 2.5, yy); c.lineTo(W, yy); c.stroke(); }   // the net down the open side
     g = c.createLinearGradient(0, L.barY, 0, H); g.addColorStop(0, '#12131a'); g.addColorStop(1, '#0a0b0f'); c.fillStyle = g; c.fillRect(0, L.barY, W, L.barH); c.fillStyle = GOLD; c.fillRect(0, L.barY, W, 1);
@@ -4109,7 +4106,7 @@ window.Table = (function () {
     var b = game.ball, bx = Xz(b.z), by = Y(b.x), col = SHOTCOL[game.hard | 0] || '#fff';
     game.events.forEach(function (ev) {
       if (ev === 'throw') { tone(520, 0.12, 'triangle', 0.12, 260); fx.trail = [];
-        if (!game.flags.serve && (game.hard | 0) === 1) say('REBOTE · BACK WALL', SHOTCOL[1], W / 2, L.cy + L.ch * 0.52, false, 1.9); }             // the one call: it is going to the back wall, so do not chase it, get into position
+        if (!game.flags.serve && (game.hard | 0) === 1) say(String(O.names[2]).toUpperCase() + ' · BACK WALL', SHOTCOL[1], W / 2, L.cy + L.ch * 0.52, false, 1.9); }             // the one call: it is going to the back wall, so do not chase it, get into position
       else if (ev === 'front') { tone(170, 0.09, 'square', 0.22, 90); ring(bx, L.cy, col, 1.5); }
       else if (ev === 'side') { tone(210, 0.07, 'square', 0.16, 120); ring(L.cx, by, col, 1.3); }
       else if (ev === 'back' || ev === 'chicchac') { tone(140, 0.09, 'square', 0.2, 80); ring(bx, L.cy + L.ch, col, 1.5); }
@@ -4182,10 +4179,10 @@ window.Table = (function () {
     var me = mine();
     /* your serve: lines 4 and 7 pulse slowly while the throw would miss the box, and race when it would land in it. Serve on the fast pulse */
     if (holding() && game.flags.serve) { var hp = game.players[game.holder], pr = Core.predict(Core.launch(hp, hp.aim, true, 0), Core.flagsFor(hp, true, 0), true); serveOK = !pr.fault && pr.bounceX != null && pr.bounceX >= C.ZONE_FAR && pr.bounceX <= C.ZONE_NEAR;
-      if (!paused) glowPh += dt * (serveOK ? 20 : 3.2); var gl = 0.25 + 0.75 * Math.abs(Math.sin(glowPh)), col = serveOK ? '#fff2c8' : '#ff3a2a';
-      ctx.save(); ctx.globalAlpha = (serveOK ? 0.16 : 0.07) * gl + 0.03; ctx.fillStyle = serveOK ? '#ffd27a' : '#e0392c'; ctx.fillRect(L.cx, Y(C.ZONE_NEAR), L.cw, Y(C.ZONE_FAR) - Y(C.ZONE_NEAR));
-      ctx.globalAlpha = gl; ctx.shadowColor = col; ctx.shadowBlur = serveOK ? 22 : 12; ctx.fillStyle = col; ctx.fillRect(L.cx, Y(C.LINES[4]) - 2.5, L.cw, 5); ctx.fillRect(L.cx, Y(C.LINES[7]) - 2.5, L.cw, 5); ctx.restore();
-      ctx.font = '800 ' + Math.max(10, W * 0.032) + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = 'rgba(242,239,230,.85)'; ctx.fillText('SERVE WHEN THE RED LINES FLASH FAST', W / 2, (Y(C.LINES[4]) + Y(C.LINES[7])) / 2 - W * 0.05); }
+      if (!paused) glowPh += dt * 18;
+      if (serveOK) { var gl = 0.45 + 0.55 * Math.abs(Math.sin(glowPh)); ctx.save(); ctx.globalAlpha = 0.14 * gl; ctx.fillStyle = '#ff2a1a'; ctx.fillRect(L.cx, Y(C.ZONE_NEAR), L.cw, Y(C.ZONE_FAR) - Y(C.ZONE_NEAR));
+        ctx.globalAlpha = gl; ctx.shadowColor = '#ff2a1a'; ctx.shadowBlur = 22; ctx.fillStyle = '#ff2a1a'; ctx.fillRect(L.cx, Y(C.LINES[4]) - 3, L.cw, 6); ctx.fillRect(L.cx, Y(C.LINES[7]) - 3, L.cw, 6); ctx.restore(); }   // lines 4 and 7 are plain white until the throw would land between them: then they flash red
+      ctx.font = '800 ' + Math.max(10, W * 0.032) + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = 'rgba(242,239,230,.85)'; ctx.fillText('SERVE WHEN LINES 4 AND 7 FLASH RED', W / 2, (Y(C.LINES[4]) + Y(C.LINES[7])) / 2 - W * 0.05); }
     if (target && !holding()) { var tx = Xz(target.z), ty = Y(target.x); ctx.strokeStyle = 'rgba(201,165,92,.55)'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]); ctx.beginPath(); ctx.moveTo(Xz(me.z), Y(me.x)); ctx.lineTo(tx, ty); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.arc(tx, ty, 6, 0, 6.3); ctx.stroke(); }
     if (game.phase === 'rally' && game.holder < 0 && game.lastTeam === 1 && game.pred && game.pred.bounceX != null && !game.pred.fault) {         // where the ball they threw is going to land
       var lx = Xz(game.flags.zT != null ? game.flags.zT : 0.5), ly = Y(game.pred.bounceX), pu = 0.5 + 0.5 * Math.sin(T * 9), c2 = SHOTCOL[game.hard | 0] || '#fff';
@@ -4201,18 +4198,18 @@ window.Table = (function () {
     ctx.fillStyle = 'rgba(242,239,230,.45)'; ctx.fillRect(mid - 0.75, y - s * 0.3, 1.5, s * 0.6);
     for (i = 0; i < 4; i++) { var b = topPos(i), k = TOP[i].k, on = (k === 'pause' && paused) || (k === 'music' && h.musicOn && h.musicOn()), hit = topHit === i && T - topT < 0.18;
       ctx.globalAlpha = k === 'music' && !h.music ? 0.35 : 1; ctx.fillStyle = on ? GOLD : hit ? '#2a2c36' : '#15161c'; rr(ctx, b.x, b.y, b.w, b.h, b.h * 0.3); ctx.fill(); ctx.strokeStyle = GOLD; ctx.lineWidth = 1; ctx.stroke();
-      ctx.fillStyle = on ? '#0b0c0f' : '#f2efe6'; var nm = k === 'pause' && paused ? 'PLAY' : TOP[i].n; ctx.font = '800 ' + Math.max(6.5, Math.min(b.h * 0.36, (b.w - 6) / (nm.length * 0.66))) + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.fillText(nm, b.x + b.w / 2, b.y + b.h / 2 + 0.5); ctx.globalAlpha = 1; }
+      ctx.fillStyle = on ? '#0b0c0f' : '#f2efe6'; var nm = k === 'pause' && paused ? 'PLAY' : TOP[i].n; ctx.font = '800 ' + (nm.length === 1 ? b.h * 0.78 : Math.max(6.5, Math.min(b.h * 0.36, (b.w - 6) / (nm.length * 0.66)))) + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.fillText(nm, b.x + b.w / 2, b.y + b.h / 2 + 0.5); ctx.globalAlpha = 1; }
   }
   function drawControls() {
     var me = holding() && !paused, serve = game && game.flags.serve, i;
     for (i = 0; i < BTNS.length; i++) { var b = btnPos(i), s = BTNS[i].s, col = s < 0 ? '#ffffff' : SHOTCOL[s], on = me && (serve ? s < 0 : s >= 0), hit = pressed === i && T - pressT < 0.18;
-      ctx.globalAlpha = on ? 1 : 0.3; ctx.save(); if (on) { ctx.shadowColor = s < 0 && serveOK ? '#ffd27a' : col; ctx.shadowBlur = 10 + 6 * Math.sin(T * 7); } ctx.fillStyle = col; ctx.beginPath(); ctx.arc(b.x, b.y, b.r * (hit ? 0.9 : 1), 0, 6.3); ctx.fill(); ctx.restore();
+      ctx.globalAlpha = on ? 1 : 0.3; ctx.save(); if (on) { ctx.shadowColor = s < 0 && serveOK ? '#ff2a1a' : col; ctx.shadowBlur = 10 + 6 * Math.sin(T * 7); } ctx.fillStyle = col; ctx.beginPath(); ctx.arc(b.x, b.y, b.r * (hit ? 0.9 : 1), 0, 6.3); ctx.fill(); ctx.restore();
       if (s < 0) { ctx.strokeStyle = '#e0392c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(b.x, b.y, b.r - 2.5, 0, 6.3); ctx.stroke(); }
-      var nm = BTNS[i].n, fs = Math.max(7, b.r * (nm.length > 1 ? 0.38 : 0.33)); ctx.fillStyle = s === 4 ? '#fff' : '#0b0c0f'; ctx.font = '900 ' + fs + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      var nm = String(O.names[s + 1]).toUpperCase().split(/[\s-]+/).slice(0, 2), ml = Math.max(nm[0].length, (nm[1] || '').length), fs = Math.max(7, Math.min(b.r * 0.4, b.r * 1.75 / (ml * 0.64))); ctx.fillStyle = s === 4 ? '#fff' : '#0b0c0f'; ctx.font = '900 ' + fs + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       nm.forEach(function (ln, k) { ctx.fillText(ln, b.x, b.y + (k - (nm.length - 1) / 2) * fs * 1.05); }); ctx.globalAlpha = 1; }
     ctx.fillStyle = 'rgba(10,11,15,.7)'; ctx.strokeStyle = 'rgba(242,239,230,.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(L.jx, L.jy, L.jr, 0, 6.3); ctx.fill(); ctx.stroke();
     ctx.fillStyle = 'rgba(242,239,230,.35)'; var q = L.jr * 0.82; [[0, -q, 0], [q, 0, 1.57], [0, q, 3.14], [-q, 0, 4.71]].forEach(function (a) { ctx.save(); ctx.translate(L.jx + a[0], L.jy + a[1]); ctx.rotate(a[2]); ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(5, 3); ctx.lineTo(-5, 3); ctx.closePath(); ctx.fill(); ctx.restore(); });
-    ctx.save(); ctx.shadowColor = GOLD; ctx.shadowBlur = joy.id != null ? 14 : 4; ctx.fillStyle = GOLD; ctx.beginPath(); ctx.arc(L.jx + joy.x * L.jr * 0.55, L.jy + joy.y * L.jr * 0.55, L.jr * 0.42, 0, 6.3); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.shadowColor = '#ff3a2a'; ctx.shadowBlur = joy.id != null ? 14 : 4; ctx.fillStyle = '#e0261c'; ctx.beginPath(); ctx.arc(L.jx + joy.x * L.jr * 0.55, L.jy + joy.y * L.jr * 0.55, L.jr * 0.42, 0, 6.3); ctx.fill(); ctx.restore();
   }
   function drawFx(dt) {
     if (paused) dt = 0;
@@ -4250,7 +4247,7 @@ window.Table = (function () {
     ctx.drawImage(bg, 0, 0, W, H);
     if (game) { ctx.save(); ctx.beginPath(); ctx.rect(0, L.wallH, W, L.barY - L.wallH); ctx.clip(); drawGuides(dt); var me2 = mine(), P = game.players.filter(function (p) { return !p.out; }).sort(function (a, b) { return b.x - a.x; }); P.forEach(function (p) { drawPlayer(p, p === me2); }); drawBall(); ctx.restore(); }
     drawControls(); drawFx(dt);
-    if (mode === 'intro') panel(['COFFEE TABLE', 'Lay your phone flat and play from this end.', 'Move with the stick, or touch the court.', 'Serve when the red lines flash fast.', 'Throw with the colored buttons.'], 'TAP TO PLAY');
+    if (mode === 'intro') panel(['COFFEE TABLE', 'Lay your phone flat and play from this end.', 'Move with the stick, or touch the court.', 'Serve when lines 4 and 7 flash red.', 'Throw with the colored buttons.'], 'TAP TO PLAY');
     else if (mode === 'over') panel([O.teams[game.winner].n.toUpperCase() + ' WIN', game.score[0] + ' – ' + game.score[1]], 'PLAY AGAIN');
     else if (paused) panel(['PAUSED'], 'TAP TO PLAY ON');
     drawBoard();
