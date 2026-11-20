@@ -55,20 +55,18 @@ body.touring .top,body.touring #hint,body.touring #stick,body.touring #spotPic{d
 #welcome button{background:var(--gold);color:#0b0c0f;border:0;font-size:16px;letter-spacing:.14em;text-transform:uppercase;padding:14px 26px}
 </style></head><body>
 <div id="view"></div>
-<div class="top"><div class="brand">MLJ Arena &amp; Lounge</div>
+<div class="top"><div class="brand">MLJ Arena</div>
 <div class="acts">
 <span class="row3"><button id="mDoll" aria-pressed="false">Dollhouse View</button><button id="mWalk" aria-pressed="true">Walk Thru View</button><button id="tourBtn">3D Video Walk Thru</button><button id="galBtn">Photo Gallery</button></span>
 <select id="goto" aria-label="Go to"><option value="">Go to…</option><option value="entry">Main entrance</option><option value="food">Food court &amp; bars</option><option value="merch">Merch store</option><option value="rest">Restrooms</option><option value="doors">Fronton doors</option><option value="sharks">Shark tank bar</option><option value="goldfish">Exotic goldfish bar</option><option value="seats">Seats</option><option value="vip">VIP couches</option><option value="court">On the court</option><option value="valet">Valet circle</option><option value="vpark">Valet parking</option><option value="lot">Parking lot</option><option value="marina">Marina</option></select>
 <a class="btn" href="./#setup" id="back">Back to the game</a></div></div>
 <div id="stick" hidden><i></i></div>
 <div id="hint"></div>
-<div id="welcome"><div class="card"><img src="brand.png" alt=""><small>Major League Jai Alai Media presents</small><h1>The MLJ Arena</h1>
-<p>Walk in through the concourse: food court and bars on your left, the merch store and restrooms on your right, and the double doors ahead open onto the fronton.</p>
-<button id="go">Enter the arena</button></div></div>
+
 <div id="spotPic" hidden><button id="spotOpen" aria-label="Open the photo of this spot"><img id="spotImg" alt=""><span><b>Photo of this spot</b><i id="spotCap"></i></span></button><button id="spotX" aria-label="Hide the photo">&times;</button></div>
 <div id="gal" hidden><header><h2>Photo Gallery</h2><button id="galX">Close &times;</button></header><div id="galGrid"></div></div>
 <div id="galBig" hidden><img id="galImg" alt=""><p id="galCap"></p><div class="nav"><button id="galPrev">&lsaquo; Prev</button><button id="galNext">Next &rsaquo;</button><button id="galGo">See it in the model</button><button id="galBack">Close &times;</button></div></div>
-<div id="tourHud" hidden><div id="tourTitle"><b>MLJ Arena &amp; Lounge</b><i>Major League Jai Alai</i></div><button id="tourExit">Exit tour &times;</button></div>
+<div id="tourHud" hidden><div id="tourTitle"><b>MLJ Arena</b><i>Major League Jai Alai</i></div><button id="tourExit">Exit tour &times;</button></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
@@ -116,8 +114,6 @@ box(L,1.2,0.3,L/2,38.6,0.2,GOLD);
 banner('mlj-shield.png',20,17,L/2,24,0.12,0,0x0b0c0f);
 ['team-a.png','team-b.png','logo-skunk-apes.png'].forEach(function(s,i){ banner(s,13,13,18+i*19,24,0.12,0); });
 ['logo-don-juans.png','logo-booties.png','logo-seamen.png'].forEach(function(s,i){ banner(s,13,13,112+i*19,24,0.12,0); });
-banner('usa-crest.png',12,12,L-0.12,26,20,-Math.PI/2);
-sign('MAJOR LEAGUE\nJAI ALAI',20,8,0.1,26,20,Math.PI/2);
 /* the net: thin black mesh on the inside edge of the wood, so the ball stays in */
 (function(){ var t=canvasTex(256,256,function(c,W,H){ c.clearRect(0,0,W,H); c.strokeStyle='rgba(10,10,12,.85)'; c.lineWidth=3; for(var i=0;i<=W;i+=32){ c.beginPath(); c.moveTo(i,0); c.lineTo(i,H); c.stroke(); c.beginPath(); c.moveTo(0,i); c.lineTo(W,i); c.stroke(); } }); t.wrapS=t.wrapT=T.RepeatWrapping; t.repeat.set(L/2,HALLH/2);
   var m=new T.Mesh(new T.PlaneGeometry(L,HALLH),new T.MeshBasicMaterial({map:t,transparent:true,side:T.DoubleSide,depthWrite:false})); m.position.set(L/2,HALLH/2,COURT+0.3); scene.add(m); box(L,0.5,0.5,L/2,HALLH-0.3,COURT+0.3,0x18181c); })();
@@ -130,11 +126,11 @@ slab(WOOD,VIP0,0); for(var r=0;r<3;r++) slab(VIP0+r*9.67,VIP0+(r+1)*9.67,1+1.5*r
 slab(SEAT0,84,5.5); for(var s=0;s<6;s++) slab(84+s*3.6,84+(s+1)*3.6,5.5+1.2*s); slab(TER0,DOORZ,TERY);
 box(L,0.25,0.25,L/2,5.6,SEAT0-0.4,0xb01822);                           // the red rail between VIP and the seats
 /* ---- VIP couches: two rows of love seats with gold tables, then a long sofa, in three gold-framed sections ---- */
-var SECT=[[10,56],[61,107],[112,158]], COUCH=smat(0xeadfc6,0.5,0.05), PILLOW=smat(0xcfae6a,0.6,0.3), COUCHES=[], TABLE=new T.MeshLambertMaterial({color:0xd8b24a,emissive:0x3a2a05});
+var SECT=[[10,56],[61,107],[112,158]], COUCH=smat(0xeadfc6,0.5,0.05), PILLOW=smat(0xcfae6a,0.6,0.3), COUCHES=[], VT=[], TABLE=new T.MeshLambertMaterial({color:0xd8b24a,emissive:0x3a2a05});
 function couch(x,y,z,w){ COUCHES.push([x,y,z,w]); box(1.5,1.2,0.5,x-w/2+1.9,y+2.0,z+0.75,PILLOW).rotation.x=-0.3; box(1.5,1.2,0.5,x+w/2-1.9,y+2.0,z+0.75,PILLOW).rotation.x=-0.3; box(w,1.4,3,x,y+0.7,z,COUCH); box(w,1.5,0.9,x,y+2.1,z+1.3,COUCH); box(0.8,2.2,3,x-w/2+0.4,y+1.1,z,COUCH); box(0.8,2.2,3,x+w/2-0.4,y+1.1,z,COUCH); }
 SECT.forEach(function(sx){ var mid=(sx[0]+sx[1])/2;
-  for(var r=0;r<2;r++){ var z=VIP0+r*9.67+4.6, y=1+1.5*r; couch(mid-11,y,z,10); couch(mid+11,y,z,10); box(4,1.6,3,mid,y+0.8,z,TABLE); }
-  var z2=VIP0+2*9.67+4.6; couch(mid-12.5,4,z2,19); couch(mid+12.5,4,z2,19); box(4,1.6,3,mid,4.8,z2,TABLE);
+  for(var r=0;r<2;r++){ var z=VIP0+r*9.67+4.6, y=1+1.5*r; couch(mid-11,y,z,10); couch(mid+11,y,z,10); VT.push([mid,(y+0.8)-0.8,z]); }
+  var z2=VIP0+2*9.67+4.6; couch(mid-12.5,4,z2,19); couch(mid+12.5,4,z2,19); VT.push([mid,(4.8)-0.8,z2]);
   box(0.35,3.2,SEAT0-VIP0,sx[0]-1.6,3.4,(VIP0+SEAT0)/2,GOLD); box(0.35,3.2,SEAT0-VIP0,sx[1]+1.6,3.4,(VIP0+SEAT0)/2,GOLD); });
 /* ---- 350 seats, six rising rows, with the wheelchair bay cut from the middle section's top row ---- */
 var SEATS=[];
@@ -148,16 +144,16 @@ var sharks=[];
 function sharkBar(x,z,gold){ box(26,3.6,7,x,TERY+1.8,z,new T.MeshLambertMaterial({map:MARB.map,color:0xdfe4ea}));
   box(26.8,0.35,7.8,x,TERY+3.75,z,0xc9a55c); box(26.8,0.3,0.3,x,TERY+6.75,z+3.75,0xc9a55c); box(26.8,0.3,0.3,x,TERY+6.75,z-3.75,0xc9a55c); box(26.6,0.25,0.25,x,TERY+0.3,z+3.6,glow(0xffc35a));
   for(var cq=0;cq<7;cq++){ var co=new T.Mesh(new T.SphereGeometry(0.7,7,5),new T.MeshBasicMaterial({color:[0x2fa86a,0x7a4be0,0x1f8f8a][cq%3]})); co.position.set(x-11+cq*3.6,TERY+4.3,z+((cq%2)?1.6:-1.4)); co.scale.set(1.4,0.8,1.2); scene.add(co); }
-  var tank=new T.Mesh(new T.BoxGeometry(25.4,2.6,6.4),new T.MeshLambertMaterial({color:0x1d8fd6,transparent:true,opacity:0.42,emissive:0x0a3f6e})); tank.position.set(x,TERY+5.15,z); scene.add(tank);
-  box(26.4,0.3,7.4,x,TERY+6.6,z,new T.MeshLambertMaterial({color:0x9fd8ff,transparent:true,opacity:0.35}));
+  var tank=new T.Mesh(new T.BoxGeometry(25.4,2.6,6.4),new T.MeshLambertMaterial({color:0x1890d8,transparent:true,opacity:0.2,emissive:0x0a4f86,depthWrite:false})); tank.position.set(x,TERY+5.15,z); scene.add(tank);
+  box(26.4,0.12,7.4,x,TERY+6.6,z,new T.MeshLambertMaterial({color:0xbfe8ff,transparent:true,opacity:0.1,depthWrite:false})); box(25.2,0.25,6.2,x,TERY+4.0,z,glow(0x0b4a78));
   sign(gold?'EXOTIC GOLDFISH BAR':'SHARK BAR',gold?13:9,1.4,x,TERY+1.9,z+3.56,0,{border:false,bg:'#0b0c0f',fg:'#c9a55c'});
   if(gold){ for(var q=0;q<9;q++){ var gg=new T.Group(), c1=new T.MeshBasicMaterial({color:[0xff6a00,0xffffff,0xff3a10,0x1a1a1a][q%4]}), c2=new T.MeshBasicMaterial({color:[0xffffff,0xff6a00,0xffd9b0,0xff6a00][q%4]});
-      var bd=new T.Mesh(new T.SphereGeometry(0.42,10,8),c1); bd.scale.set(1.5,1.15,1); gg.add(bd); var hd=new T.Mesh(new T.SphereGeometry(0.3,8,6),new T.MeshBasicMaterial({color:0xff2a10})); hd.position.set(0.5,0.18,0); gg.add(hd);
+      gg.scale.set(1.55,1.55,1.55); var bd=new T.Mesh(new T.SphereGeometry(0.42,10,8),c1); bd.scale.set(1.5,1.15,1); gg.add(bd); var hd=new T.Mesh(new T.SphereGeometry(0.3,8,6),new T.MeshBasicMaterial({color:0xff2a10})); hd.position.set(0.5,0.18,0); gg.add(hd);
       [0.45,-0.45].forEach(function(r){ var tf=new T.Mesh(new T.ConeGeometry(0.6,1.3,5),c2); tf.rotation.z=Math.PI/2; tf.rotation.y=r; tf.position.set(-1.1,0,r*0.5); tf.scale.z=0.3; gg.add(tf); });
       var df=new T.Mesh(new T.ConeGeometry(0.3,0.7,4),c2); df.position.set(-0.1,0.6,0); df.scale.z=0.2; gg.add(df);
       scene.add(gg); sharks.push({g:gg,x:x,z:z,y:TERY+4.5+(q%3)*0.55,ph:q*0.7,sp:0.28+(q%4)*0.05}); } }
-  else for(var i=0;i<4;i++){ var g=new T.Group(), sm=new T.MeshLambertMaterial({color:0xd8c9a2,emissive:0x4a4028});
-    var b=new T.Mesh(new T.SphereGeometry(0.5,10,8),sm); b.scale.set(3.2,0.9,0.8); g.add(b);
+  else for(var i=0;i<4;i++){ var g=new T.Group(), sm=new T.MeshLambertMaterial({color:0xe6d6ac,emissive:0x6a5a38});
+    g.scale.set(1.45,1.45,1.45); var b=new T.Mesh(new T.SphereGeometry(0.5,10,8),sm); b.scale.set(3.2,0.9,0.8); g.add(b); for(var sp=0;sp<5;sp++){ var dot=new T.Mesh(new T.SphereGeometry(0.16,6,5),new T.MeshBasicMaterial({color:0x2a2218})); dot.position.set(-1.1+sp*0.55,0.36,(sp%2?0.18:-0.18)); dot.scale.y=0.4; g.add(dot); }
     var tl=new T.Mesh(new T.ConeGeometry(0.55,1.2,4),sm); tl.rotation.z=Math.PI/2; tl.position.x=-1.9; tl.scale.z=0.25; g.add(tl);
     var f=new T.Mesh(new T.ConeGeometry(0.35,0.9,4),sm); f.position.set(0.1,0.6,0); f.scale.z=0.2; g.add(f);
     scene.add(g); sharks.push({g:g,x:x,z:z,y:TERY+4.6+(i%2)*0.9,ph:i*1.57,sp:0.45+i*0.07}); }
@@ -317,7 +313,7 @@ function smat(c,rough,metal,o){ o=o||{}; o.color=c; o.roughness=rough; o.metalne
 var GW=[],GWs=[],GP=[],GB=[];
 function glowPt(arr,x,y,z){ arr.push(x,y,z); }
 /* ---- court: black glossy floor with painted lines and numbers, grid-textured walls, gold LED borders ---- */
-box(L,0.06,COURT,L/2,0.03,COURT/2,smat(0xffffff,0.24,0.05,{envMapIntensity:0.5,map:canvasTex(2048,512,function(c,W,H){ c.fillStyle='#15161a'; c.fillRect(0,0,W,H); for(var i=0;i<700;i++){ c.fillStyle='rgba(255,255,255,'+(Math.random()*0.03)+')'; c.fillRect(Math.random()*W,Math.random()*H,26,2); }
+box(L,0.06,COURT,L/2,0.03,COURT/2,smat(0xffffff,0.55,0.05,{envMapIntensity:0.6,map:canvasTex(2048,512,function(c,W,H){ c.fillStyle='#15161a'; c.fillRect(0,0,W,H); for(var i=0;i<700;i++){ c.fillStyle='rgba(255,255,255,'+(Math.random()*0.03)+')'; c.fillRect(Math.random()*W,Math.random()*H,26,2); }
   c.fillStyle='#f4f1e8'; for(var n=1;n<=14;n++){ if(n===4||n===7) continue; c.fillRect((L-n*12)/L*W-3,0,6,H); } c.fillStyle='#e0392c'; [4,7].forEach(function(n){ c.fillRect((L-n*12)/L*W-5,0,10,H); });
   c.fillStyle='#f4f1e8'; c.fillRect(0,H-8,W,8); c.font='900 54px Arial'; c.textAlign='center'; c.textBaseline='middle'; for(n=1;n<=13;n++){ c.fillStyle='#15161a'; c.fillRect((L-n*12)/L*W+12,H-84,62,60); c.fillStyle='#f4f1e8'; c.fillText(n,(L-n*12)/L*W+43,H-52); } })}));
 (function(){ var t=canvasTex(128,128,function(c,W,H){ c.fillStyle='#0d0e11'; c.fillRect(0,0,W,H); c.strokeStyle='rgba(255,255,255,.07)'; c.lineWidth=2; c.strokeRect(0,0,W,H); c.fillStyle='rgba(255,255,255,.025)'; c.fillRect(6,6,W-12,H-12); }); t.wrapS=t.wrapT=T.RepeatWrapping;
@@ -330,8 +326,10 @@ box(L,0.06,COURT,L/2,0.03,COURT/2,smat(0xffffff,0.24,0.05,{envMapIntensity:0.5,m
 (function(){ var pu=glow(0xd13cff); for(var r=0;r<3;r++){ box(L,0.2,0.2,L/2,1+1.5*r-0.25,VIP0+r*9.67-0.12,pu); for(var x=8;x<L;x+=20) glowPt(GP,x,1+1.5*r-0.2,VIP0+r*9.67-0.6); }
   box(L,0.2,0.2,L/2,5.5-0.25,SEAT0-0.15,pu); var posts=[]; for(x=2;x<L;x+=10) posts.push(M4(x,2.3,VIP0+0.4,0,0.22,2.6,0.22)); inst(new T.BoxGeometry(1,1,1),mat(0xc9a55c),posts); box(L,0.22,0.22,L/2,3.6,VIP0+0.4,0xc9a55c); })();
 /* neon palms and ceiling trusses with spot lamps */
-function neonPalm(x,y,z,c1,c2){ box(0.7,15,0.7,x,y+7.5,z,glow(c1)); for(var i=0;i<8;i++){ var f=new T.Mesh(new T.BoxGeometry(6.5,0.35,0.9),glow(i%2?c1:c2)); f.geometry.translate(3.25,0,0); f.position.set(x,y+15,z); f.rotation.order='YXZ'; f.rotation.y=i*0.785; f.rotation.z=-0.5; scene.add(f); }
-  glowPt(GP,x,y+15,z); glowPt(GP,x,y+8,z); }
+function neonPalm(x,y,z,c1,c2,h){ h=h||15; var fl=h*0.43; box(0.7,h,0.7,x,y+h/2,z,glow(c1)); for(var i=0;i<8;i++){ var f=new T.Mesh(new T.BoxGeometry(fl,0.35,0.9),glow(i%2?c1:c2)); f.geometry.translate(fl/2,0,0); f.position.set(x,y+h,z); f.rotation.order='YXZ'; f.rotation.y=i*0.785; f.rotation.z=-0.5; scene.add(f); }
+  glowPt(GP,x,y+h,z); glowPt(GP,x,y+h/2,z); }
+/* the back wall: tall pink and gold neon palms */
+[[2.2,7,24],[2.2,16,30],[2.2,25,33],[2.2,34,26]].forEach(function(p,i){ neonPalm(p[0],0,p[1],i%2?0xffc94d:0xff3fb4,i%2?0xff3fb4:0xffc94d,p[2]); });
 [[5,TERY,TER0+5],[L-5,TERY,TER0+5],[5,TERY,DOORZ-5],[L-5,TERY,DOORZ-5],[4,4,SEAT0-6],[L-4,4,SEAT0-6]].forEach(function(p,i){ neonPalm(p[0],p[1],p[2],i%2?0xffc94d:0xff3fb4,i%2?0xff3fb4:0xffc94d); });
 (function(){ var ms=[], lamps=[], z, x; for(z=8;z<DOORZ-4;z+=14){ ms.push(M4(L/2,HALLH-2.4,z,0,L,0.9,0.5)); ms.push(M4(L/2,HALLH-3.6,z,0,L,0.25,0.25)); }
   for(x=12;x<L;x+=24) ms.push(M4(x,HALLH-2.4,DOORZ/2,0,0.5,0.9,DOORZ-8));
@@ -344,6 +342,12 @@ function plant(x,y,z,s){ s=s||1; PLANT.push([x,y,z,s]); }
 [[CX-10,TERY,DOORZ+3.5],[CX+10,TERY,DOORZ+3.5],[CX-12,TERY,END-3],[CX+12,TERY,END-3],[70,TERY,DOORZ+30],[98,TERY,DOORZ+30],[CX-10,TERY,DOORZ-4],[CX+10,TERY,DOORZ-4],[20,TERY,TER0+8],[L-20,TERY,TER0+8],[60,G,END+5],[108,G,END+5]].forEach(function(p){ plant(p[0],p[1],p[2]); });
 (function(){ var pots=[], fr=[], fc=[]; PLANT.forEach(function(p){ pots.push(M4(p[0],p[1]+1.4,p[2],0,p[3],2.8,p[3])); for(var i=0;i<9;i++){ fr.push(M4(p[0],p[1]+2.8+(i%3)*0.9,p[2],i*0.7,0.36*p[3],1,0.5*p[3],0.55+(i%3)*0.2)); fc.push(i%2?0x3fa04a:0x2c7d3a); } });
   inst(new T.CylinderGeometry(1.1,0.8,1,12),mat(0xc9a55c),pots); var fg=new T.BoxGeometry(12,0.15,2.4); fg.translate(6,0,0); inst(fg,mat(0xffffff),fr,fc); })();
+/* VIP side tables: gold drums with a lamp and a champagne bucket */
+(function(){ var dr=[], sh=[], bk=[], bt=[]; VT.forEach(function(p){ dr.push(M4(p[0],p[1]+1.15,p[2],0,1,1,1)); sh.push(M4(p[0]-0.7,p[1]+3.1,p[2]+0.3,0,1,1,1)); bk.push(M4(p[0]+0.7,p[1]+2.75,p[2]-0.2,0,1,1,1)); bt.push(M4(p[0]+0.7,p[1]+3.5,p[2]-0.2,0,1,1,1)); GW.push(p[0]-0.7,p[1]+3.2,p[2]+0.3); });
+  inst(new T.CylinderGeometry(1.6,1.6,2.3,20),mat(0xc9a55c),dr); inst(new T.CylinderGeometry(0.35,0.55,0.8,10),glow(0xffe2a0),sh); inst(new T.CylinderGeometry(0.5,0.4,0.9,10),mat(0xc9a55c),bk); inst(new T.CylinderGeometry(0.12,0.16,1.3,6),mat(0x1f5a2e),bt); })();
+/* chandeliers over the concourse */
+[[CX,DOORZ+14],[CX,DOORZ+40],[40,DOORZ+22],[128,DOORZ+22]].forEach(function(c){ var ring=new T.Mesh(new T.TorusGeometry(3.2,0.18,6,24),mat(0xc9a55c)); ring.rotation.x=Math.PI/2; ring.position.set(c[0],TERY+CONH-5,c[1]); roof.add(ring); var r2=new T.Mesh(new T.TorusGeometry(1.8,0.14,6,18),mat(0xc9a55c)); r2.rotation.x=Math.PI/2; r2.position.set(c[0],TERY+CONH-6.4,c[1]); roof.add(r2);
+  for(var a=0;a<8;a++){ var b=new T.Mesh(new T.SphereGeometry(0.28,6,5),glow(0xfff0c8)); b.position.set(c[0]+Math.cos(a*0.785)*3.2,TERY+CONH-5.3,c[1]+Math.sin(a*0.785)*3.2); roof.add(b); } GW.push(c[0],TERY+CONH-5.6,c[1]); });
 /* ---- people ---- */
 var PB=[],PBc=[],PHd=[],PHc=[],PGn=[],PGc=[], SKIN=[0xf0c9a0,0xdcaa7c,0xb97d55,0x8a5a3c,0xf5d6b8], HAIR=[0x1a1410,0x3a2616,0x6b4a2a,0xd9b56a,0x111111];
 function pbox(x,y,z,ry,sx,sy,sz,c){ PB.push(M4(x,y,z,ry,sx,sy,sz)); PBc.push(c); }
@@ -433,8 +437,8 @@ function startTour(){ touring=true; document.body.classList.add('touring'); docu
   try{ var p=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen(); if(p&&p.catch) p.catch(function(){}); }catch(e){}
   try{ if(!tourA){ tourA=new Audio('arena-tour.mp3'); } tourA.currentTime=0; var q=tourA.play(); if(q&&q.catch) q.catch(function(){}); }catch(e){}
   tourT0=performance.now(); }
-function tourFrame(now){ var t=(now-tourT0)/1000; if(t>=45){ endTour(); return; } filmAt(t); size();
-  var el=document.getElementById('tourTitle'), o=t<0.6?0:t<1.2?(t-0.6)/0.6:t<3.6?1:t<4.4?(4.4-t)/0.8:t<41.6?0:t<42.4?(t-41.6)/0.8:t<44.2?1:(45-t)/0.8; el.style.opacity=Math.max(0,Math.min(1,o)); el.className=t>40?'end':''; }
+function tourFrame(now){ var t=(now-tourT0)/1000; if(t>=60){ endTour(); return; } filmAt(t); size();
+  var el=document.getElementById('tourTitle'), o=t<0.6?0:t<1.2?(t-0.6)/0.6:t<3.6?1:t<4.4?(4.4-t)/0.8:t<56.4?0:t<57.2?(t-56.4)/0.8:t<59.2?1:(60-t)/0.8; el.style.opacity=Math.max(0,Math.min(1,o)); el.className=t>50?'end':''; }
 document.getElementById('tourBtn').onclick=startTour; document.getElementById('tourExit').onclick=endTour; addEventListener('keydown',function(e){ if(touring&&e.key==='Escape') endTour(); });
 (function(){ var PH=[["The MLJ Arena on the Intracoastal", "doll"], ["Valet arrival under the porte-cochère", "valet"], ["Welcome to the MLJ Arena", "entry"], ["Food court and The Cesta Bar", "food"], ["Official team gear at the merch store", "merch"], ["The exotic goldfish bar", "goldfish"], ["Exotic goldfish under your cocktail", "goldfish"], ["The shark tank bar", "sharks"], ["A shark under your cocktail", "sharks"], ["Team banners on the side wall", "seats"], ["Fans in team gear in the stadium seats", "seats"], ["VIP couches, courtside", "vip"], ["The best seat in the house", "vip"], ["Bottle service in the VIP", "vip"], ["The VIP section and the stands", "vip"], ["Match night on the court", "court"], ["Full stretch for the pelota", "court"], ["The Peloteros and the Squared Groupers", "court"]], SPOTPIC={entry:2,doors:2,food:3,merch:4,goldfish:5,sharks:7,seats:10,vip:11,court:15,valet:1,vpark:1,lot:0,marina:0},
   gal=document.getElementById('gal'), grid=document.getElementById('galGrid'), big=document.getElementById('galBig'), img=document.getElementById('galImg'), cap=document.getElementById('galCap'), chip=document.getElementById('spotPic'), cur=0, built=false;
@@ -451,17 +455,19 @@ document.getElementById('tourBtn').onclick=startTour; document.getElementById('t
   var chipI=0; window.spotPhoto=function(k){ var i=k==null?undefined:SPOTPIC[k]; if(i===undefined){ chip.hidden=true; return; } chipI=i; document.getElementById('spotImg').src='arena-thumb-'+n2(i)+'.jpg?v=2'; document.getElementById('spotCap').textContent=PH[i][0]; chip.hidden=false; };
   document.getElementById('spotOpen').onclick=function(){ show(chipI); }; document.getElementById('spotX').onclick=function(e){ e.stopPropagation(); chip.hidden=true; }; })();
 function goSpot(k){ var s=SPOTS[k]; if(!s) return; pos.x=s[0]; pos.z=s[1]; yaw=s[2]; pitch=-0.05; setMode('walk'); spotPhoto(k); }
-document.getElementById('go').onclick=function(){ document.getElementById('welcome').hidden=true; started=true; setMode('walk'); };
+started=true;
 setMode('walk');
 
 /* ---- the film: one camera path, driven frame by frame from outside (window.__arena.film(seconds)) ---- */
 var filming=false, FK=[ /* t, x, eye height, z, yaw, pitch */
- [0,93.5,3.2,200.3,1.38,0.1],[1.2,93,3.5,200.2,1.25,0.12],[3.2,89,5.3,198.4,0.6,0.14],[5.8,84,5.6,190,0,0.04],[8,84,5.6,176,0.35,0],[10.5,84,5.6,163,-0.55,0],[13,84,5.6,148,0.5,0],[15.5,84,5.6,134,0,0.02],
- [17.6,84,5.6,123,0,-0.16],[19.6,74,5.6,119,1.05,-0.1],[22,94,5.6,119,-1.05,-0.1],[24,84,5.6,113,0,-0.24],[26.5,84,6,100,-0.25,-0.2],[29,84,6,86,0.3,-0.16],[32,84,5.8,72,-0.45,-0.1],[35,84,5.6,60,0.4,-0.06],
- [37.5,84,5.6,50,0,0.02],[40,84,5.6,44,0,0.12]];
+ [0,93.5,3.2,200.3,1.38,0.1],[1.2,93,3.5,200.2,1.25,0.12],[3.2,89,5.3,198.4,0.6,0.14],[5.8,84,5.6,190,0,0.04],[8.5,84,5.6,176,0.35,0],[11,84,5.6,163,-0.55,0],[13.5,84,5.6,148,0.5,0],[16,84,5.6,134,0,0.02],[18.5,84,5.8,124,0.3,-0.12],
+ [21,62,7.4,122.5,1.0,-0.3],[23.5,52,8.4,121.6,1.0,-0.52],[26.5,44,8.8,120.6,0.3,-0.7],[28.2,44.5,8.8,120.4,-0.2,-0.72],
+ [30.5,72,6.6,122,-0.5,-0.2],[32.5,106,7.4,122.5,-1.0,-0.3],[34.5,116,8.4,121.6,-1.0,-0.52],[37,124,8.8,120.6,-0.3,-0.7],[38.6,123.5,8.8,120.4,0.2,-0.72],
+ [40.5,100,6.2,116,0.5,-0.25],[42.5,84,5.8,110,0,-0.24],[44.5,84,6,98,-0.25,-0.2],[46.5,84,6,84,0.3,-0.16],[48.5,84,5.8,70,-0.4,-0.1],[50.5,84,5.6,56,0.2,-0.04],[52,84,5.6,46,0,0.1],
+ [53.5,84,7,30,0,0.3],[55,84,9,15,0,0.44],[56.5,84,9.5,10,1.57,0.26],[58,84,10,8,3.14,0.14],[60,84,13.5,6,3.14,0.1]];
 function cr(a,b,c,d,u){ return 0.5*((2*b)+(-a+c)*u+(2*a-5*b+4*c-d)*u*u+(-a+3*b-3*c+d)*u*u*u); }
-function filmAt(t){ filming=true; roof.visible=t<40;
-  if(t<40){ var i=0; while(i<FK.length-2&&FK[i+1][0]<=t) i++; var k0=FK[Math.max(0,i-1)],k1=FK[i],k2=FK[i+1],k3=FK[Math.min(FK.length-1,i+2)], u=(t-k1[0])/(k2[0]-k1[0]), v=[];
+function filmAt(t){ filming=true; roof.visible=true;
+  if(true){ var i=0; while(i<FK.length-2&&FK[i+1][0]<=t) i++; var k0=FK[Math.max(0,i-1)],k1=FK[i],k2=FK[i+1],k3=FK[Math.min(FK.length-1,i+2)], u=(t-k1[0])/(k2[0]-k1[0]), v=[];
     for(var j=1;j<6;j++) v[j]=cr(k0[j],k1[j],k2[j],k3[j],u);
     var fy=0; for(var q=-4;q<=4;q++) fy+=floorY(v[1],v[3]+q*1.2)/9;
     cam.position.set(v[1],fy+v[2],v[3]); cam.rotation.order='YXZ'; cam.rotation.set(v[5],v[4],0); }

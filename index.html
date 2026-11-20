@@ -228,6 +228,9 @@ button.hot, button.hot:hover, .minis button.hot, .pad.land .minis button.hot {
   background: #c9a55c; color: #0b0c0f; font: 800 17px/1 var(--display); letter-spacing: .16em; text-transform: uppercase; cursor: pointer; }
 #filmGo button#goMob { background: transparent; color: #f2efe6; border-color: rgba(242,239,230,.6); }
 #filmGo button:hover { filter: brightness(1.08); }
+#filmGo .brk { order: 2; flex: 0 0 100%; height: 0; margin: -7px 0; }
+#filmGo a#goArena { order: 3; flex: 0 1 394px; box-sizing: border-box; min-height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; border: 2px solid #c9a55c; color: #c9a55c; background: rgba(11,12,15,.55); font: 800 15px/1 var(--display); letter-spacing: .16em; text-transform: uppercase; text-decoration: none; }
+@media (max-width: 430px) { #filmGo a#goArena { flex-basis: 310px; font-size: 14px; } }
 #filmGo button#goHome { order: 3; flex: 0 1 394px; min-height: 44px; background: transparent; color: #c9a55c; border: 1px dashed rgba(201,165,92,.75); font-size: 14px; letter-spacing: .14em; }
 #filmGo #homeTip { order: 4; flex: 0 1 394px; text-align: center; font: 600 14px/1.4 var(--body); color: #f2efe6; background: rgba(201,165,92,.12); border-radius: 12px; padding: 10px 14px; }
 #filmGo #homeTip b { color: #c9a55c; }
@@ -593,7 +596,7 @@ body.poster-on #tapPlay { display: block; position: sticky; bottom: calc(26px + 
 <button type="submit">Enter</button><button type="button" class="g-back" id="hvpBack">Back</button><div class="g-no" id="hvpNo" role="alert"></div></form></div>
 <div id="moveTip" hidden role="dialog" aria-label="How to move"><div class="mt-card"><button type="button" class="mt-x" aria-label="Close">&times;</button><b>How to move</b><div class="mt-body"></div><button type="button" class="mt-go">Got it</button></div></div>
 <div id="poster" hidden><div class="pz"><div class="ph l"></div><div class="ph r"></div><div class="vs">VS</div></div><div class="side-txt"><div class="pn"></div><div class="pload"><span class="spin"></span>Loading match</div></div></div>
-<div id="film"><canvas id="filmCv"></canvas><div class="film-btns"><button id="filmSound" type="button">Sound on</button><button id="filmSkip" type="button">Skip</button></div><div id="filmGo" hidden><button id="goPC" type="button">Play PC</button><button id="goMob" type="button">Play Mobile</button></div></div>
+<div id="film"><canvas id="filmCv"></canvas><div class="film-btns"><button id="filmSound" type="button">Sound on</button><button id="filmSkip" type="button">Skip</button></div><div id="filmGo" hidden><button id="goPC" type="button">Play PC</button><button id="goMob" type="button">Play Mobile</button><i class="brk"></i><a id="goArena" href="arena.html">Enter the Arena</a></div></div>
 <div class="app">
   <header class="bar" id="bar">
     <h1><img src="brand.png" alt=""><b>Fantasy League <span>Jai Alai</span></b></h1>
@@ -3849,7 +3852,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   var RING = true, ringT0 = 0;
   function homeOn() { var b = document.getElementById('a2hs'); return b && !b.hidden ? 1.85 : 0; }   // room at the foot for the Play full screen banner
   function ringGeo() {
-    var top = u() * 4 + 22, home = homeOn() * 58, BTN = u() * 3.2 + 56 + home, foot = u() * 10.4 + BTN + 14;   // the "presents" line above; PLAY FREE, the buttons and Save to Home Screen below
+    var top = u() * 4 + 22, home = homeOn() * 58, BTN = u() * 3.2 + 56 + 62 + home, foot = u() * 10.4 + BTN + 14;   // the "presents" line above; PLAY FREE, the buttons and Save to Home Screen below
     var R = Math.min((W / 2 - 10) / 1.23, (H - top - foot) / 2.46);   // badges sit on the ring and never run off the screen
     var L = Math.min(R * 0.46, 132);                                // badge size: twelve round the ring, never touching
     var block = 2 * R + L + foot, y0 = top + Math.max(0, (H - top - block - 12) / 2);   // the whole card centred on the screen
