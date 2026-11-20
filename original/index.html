@@ -164,6 +164,7 @@ body.sides.aer .pads { padding-left: calc(var(--sc) * .62); padding-right: calc(
   background: var(--panel); border: 1px solid var(--line); color: var(--muted);
   font: 800 max(10px, calc(var(--sc, 72px) * .17))/1.1 var(--display) !important; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; }
 .pad .shots.round button.langbtn:hover { color: var(--text); border-color: var(--muted); }
+.pad .shots.round button.guidebtn[aria-pressed="true"] { color: var(--gold); border-color: var(--gold); }
 
 /* and the small controls go back under the court bar */
 .pad.land .minis { flex: none; display: flex; flex-direction: row; gap: 4px; padding: 2px 2px 0; border-top: 0; }
@@ -1328,7 +1329,7 @@ window.FLFeedback = (function () {
       cfg.seats[st * 2] = cfg.seats[st * 2] ? 1 : 0; cfg.seats[st * 2 + 1] = cfg.seats[st * 2 + 1] ? 1 : 0;
     }
     cfg.sv = 2;
-    cfg.target = 9; cfg.level = 'normal'; cfg.pace = 'standard'; cfg.singles = true;   // every visit opens on singles     // these always start here; they can be changed in Play Settings for the session
+    cfg.guide = true; cfg.target = 9; cfg.level = 'normal'; cfg.pace = 'standard'; cfg.singles = true;   // every visit opens on singles     // these always start here; they can be changed in Play Settings for the session
     cfg.comp = 'league'; cfg.pick = [0, 1];                       // every visit opens on Squared Groupers vs Peloteros
     cfg.view = 'aerial'; cfg.table = false;                       // every visit opens on Professional
     cfg.lang = 'en';                                              // every version opens in English; Espa\u00f1ol is one tap away for the visit
@@ -1947,6 +1948,10 @@ window.FLFeedback = (function () {
   function langBtn() {                                              // the other language waits under the stack, one tap away
     return '<button type="button" class="langbtn" data-mini="lang" aria-label="Switch the shot names">' + (cfg.lang === 'en' ? 'Espa\u00f1ol' : 'English') + '</button>';
   }
+  function guideBtn() {                                             // one switch for the aiming circles and dotted paths that show where each shot will go
+    var on = cfg.guide !== false;
+    return '<button type="button" class="langbtn guidebtn" data-mini="guide" aria-pressed="' + on + '" aria-label="Shot guide: show or hide where each shot will land">Shot Guide ' + (on ? 'On' : 'Off') + '</button>';
+  }
   function buildPads() {
     var hs = humans(), n = 0, html = '';
     humanNo = [0, 0, 0, 0]; sidesOn = wantSides(); held = [{}, {}, {}, {}]; lastHolder = -9;
@@ -1983,7 +1988,7 @@ window.FLFeedback = (function () {
       var four = function (only) {                                 // Amateur plays the two plain shots; Pro adds the two that take the side wall
         var set = shotSet().map(function (k) { return k + 1; }), out = '';   // button index = core shot + 1
         for (var q = 0; q < set.length; q++) out += sb(only, set[q]);
-        return out + langBtn();
+        return out + langBtn() + guideBtn();
       };
       var serveBall = function (only) { return sb(only, 0, ' ball'); };
       // four shot buttons sit above a box naming the player they belong to
@@ -2289,6 +2294,7 @@ window.FLFeedback = (function () {
     var mk = b.getAttribute('data-mini');
     if (mk === 'pause') togglePause(); else if (mk === 'view') changeView(); else if (mk === 'music') musToggle();
     else if (mk === 'lang') { cfg.lang = cfg.lang === 'en' ? 'es' : 'en'; save(); buildPads(); }
+    else if (mk === 'guide') { cfg.guide = cfg.guide === false; save(); buildPads(); }
     else startDemo();
   });
 
@@ -3044,7 +3050,7 @@ window.FLFeedback = (function () {
     rc.fillStyle = '#ffd21f'; rc.fillRect(0, 9, RW, 1);
     // aim: one dotted path per shot, in the button colors
     var holder = game.holder >= 0 ? P[game.holder] : null;
-    if (holder && holder.human && game.phase !== 'point' && (!net.role || holder.team === solo)) {
+    if (cfg.guide !== false && holder && holder.human && game.phase !== 'point' && (!net.role || holder.team === solo)) {
       var shots = f.serve ? [0] : shotSet();
       for (n = 0; n < shots.length; n++) { var pr = Core.predict(Core.launch(holder, holder.aim, f.serve, shots[n]), Core.flagsFor(holder, f.serve, shots[n]), true); rc.fillStyle = pr.fault ? '#ff2e4d' : f.serve ? '#fff' : SHOTCOL[shots[n]];
         for (i = 2; i < pr.s.length; i += pr.fault ? 9 : 5) rc.fillRect(q(pr.s[i].x), q(pr.s[i].y), 1, 1); }
@@ -3108,7 +3114,7 @@ window.FLFeedback = (function () {
     for (n = 0; n < 18; n++) { var a = (t * (0.11 + (n % 5) * 0.02) + n * 0.173) % 1, sx2 = (n * 53 + 11) % RW + Math.round(Math.sin(a * 9 + n) * 3); if (a < 0.86 || blink) rc.fillRect(sx2, FL + 12 - Math.round(a * 30), a > 0.5 ? 2 : 1, 1); }
     // aim: each shot has its own spacing of dots, and its name at the far end
     var holder = game.holder >= 0 ? P[game.holder] : null;
-    if (holder && holder.human && game.phase !== 'point' && (!net.role || holder.team === solo)) {
+    if (cfg.guide !== false && holder && holder.human && game.phase !== 'point' && (!net.role || holder.team === solo)) {
       var shots = f.serve ? [0] : shotSet(), nm = ['PELOTAZO', 'REBOTE', 'CORTADA', 'DOS PAREDES', 'COSTADO'], placed = [];
       for (n = 0; n < shots.length; n++) { var sh = shots[n], pr = Core.predict(Core.launch(holder, holder.aim, f.serve, sh), Core.flagsFor(holder, f.serve, sh), true); if (pr.fault) continue;
         for (i = 2; i < pr.s.length; i += 4 + sh * 2) rc.fillRect(q(pr.s[i].x), q(pr.s[i].y), sh & 1 ? 2 : 1, sh & 1 ? 1 : 1);
@@ -3294,7 +3300,7 @@ window.FLFeedback = (function () {
       if (order[i] === holder && holder._tipS) { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(holder._tipS.X, holder._tipS.Y, Math.max(5, holder._tipS.r), 0, 6.3); ctx.fill(); v3trail.length = 0; }
     }
     if (!ballDone) drawBallNow();
-    if (holder && holder.human && game.phase !== 'point' && (!net.role || holder.team === solo)) v3aim(holder);
+    if (cfg.guide !== false && holder && holder.human && game.phase !== 'point' && (!net.role || holder.team === solo)) v3aim(holder);
     for (i = v3hits.length - 1; i >= 0; i--) {                     // impacts on the walls and floor
       var hh = v3hits[i], kk = 1 - hh.life / (hh.mark ? 1.2 : 0.4); hh.life -= fdt; if (hh.life <= 0) { v3hits.splice(i, 1); continue; }
       ctx.globalAlpha = Math.max(0, 1 - kk); ctx.strokeStyle = hh.c; ctx.lineWidth = 4;
@@ -3322,7 +3328,7 @@ window.FLFeedback = (function () {
     var P = game.players, i, holder = game.holder >= 0 ? P[game.holder] : null;
     for (i = 0; i < 4; i++) if (P[i] !== holder && !P[i].out) drawPlayer(P[i]);
     if (holder) drawPlayer(holder);
-    if (holder && holder.human && game.phase !== 'point' && (!net.role || holder.team === solo)) drawAim(holder);
+    if (cfg.guide !== false && holder && holder.human && game.phase !== 'point' && (!net.role || holder.team === solo)) drawAim(holder);
     drawParts(false); drawBall(); drawParts(true);
     ctx.drawImage(vigLayer, 0, 0, C.W, C.H);
     drawTicker();
