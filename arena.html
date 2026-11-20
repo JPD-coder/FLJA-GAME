@@ -46,8 +46,12 @@ button[aria-pressed=true]{background:var(--gold);color:#0b0c0f;border-color:var(
 #galBig p{margin:0;color:var(--fg);font-size:14px;text-align:center}
 #galBig .nav{display:flex;gap:8px}
 @media (max-width:480px){#galGrid{grid-template-columns:1fr 1fr;gap:8px}#galGrid figcaption{font-size:11.5px;padding:7px 8px}}
-#tour{position:fixed;inset:0;z-index:30;background:rgba(3,4,7,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:14px}
-#tour video{width:100%;max-width:1100px;max-height:78vh;border:1px solid var(--gold);border-radius:10px;background:#000}
+#tourHud{position:fixed;inset:0;z-index:25;pointer-events:none}
+#tourExit{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));pointer-events:auto;background:rgba(10,11,15,.55);opacity:.85}
+#tourTitle{position:absolute;left:max(22px,env(safe-area-inset-left,0px));bottom:calc(34px + env(safe-area-inset-bottom,0px));opacity:0;text-shadow:0 2px 12px #000}
+#tourTitle b{display:block;color:var(--gold);font:800 clamp(22px,4vw,44px) system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}#tourTitle i{display:block;font-style:normal;color:#fff;font:600 clamp(13px,2vw,22px) system-ui,sans-serif;margin-top:4px}
+#tourTitle.end{left:0;right:0;text-align:center;bottom:14vh}
+body.touring .top,body.touring #hint,body.touring #stick,body.touring #spotPic{display:none!important}
 #welcome button{background:var(--gold);color:#0b0c0f;border:0;font-size:16px;letter-spacing:.14em;text-transform:uppercase;padding:14px 26px}
 </style></head><body>
 <div id="view"></div>
@@ -64,7 +68,7 @@ button[aria-pressed=true]{background:var(--gold);color:#0b0c0f;border-color:var(
 <div id="spotPic" hidden><button id="spotOpen" aria-label="Open the photo of this spot"><img id="spotImg" alt=""><span><b>Photo of this spot</b><i id="spotCap"></i></span></button><button id="spotX" aria-label="Hide the photo">&times;</button></div>
 <div id="gal" hidden><header><h2>Photo Gallery</h2><button id="galX">Close &times;</button></header><div id="galGrid"></div></div>
 <div id="galBig" hidden><img id="galImg" alt=""><p id="galCap"></p><div class="nav"><button id="galPrev">&lsaquo; Prev</button><button id="galNext">Next &rsaquo;</button><button id="galGo">See it in the model</button><button id="galBack">Close &times;</button></div></div>
-<div id="tour" hidden><video id="tourV" src="arena-tour.mp4" controls playsinline preload="none" poster=""></video><button id="tourX" aria-label="Close the video">Close &times;</button></div>
+<div id="tourHud" hidden><div id="tourTitle"><b>MLJ Arena &amp; Lounge</b><i>Major League Jai Alai</i></div><button id="tourExit">Exit tour &times;</button></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
@@ -97,21 +101,21 @@ scene.add(new T.AmbientLight(0xffffff,0.95)); var hemi=new T.HemisphereLight(0xf
 [[30,40,25],[84,40,25],[138,40,25],[40,34,80],[128,34,80],[84,26,150],[30,26,155],[138,26,155]].forEach(function(p){ var l=new T.PointLight(0xfff0d0,0.8,170,1.4); l.position.set(p[0],p[1],p[2]); scene.add(l); });
 /* ---- the court ---- */
 var BLK=0x101114, GOLD=0xc9a55c;
-box(L,0.4,COURT,L/2,-0.2,COURT/2,canvasTex(2048,512,function(c,W,H){ c.fillStyle='#3a3c42'; c.fillRect(0,0,W,H); for(var i=0;i<900;i++){c.fillStyle='rgba(255,255,255,'+(Math.random()*0.035)+')'; c.fillRect(Math.random()*W,Math.random()*H,30,2);} c.fillStyle='#f2efe6'; for(var n=1;n<=14;n++){ c.fillRect(n*12/L*W-3,0,6,H);} c.fillStyle='rgba(224,57,44,.9)'; [4,7].forEach(function(n){c.fillRect(n*12/L*W-5,0,10,H);}); }) && new T.MeshLambertMaterial({map:canvasTex(2048,512,function(c,W,H){ c.fillStyle='#3a3c42'; c.fillRect(0,0,W,H); for(var i=0;i<900;i++){c.fillStyle='rgba(255,255,255,'+(Math.random()*0.035)+')'; c.fillRect(Math.random()*W,Math.random()*H,30,2);} c.fillStyle='#f2efe6'; for(var n=1;n<=14;n++){ c.fillRect(n*12/L*W-3,0,6,H);} c.fillStyle='rgba(224,57,44,.95)'; [4,7].forEach(function(n){c.fillRect(n*12/L*W-5,0,10,H);}); })}));
+box(L,0.4,COURT,L/2,-0.2,COURT/2,canvasTex(2048,512,function(c,W,H){ c.fillStyle='#3a3c42'; c.fillRect(0,0,W,H); for(var i=0;i<900;i++){c.fillStyle='rgba(255,255,255,'+(Math.random()*0.035)+')'; c.fillRect(Math.random()*W,Math.random()*H,30,2);} c.fillStyle='#f2efe6'; for(var n=1;n<=14;n++){ c.fillRect((L-n*12)/L*W-3,0,6,H);} c.fillStyle='rgba(224,57,44,.9)'; [4,7].forEach(function(n){c.fillRect((L-n*12)/L*W-5,0,10,H);}); }) && new T.MeshLambertMaterial({map:canvasTex(2048,512,function(c,W,H){ c.fillStyle='#3a3c42'; c.fillRect(0,0,W,H); for(var i=0;i<900;i++){c.fillStyle='rgba(255,255,255,'+(Math.random()*0.035)+')'; c.fillRect(Math.random()*W,Math.random()*H,30,2);} c.fillStyle='#f2efe6'; for(var n=1;n<=14;n++){ c.fillRect((L-n*12)/L*W-3,0,6,H);} c.fillStyle='rgba(224,57,44,.95)'; [4,7].forEach(function(n){c.fillRect((L-n*12)/L*W-5,0,10,H);}); })}));
 box(L,0.4,WOOD-COURT,L/2,-0.2,(COURT+WOOD)/2,new T.MeshLambertMaterial({map:canvasTex(1024,128,function(c,W,H){ for(var y=0;y<H;y+=16){ for(var x=0;x<W;x+=90){ var k=150+Math.random()*50; c.fillStyle='rgb('+k+','+Math.round(k*0.55)+','+Math.round(k*0.2)+')'; c.fillRect(x+(y%32?45:0),y,89,15);} } })}));
 box(L+4,HALLH,2,L/2,HALLH/2,-1,BLK);                                  // the long side wall
 box(2,HALLH,COURT+2,-1,HALLH/2,COURT/2-1,BLK);                         // front wall
 box(2,HALLH,COURT+2,L+1,HALLH/2,COURT/2-1,BLK);                        // back wall
 box(1.2,HALLH,1.2,-0.4,HALLH/2,COURT,GOLD); box(1.2,HALLH,1.2,L+0.4,HALLH/2,COURT,GOLD);
-box(0.3,1.6,COURT,0.2,3.2,COURT/2,0xe0392c);                           // the low red line on the front wall
-(function(){ var t=canvasTex(4096,96,function(c,W,H){ c.clearRect(0,0,W,H); c.fillStyle='#f2efe6'; c.font='900 70px Arial'; c.textAlign='center'; c.textBaseline='middle'; for(var n=1;n<=14;n++){ c.fillRect(n*12/L*W-4,0,8,H*0.25); c.fillText(n,n*12/L*W-(n===14?46:0),H*0.64);} });
+box(0.3,1.6,COURT,L-0.2,3.2,COURT/2,0xe0392c);                           // the low red line on the front wall
+(function(){ var t=canvasTex(4096,96,function(c,W,H){ c.clearRect(0,0,W,H); c.fillStyle='#f2efe6'; c.font='900 70px Arial'; c.textAlign='center'; c.textBaseline='middle'; for(var n=1;n<=14;n++){ c.fillRect((L-n*12)/L*W-4,0,8,H*0.25); c.fillText(n,(L-n*12)/L*W+(n===14?46:0),H*0.64);} });
   var m=new T.Mesh(new T.PlaneGeometry(L,4),new T.MeshBasicMaterial({map:t,transparent:true})); m.position.set(L/2,6.4,0.06); scene.add(m); })();
 box(L,1.2,0.3,L/2,38.6,0.2,GOLD);
-banner('brand.png',26,14,L/2,24,0.12,0,0x0b0c0f);
-['team-a.png','team-b.png','logo-booties.png'].forEach(function(s,i){ banner(s,13,13,18+i*19,24,0.12,0); });
-['logo-skunk-apes.png','logo-don-juans.png','logo-seamen.png'].forEach(function(s,i){ banner(s,13,13,112+i*19,24,0.12,0); });
-banner('usa-crest.png',12,12,0.12,26,20,Math.PI/2);
-sign('MAJOR LEAGUE\nJAI ALAI',20,8,L-0.1,26,20,-Math.PI/2);
+banner('mlj-shield.png',20,17,L/2,24,0.12,0,0x0b0c0f);
+['team-a.png','team-b.png','logo-skunk-apes.png'].forEach(function(s,i){ banner(s,13,13,18+i*19,24,0.12,0); });
+['logo-don-juans.png','logo-booties.png','logo-seamen.png'].forEach(function(s,i){ banner(s,13,13,112+i*19,24,0.12,0); });
+banner('usa-crest.png',12,12,L-0.12,26,20,-Math.PI/2);
+sign('MAJOR LEAGUE\nJAI ALAI',20,8,0.1,26,20,Math.PI/2);
 /* the net: thin black mesh on the inside edge of the wood, so the ball stays in */
 (function(){ var t=canvasTex(256,256,function(c,W,H){ c.clearRect(0,0,W,H); c.strokeStyle='rgba(10,10,12,.85)'; c.lineWidth=3; for(var i=0;i<=W;i+=32){ c.beginPath(); c.moveTo(i,0); c.lineTo(i,H); c.stroke(); c.beginPath(); c.moveTo(0,i); c.lineTo(W,i); c.stroke(); } }); t.wrapS=t.wrapT=T.RepeatWrapping; t.repeat.set(L/2,HALLH/2);
   var m=new T.Mesh(new T.PlaneGeometry(L,HALLH),new T.MeshBasicMaterial({map:t,transparent:true,side:T.DoubleSide,depthWrite:false})); m.position.set(L/2,HALLH/2,COURT+0.3); scene.add(m); box(L,0.5,0.5,L/2,HALLH-0.3,COURT+0.3,0x18181c); })();
@@ -295,7 +299,7 @@ car(58,205,Math.PI/2,'lambo',0xb6f000); car(84,205,Math.PI/2,'ferrari',0xd4121a)
   sign('MLJ ARENA\nPARKING',22,7,CX,G+9,497,Math.PI); box(1,6,1,CX-9,G+3,497,0x2b2d33); box(1,6,1,CX+9,G+3,497,0x2b2d33); })();
 /* ---- moving around ---- */
 var pos=new T.Vector3(CX,0,END-6), yaw=0, pitch=-0.03, mode='walk', keys={}, joy={x:0,y:0}, started=false;
-var orbit={a:0.62,e:0.7,d:340}, SPOTS={entry:[CX,END-6,0],food:[62,DOORZ+24,0.75],merch:[112,DOORZ+30,-0.75],rest:[138,DOORZ+25.6,Math.PI],doors:[CX,DOORZ+12,0],sharks:[70,121,1.1],goldfish:[98,121,-1.1],seats:[CX+25,100,0],vip:[CX,72,0],court:[70,20,Math.PI/2],valet:[60,262,-0.3],vpark:[CX,322,0],lot:[CX,446,0],marina:[WX-13,128,-2.0]};
+var orbit={a:0.62,e:0.7,d:340}, SPOTS={entry:[CX,END-6,0],food:[62,DOORZ+24,0.75],merch:[112,DOORZ+30,-0.75],rest:[138,DOORZ+25.6,Math.PI],doors:[CX,DOORZ+12,0],sharks:[70,121,1.1],goldfish:[98,121,-1.1],seats:[CX+25,100,0],vip:[CX,72,0],court:[98,20,-Math.PI/2],valet:[60,262,-0.3],vpark:[CX,322,0],lot:[CX,446,0],marina:[WX-13,128,-2.0]};
 function zone(x,z){ return (x<-3||x>L+3||z<-3||z>=END)?3:z<COURT?0:z<DOORZ?1:2; }
 function tryMove(nx,nz){ var z0=zone(pos.x,pos.z);
   if(z0===3){ nx=Math.max(-104,Math.min(WX-2,nx)); nz=Math.max(-84,Math.min(494,nz)); if(nx>-4&&nx<L+4&&nz>-4&&nz<END+1.6&&!(Math.abs(nx-CX)<7&&nz>END-3)){ if(pos.x>-4&&pos.x<L+4) nz=pos.z; else nx=pos.x; } pos.x=nx; pos.z=nz; return; }
@@ -325,8 +329,16 @@ el.addEventListener('wheel',function(e){ if(mode!=='walk'){ orbit.d=Math.max(60,
   function end(e){ if(e.pointerId===id){ id=null; joy.x=joy.y=0; k.style.transform=''; } } s.addEventListener('pointerup',end); s.addEventListener('pointercancel',end); })();
 document.getElementById('mWalk').onclick=function(){ setMode('walk'); }; document.getElementById('mDoll').onclick=function(){ setMode('doll'); };
 document.getElementById('goto').onchange=function(){ var k=this.value; this.value=''; goSpot(k); };
-(function(){ var box=document.getElementById('tour'), v=document.getElementById('tourV'); function open(){ box.hidden=false; try{ v.currentTime=0; var p=v.play(); if(p&&p.catch) p.catch(function(){}); }catch(e){} } function close(){ v.pause(); box.hidden=true; }
-  document.getElementById('tourBtn').onclick=open; document.getElementById('tourX').onclick=close; v.addEventListener('ended',close); })();
+var touring=false, tourT0=0, tourA=null;
+function endTour(){ if(!touring) return; touring=false; filming=false; if(tourA){ try{ tourA.pause(); }catch(e){} } document.body.classList.remove('touring'); document.getElementById('tourHud').hidden=true;
+  try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(e){} setMode('walk'); }
+function startTour(){ touring=true; document.body.classList.add('touring'); document.getElementById('tourHud').hidden=false; document.getElementById('spotPic').hidden=true;
+  try{ var p=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen(); if(p&&p.catch) p.catch(function(){}); }catch(e){}
+  try{ if(!tourA){ tourA=new Audio('arena-tour.mp3'); } tourA.currentTime=0; var q=tourA.play(); if(q&&q.catch) q.catch(function(){}); }catch(e){}
+  tourT0=performance.now(); }
+function tourFrame(now){ var t=(now-tourT0)/1000; if(t>=45){ endTour(); return; } filmAt(t); size();
+  var el=document.getElementById('tourTitle'), o=t<0.6?0:t<1.2?(t-0.6)/0.6:t<3.6?1:t<4.4?(4.4-t)/0.8:t<41.6?0:t<42.4?(t-41.6)/0.8:t<44.2?1:(45-t)/0.8; el.style.opacity=Math.max(0,Math.min(1,o)); el.className=t>40?'end':''; }
+document.getElementById('tourBtn').onclick=startTour; document.getElementById('tourExit').onclick=endTour; addEventListener('keydown',function(e){ if(touring&&e.key==='Escape') endTour(); });
 (function(){ var PH=[["The MLJ Arena on the Intracoastal", "doll"], ["Valet arrival under the porte-cochère", "valet"], ["Welcome to the MLJ Arena", "entry"], ["Food court and The Cesta Bar", "food"], ["Official team gear at the merch store", "merch"], ["The exotic goldfish bar", "goldfish"], ["Exotic goldfish under your cocktail", "goldfish"], ["The shark tank bar", "sharks"], ["A shark under your cocktail", "sharks"], ["Team banners on the side wall", "seats"], ["Fans in team gear in the stadium seats", "seats"], ["VIP couches, courtside", "vip"], ["The best seat in the house", "vip"], ["Bottle service in the VIP", "vip"], ["The VIP section and the stands", "vip"], ["Match night on the court", "court"], ["Full stretch for the pelota", "court"], ["The Peloteros and the Squared Groupers", "court"]], SPOTPIC={entry:2,doors:2,food:3,merch:4,goldfish:5,sharks:7,seats:10,vip:11,court:15,valet:1,vpark:1,lot:0,marina:0},
   gal=document.getElementById('gal'), grid=document.getElementById('galGrid'), big=document.getElementById('galBig'), img=document.getElementById('galImg'), cap=document.getElementById('galCap'), chip=document.getElementById('spotPic'), cur=0, built=false;
   function n2(i){ return (i<9?'0':'')+(i+1); }
@@ -348,7 +360,7 @@ setMode('walk');
 /* ---- the film: one camera path, driven frame by frame from outside (window.__arena.film(seconds)) ---- */
 var filming=false, FK=[ /* t, x, eye height, z, yaw, pitch */
  [0,93.5,3.2,200.3,1.38,0.1],[1.2,93,3.5,200.2,1.25,0.12],[3.2,89,5.3,198.4,0.6,0.14],[5.8,84,5.6,190,0,0.04],[8,84,5.6,176,0.35,0],[10.5,84,5.6,163,-0.55,0],[13,84,5.6,148,0.5,0],[15.5,84,5.6,134,0,0.02],
- [18,84,5.6,123,0,-0.16],[20.5,74,5.6,119,1.05,-0.1],[23,84,5.6,113,0.15,-0.24],[26,84,6,100,-0.25,-0.2],[29,84,6,86,0.3,-0.16],[32,84,5.8,72,-0.45,-0.1],[35,84,5.6,60,0.4,-0.06],
+ [17.6,84,5.6,123,0,-0.16],[19.6,74,5.6,119,1.05,-0.1],[22,94,5.6,119,-1.05,-0.1],[24,84,5.6,113,0,-0.24],[26.5,84,6,100,-0.25,-0.2],[29,84,6,86,0.3,-0.16],[32,84,5.8,72,-0.45,-0.1],[35,84,5.6,60,0.4,-0.06],
  [37.5,84,5.6,50,0,0.02],[40,84,5.6,44,0,0.12]];
 function cr(a,b,c,d,u){ return 0.5*((2*b)+(-a+c)*u+(2*a-5*b+4*c-d)*u*u+(-a+3*b-3*c+d)*u*u*u); }
 function filmAt(t){ filming=true; roof.visible=t<40;
@@ -361,7 +373,7 @@ function filmAt(t){ filming=true; roof.visible=t<40;
   sharks.forEach(function(s){ var a2=t*s.sp+s.ph; s.g.position.set(s.x+Math.cos(a2)*10.4,s.y+Math.sin(a2*2.3)*0.25,s.z+Math.sin(a2)*2.1); s.g.rotation.y=-a2-Math.PI/2; });
   renderer.render(scene,cam); }
 var last=performance.now();
-function frame(now){ if(filming){ requestAnimationFrame(frame); return; } var dt=Math.min(0.05,(now-last)/1000); last=now;
+function frame(now){ if(touring){ tourFrame(now); requestAnimationFrame(frame); return; } if(filming){ requestAnimationFrame(frame); return; } var dt=Math.min(0.05,(now-last)/1000); last=now;
   if(mode==='walk'){ var f=(keys.w||keys.arrowup?1:0)-(keys.s||keys.arrowdown?1:0)-joy.y, sd=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0)+joy.x, sp=(keys.shift?34:17)*dt;
     if(f||sd){ var sx=Math.sin(yaw), cz=Math.cos(yaw); tryMove(pos.x-(sx*f-cz*sd)*sp, pos.z-(cz*f+sx*sd)*sp); }
     var ty=floorY(pos.x,pos.z)+5.6; pos.y+=(ty-pos.y)*Math.min(1,dt*10);
@@ -371,6 +383,6 @@ function frame(now){ if(filming){ requestAnimationFrame(frame); return; } var dt
   var t=now/1000; sharks.forEach(function(s){ var a=t*s.sp+s.ph; s.g.position.set(s.x+Math.cos(a)*10.4,s.y+Math.sin(a*2.3)*0.25,s.z+Math.sin(a)*2.1); s.g.rotation.y=-a-Math.PI/2; });
   renderer.render(scene,cam); requestAnimationFrame(frame); }
 pos.y=TERY+5.6; requestAnimationFrame(frame);
-window.__arena={film:filmAt,pos:pos,setMode:setMode,go:function(k){ var s=SPOTS[k]; pos.x=s[0]; pos.z=s[1]; yaw=s[2]; pitch=-0.05; },goSpot:function(k){ goSpot(k); },look:function(y,p){ yaw=y; pitch=p||0; }};
+window.__arena={film:filmAt,tourAt:function(sec){ tourT0=performance.now()-sec*1000; },isTouring:function(){ return touring; },pos:pos,setMode:setMode,go:function(k){ var s=SPOTS[k]; pos.x=s[0]; pos.z=s[1]; yaw=s[2]; pitch=-0.05; },goSpot:function(k){ goSpot(k); },look:function(y,p){ yaw=y; pitch=p||0; }};
 })();
 </script></body></html>
