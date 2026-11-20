@@ -1166,14 +1166,14 @@ if (typeof module !== 'undefined') module.exports = Core;
 </script>
 <script>
 /* ---------- Fantasy League Jai Alai: tester feedback ----------
-   The game notes, in this browser only, which of the six modes a tester has started a match in. Once all six have been played, the
-   survey opens the next time they are between matches. They give their name and answer ten short questions (choices open as a drop-down list; one or several can be ticked); the answers are posted to
+   The game notes, in this browser only, which of the six modes a tester has started a match in. Once all six have been tried (a full match is not needed; switching
+   modes mid-match counts), the survey opens: at once if they are between matches, otherwise a few seconds into the last mode, pausing the match. They give their name and answer ten short questions (choices open as a drop-down list; one or several can be ticked); the answers are posted to
    the relay (window.FL_FEEDBACK, set on the hosted game only). A "Give Feedback" link on the selection page opens it at any time.
    Where there is nowhere to post to (the Claude preview), the form says so and collects nothing. */
 window.FLFeedback = (function () {
   'use strict';
   var MODES = [['aerial', 'Professional'], ['side', 'Amateur'], ['table', 'Cocktail Table'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', '50s Vintage']];
-  var K_PLAYED = 'flja-modes', K_DONE = 'flja-fb-done', asked = false, box = null, state = function () { return { idle: false }; };
+  var K_PLAYED = 'flja-modes', K_DONE = 'flja-fb-done', WAIT = 8000, fullAt = 0, asked = false, box = null, state = function () { return { idle: false }; };
   function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private window: the survey still works, it just will not remember */ } }
   function playedSet() { var o = {}; try { o = JSON.parse(get(K_PLAYED) || '{}') || {}; } catch (e) { o = {}; } return o; }
@@ -1258,7 +1258,11 @@ window.FLFeedback = (function () {
   setInterval(function () {
     if (asked || get(K_DONE) || !allPlayed()) return;
     var s; try { s = state(); } catch (e) { s = { idle: false }; }
-    if (s && s.idle) open();
+    if (!s) return;
+    if (s.idle) { open(); return; }
+    if (!s.live) return;                                   // a match is running: give them a few seconds in the last mode, then pause it and ask
+    if (!fullAt) fullAt = Date.now();
+    if (Date.now() - fullAt >= WAIT) { try { if (s.pause) s.pause(); } catch (e) { /* the survey still opens */ } open(); }
   }, 1200);
   return { played: played, open: open, close: close, allPlayed: allPlayed, isOpen: function () { return !!(box && !box.hidden); }, bind: function (fn) { state = fn; } };
 })();
@@ -1815,6 +1819,7 @@ window.FLFeedback = (function () {
     setView(v); cfg.view = view; save(); trail = []; v3trail.length = 0; v3hits.length = 0;
     for (var i = 0; game && i < 4; i++) { game.players[i]._pose = null; game.players[i]._tip = null; game.players[i]._tipS = null; }
     lastHolder = -99; sidesOn = null; buildSetup(); show();
+    if (mode === 'match' && !net.role && window.FLFeedback) window.FLFeedback.played(view);
   }
   function buildSetup() {
     setTimeout(tapLabel, 0);
@@ -1874,12 +1879,12 @@ window.FLFeedback = (function () {
     }
     setTimeout(function () { try { $('hvpPass').focus(); } catch (e) { /* ignore */ } }, 30);
   }
-  /* the feedback survey waits for a quiet moment: the selection page, or a match that has just finished */
+  /* the feedback survey opens at a quiet moment (the selection page, a finished match), or pauses a match shortly after the last of the six modes has been tried */
   if (window.FLFeedback) { window.FLFeedback.bind(function () {
     if (document.body.classList.contains('locked') || document.getElementById('film')) return { idle: false };
     var p = $('poster'); if (p && !p.hidden) return { idle: false };
-    if (window.Table && window.Table.isOpen()) return { idle: window.Table.mode() === 'over' };
-    if (mode === 'match') return { idle: !!game && game.phase === 'over' };
+    if (window.Table && window.Table.isOpen()) return { idle: window.Table.mode() === 'over', live: window.Table.mode() === 'play' && !window.Table.tip(), pause: window.Table.pause };
+    if (mode === 'match') return { idle: !!game && game.phase === 'over', live: !net.role && !!game && game.phase !== 'over', pause: function () { if (!paused) { paused = true; show(); } } };
     return { idle: document.body.classList.contains('pv-setup') };
   }); if ($('fbLink')) $('fbLink').addEventListener('click', function () { window.FLFeedback.open(); }); }
   function hvpClean(v) { return String(v || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
@@ -4470,7 +4475,7 @@ window.Table = (function () {
   }
   function close() { running = false; cancelAnimationFrame(raf); if (cv) { cv.style.display = 'none'; } keys = {}; }
   var api = { open: open, close: close, isOpen: function () { return running; }, score: function () { return game ? game.score.slice() : null; },
-    game: function () { return game; }, L: function () { return L; }, Xz: Xz, Y: Y, btnPos: btnPos, topPos: topPos, mode: function () { return mode; }, tip: function () { return tip; }, paused: function () { return paused; }, serveOK: function () { return serveOK; }, geo: function () { return { turn: turn, ox: ox, W: W, H: H, vw: vw, vh: vh }; } };
+    game: function () { return game; }, L: function () { return L; }, Xz: Xz, Y: Y, btnPos: btnPos, topPos: topPos, mode: function () { return mode; }, tip: function () { return tip; }, paused: function () { return paused; }, pause: function () { if (mode === 'play') paused = true; }, serveOK: function () { return serveOK; }, geo: function () { return { turn: turn, ox: ox, W: W, H: H, vw: vw, vh: vh }; } };
   window.__table = api;
   if (document.getElementById('tableCv')) open(null);               // the test page: straight in, with the defaults
   return api;
