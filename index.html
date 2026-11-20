@@ -4093,7 +4093,7 @@ window.Table = (function () {
   var game = null, mode = 'intro', paused = false, target = null, joy = { id: null, x: 0, y: 0 }, lastZ = 0.5, throwReq = null, fx = { rings: [], trail: [], bits: [], texts: [] }, T = 0, pressed = -1, pressT = 0, topHit = -1, topT = 0, glowPh = 0, serveOK = false;
   function newMatch(score) {
     game = Core.newGame({ seats: O.singles ? [1, 0, 0, 0] : [1, 1, 0, 0], solo: [!O.singles, false], singles: !!O.singles, target: O.target, level: O.level, rebHold: O.rebHold, firstServe: 0,
-      latK: 1.5, latAcc: 14000, latZ: 1.9 });                       // a long court under one finger: the player you steer covers it faster here
+      latK: O.singles ? 2.1 : 2.7, latAcc: 22000, latZ: 2.7 });                       // a long court under one finger: the player you steer covers it faster here
     game.lat = true; if (score) game.score = score.slice(0, 2);
     target = null; throwReq = null; fx.trail = []; fx.texts = []; paused = false; mode = 'play';
   }
@@ -4248,7 +4248,7 @@ window.Table = (function () {
       var jx = joy.id != null ? joy.x : kx, jy = joy.id != null ? -joy.y : ky;          // stick up = up the court, toward the front wall
       var DZ = 0.16, ax2 = Math.abs(jx), ay2 = Math.abs(jy);                             // a small dead middle, then full pace by half a push; let go and he stops
       if (ax2 > DZ || ay2 > DZ) { target = null; inp.dir = ay2 > DZ ? (jy > 0 ? 1 : -1) * Math.min(1, (ay2 - DZ) / 0.34) : 0; inp.lat = ax2 > DZ ? (jx > 0 ? 1 : -1) * Math.min(1, (ax2 - DZ) / 0.34) : 0; lastZ = jx < -0.3 ? 0.2 : jx > 0.3 ? 0.8 : 0.5; }
-      else if (target) { var dx = target.x - me.x, dz = target.z - me.z; if (Math.abs(dx) > 6) inp.dir = Math.max(-1, Math.min(1, dx / 70)); if (Math.abs(dz) > 0.012) inp.lat = Math.max(-1, Math.min(1, dz / 0.07)); if (!inp.dir && !inp.lat && !Object.keys(ptrs).length) target = null; }   // flat out to your finger, easing in over the last step so he stops on it
+      else if (target) { var dx = target.x - me.x, dz = target.z - me.z; if (Math.abs(dx) > 6) inp.dir = Math.max(-1, Math.min(1, dx / 110)); if (Math.abs(dz) > 0.012) inp.lat = Math.max(-1, Math.min(1, dz / 0.1)); if (!inp.dir && !inp.lat && !Object.keys(ptrs).length) target = null; }   // flat out to your finger, easing in over the last step so he stops on it
       else if (!holding()) lastZ = 0.5;
       if (throwReq != null && holding()) { var hp = game.players[game.holder], serve = game.flags.serve; inp.throw = true; inp.hard = serve ? 0 : throwReq; if (!serve) inp.angle = pickAngle(hp, throwReq); inp.lat = lastZ < 0.38 ? -1 : lastZ > 0.62 ? 1 : 0; }   // the serve goes at whatever the sweep is on right now
       throwReq = null;
