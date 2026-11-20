@@ -1302,6 +1302,7 @@ window.FLFeedback = (function () {
     { name: 'Twin Peaks', logo: 'peaks-crest.png', ui: '#ff3b3b', hv: 'peaks', kit: { jersey: '#17171a', sash: '#d81e2c', helm: '#17171a', num: '#d81e2c' } }
   );
   if (window.FL_PROMO && window.FL_PROMO.extra) window.FL_PROMO.extra.forEach(function (r) { ROSTER.push(r); });   // a match-up page can bring a uniform of its own (Fantasy League white)
+  if (window.FL_PROMO && window.FL_PROMO.kits) for (var pk in window.FL_PROMO.kits) ROSTER[pk].kit = window.FL_PROMO.kits[pk];   // and dress a team its own way on that page only (Team USA in navy)
   window.FL_ROSTER = ROSTER;                                      // the opening film shows the same crests and flags
   var TEAM = [{ ui: '#a8e22a', legs: '#1c4a0b' }, { ui: '#3bb4e6', legs: '#ef1a8c' }];
   var GOLD = '#c9a55c', CHALK = '#f2efe6', MUTED = '#9b9ca6', RED = '#ff5a4d';
@@ -1544,7 +1545,7 @@ window.FLFeedback = (function () {
   }
   function applyTeams() {
     var p = cfg.pick;
-    if (!p || !ROSTER[p[0]] || !ROSTER[p[1]] || (p[0] === p[1] && !(PROMO && p[0] === PROMO.shared))) p = cfg.pick = [0, 1];   // a match-up page lets both wear its own white
+    if (!p || !ROSTER[p[0]] || !ROSTER[p[1]] || (p[0] === p[1] && !PROMO)) p = cfg.pick = [0, 1];   // a match-up page lets both men wear the same uniform
     if (cfg.comp !== 'league' && cfg.comp !== 'world' && cfg.comp !== 'hvp') cfg.comp = 'league';
     HVT = [ROSTER[p[0]].hv || null, ROSTER[p[1]].hv || null]; HVP = !!(MULTI && HVT[0] && HVT[1]);
     document.body.classList.toggle('hvp', HVP);
@@ -3725,8 +3726,7 @@ window.FLFeedback = (function () {
       nb.style.setProperty('--tc', tc); nb.setAttribute('aria-pressed', String(i === promoMe));
       nb.querySelector('em').textContent = i === promoMe ? 'You' : 'CPU';
       var sel = el.querySelector('.pm-team[data-i="' + i + '"]'); sel.value = String(promoTeams[i]); sel.style.setProperty('--tc', tc);
-      [].forEach.call(sel.options, function (o) { o.disabled = +o.value === promoTeams[1 - i] && +o.value !== P.shared; });   // never the same team, except the shared Fantasy League white
-    });
+          });
   }
   function promoBuild() {
     var P = PROMO, NAMES = { aerial: 'Professional', side: 'Amateur', table: 'Cocktail Table' }, st = document.createElement('style'), F = 'var(--body,system-ui,sans-serif)';
