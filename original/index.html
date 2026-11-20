@@ -668,7 +668,7 @@ body.poster-on #tapPlay { display: block; position: sticky; bottom: calc(26px + 
       <div class="opt-label">Play a friend online</div>
       <div id="onlineBody"></div>
     </div>
-    <a id="arenaLink" href="arena.html">View the Arena <span>walk through the MLJ fronton in 3D</span></a>
+    <a id="arenaLink" href="arena.html" onclick="try{sessionStorage.setItem('flja-back',window.FL_PLAY||'mobile')}catch(e){}">View the Arena <span>walk through the MLJ fronton in 3D</span></a>
   <button type="button" id="tapPlay">Tap to Play</button>
   </section>
 
@@ -3959,7 +3959,16 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   var known = '';
   try { known = localStorage.getItem(KEY) || ''; } catch (e) { known = ''; }
-  if (!gate || (known && known.toLowerCase() === PASS)) { roll(); }   // devices that already said Bueno22 stay in
+  /* coming back from the arena tour: skip the title screen and land on the team selection page, the way they left it */
+  function backIn() {
+    var how = '';
+    try { how = sessionStorage.getItem('flja-back') || ''; sessionStorage.removeItem('flja-back'); } catch (e) { how = ''; }
+    if (!how && location.hash === '#setup') how = (('ontouchstart' in window) || navigator.maxTouchPoints > 0) ? 'mobile' : 'pc';
+    if (!how) return;
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ }
+    setTimeout(function () { go(how === 'pc' ? 'pc' : 'mobile'); }, 0);
+  }
+  if (!gate || (known && known.toLowerCase() === PASS)) { roll(); backIn(); }   // devices that already said Bueno22 stay in
   else {
     document.body.classList.add('locked');
     gate.hidden = false;
