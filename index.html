@@ -4082,6 +4082,18 @@ window.Table = (function () {
     var ls = (C.LINES[1] - C.LINES[2]) * L.u, ts = Math.min(W * 0.19, ls * 1.7);                                  // one size for every club logo; the Fantasy League mark is exactly twice it
     decal('brand.png', (C.LINES[7] + C.LINES[8]) / 2, 0.5, Math.min(W * 0.68, ls * 6.2), 0.24);
     FLOOR.forEach(function (f) { var l0 = Math.floor(f[1]); decal(f[0], C.LINES[l0] + (C.LINES[l0 + 1] - C.LINES[l0]) * (f[1] - l0), f[2], ts, 0.34); });
+    /* the four fronton-wall sponsors, painted on the floor and kept bright enough to read: white marks, laid over the dark floor */
+    (function () { var im = img['fronton6.jpg'], w = L.cw * 0.4, yT = Y((C.LINES[2] + C.LINES[3]) / 2), yB = Y((C.LINES[12] + C.LINES[13]) / 2);
+      function mark(crop, cxp, cyp) { if (!ok(im)) return; var sw = im.naturalWidth * crop[2] / 100, sh = im.naturalHeight * crop[3] / 100, k = Math.min(w / sw, (C.LINES[2] - C.LINES[3]) * L.u * 0.86 / sh);
+        c.save(); c.globalCompositeOperation = 'screen'; c.globalAlpha = 0.92; c.drawImage(im, im.naturalWidth * crop[0] / 100, im.naturalHeight * crop[1] / 100, sw, sh, cxp - sw * k / 2, cyp - sh * k / 2, sw * k, sh * k); c.restore(); }
+      mark([10.7, 17.5, 11.6, 9.4], Xz(0.29), yT);                      // Silver Palm Capital, far left
+      mark([22.6, 17.5, 11.6, 9.4], Xz(0.74), yT);                      // The Casino at Dania Beach, far right
+      mark([78.0, 16.2, 11.5, 9.6], Xz(0.74), yB);                      // rewyld, near right
+      c.save(); c.globalAlpha = 0.92; c.translate(Xz(0.29), yB); var kk = w / 250; c.scale(kk, kk); c.font = 'bold 30px Georgia,"Times New Roman",serif'; c.textAlign = 'left'; c.textBaseline = 'middle';   // Open Book, near left: drawn, as on the wall
+      var obw = c.measureText('Open Book').width, bx = -(44 + 12 + obw) / 2 + 22, sd;
+      for (sd = -1; sd <= 1; sd += 2) { c.fillStyle = '#ffffff'; c.beginPath(); c.moveTo(bx + sd * 1.5, -11); c.quadraticCurveTo(bx + sd * 11, -18, bx + sd * 22, -13); c.lineTo(bx + sd * 22, 11); c.quadraticCurveTo(bx + sd * 11, 6, bx + sd * 1.5, 13); c.closePath(); c.fill();
+        c.strokeStyle = '#0d0d0d'; c.lineWidth = 1.6; c.beginPath(); c.moveTo(bx + sd * 6, -7); c.quadraticCurveTo(bx + sd * 12, -10, bx + sd * 18, -7.5); c.moveTo(bx + sd * 6, -1); c.quadraticCurveTo(bx + sd * 12, -4, bx + sd * 18, -1.5); c.stroke(); }
+      c.fillStyle = '#ffffff'; c.fillText('Open Book', bx + 22 + 12, 1); c.restore(); })();
     /* lines, with their numbers down the side wall: 1 is nearest the front wall, 4 and 7 are the serve lines */
     c.textAlign = 'center'; c.textBaseline = 'middle'; var fs = Math.max(10, W * 0.036); c.font = '800 ' + fs + 'px system-ui,Arial,sans-serif';
     for (var i = 1; i <= 14; i++) { var y = Y(C.LINES[i]), red = false; c.fillStyle = red ? '#e0392c' : 'rgba(244,241,232,.9)'; c.fillRect(L.cx, y - (red ? 1.6 : 1), L.cw, red ? 3.2 : 2);
@@ -4291,7 +4303,7 @@ window.Table = (function () {
     if (!cv) { cv = document.createElement('canvas'); cv.id = 'tableCv'; cv.style.cssText = 'position:fixed;left:0;top:0;z-index:10020;display:block;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:#07070a'; document.body.appendChild(cv); }
     cv.hidden = false; cv.style.display = 'block'; ctx = cv.getContext('2d');
     if (!bound) { bound = true; cv.addEventListener('pointerdown', down); cv.addEventListener('pointermove', move); cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up); window.addEventListener('keydown', kd, true); window.addEventListener('keyup', ku, true); }
-    FLOOR.forEach(function (f) { load(f[0]); }); load('brand.png'); load(O.teams[0].logo); load(O.teams[1].logo);
+    FLOOR.forEach(function (f) { load(f[0]); }); load('brand.png'); load('fronton6.jpg'); load(O.teams[0].logo); load(O.teams[1].logo);
     layout(); game = null; mode = 'intro'; keys = {}; joy.id = null; joy.x = joy.y = 0;
     tip = false; if (!O.intro) { newMatch(O.score); tip = true; }   // opened from the game: the how-to card first, every time
     if (!running) { running = true; last = performance.now(); raf = requestAnimationFrame(frame); }
