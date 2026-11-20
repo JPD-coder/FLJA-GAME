@@ -593,11 +593,11 @@ body.poster-on #tapPlay { display: block; position: sticky; bottom: calc(26px + 
 
 <div id="gate" hidden><form id="gateForm" autocomplete="off"><img src="brand.png" alt="">
 <div class="g-name">Fantasy League</div><div class="g-big">Jai Alai</div>
-<input id="gatePass" type="password" inputmode="text" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Password" placeholder="Password">
+<input id="gatePass" name="flja-word" type="text" inputmode="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" data-1p-ignore data-lpignore="true" enterkeyhint="go" aria-label="Password" placeholder="Password">
 <button type="submit">Enter</button><div class="g-no" id="gateNo" role="alert"></div></form></div>
 <div id="hvpGate" hidden><form id="hvpForm" autocomplete="off"><img class="g-art" src="hvp-door.jpg?v=2" alt="A Hooters player and a Twin Peaks player face off, each with a cesta">
 <div class="g-name">Members only</div><div class="g-big"><span class="ho">Hoots</span> vs <span class="pk">Peaks</span></div>
-<input id="hvpPass" type="password" inputmode="text" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Hoots vs Peaks password" placeholder="Password">
+<input id="hvpPass" name="flja-word2" type="text" inputmode="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" data-1p-ignore data-lpignore="true" enterkeyhint="go" aria-label="Hoots vs Peaks password" placeholder="Password">
 <button type="submit">Enter</button><button type="button" class="g-back" id="hvpBack">Back</button><div class="g-no" id="hvpNo" role="alert"></div></form></div>
 <div id="moveTip" hidden role="dialog" aria-label="How to move"><div class="mt-card"><button type="button" class="mt-x" aria-label="Close">&times;</button><b>How to move</b><div class="mt-body"></div><button type="button" class="mt-go">Got it</button></div></div>
 <div id="poster" hidden><div class="pz"><div class="ph l"></div><div class="ph r"></div><div class="vs">VS</div></div><div class="side-txt"><div class="pn"></div><div class="pload"><span class="spin"></span>Loading match</div></div></div>
@@ -1749,16 +1749,18 @@ if (typeof module !== 'undefined') module.exports = Core;
     }
     setTimeout(function () { try { $('hvpPass').focus(); } catch (e) { /* ignore */ } }, 30);
   }
+  function hvpClean(v) { return String(v || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
   if ($('hvpForm')) {
     $('hvpForm').addEventListener('submit', function (e) {
       e.preventDefault();
       var g = $('hvpGate');
-      if (HVP_PASS.indexOf($('hvpPass').value.trim().toLowerCase()) >= 0) {
+      if (HVP_PASS.indexOf(hvpClean($('hvpPass').value)) >= 0) {
         g.hidden = true; $('hvpPass').blur(); setComp('hvp');
       } else {
         $('hvpNo').textContent = 'Wrong password'; g.classList.remove('wrong'); void g.offsetWidth; g.classList.add('wrong'); $('hvpPass').select();
       }
     });
+    $('hvpPass').addEventListener('input', function () { if (!$('hvpGate').hidden && HVP_PASS.indexOf(hvpClean($('hvpPass').value)) >= 0) { $('hvpGate').hidden = true; $('hvpPass').blur(); setComp('hvp'); } });   // opens the moment the word is right
     $('hvpBack').addEventListener('click', function () { $('hvpGate').hidden = true; });
     if (hvpWant) setTimeout(hvpAsk, 0);                           // a link straight to Hoots vs Peaks asks first
   }
@@ -4024,9 +4026,13 @@ if (typeof module !== 'undefined') module.exports = Core;
     gate.hidden = false;
     var inp = document.getElementById('gatePass'), no = document.getElementById('gateNo');
     setTimeout(function () { try { inp.focus(); } catch (e) { /* ignore */ } }, 60);
+    /* The word is shown as it is typed (a phone's keyboard hides mistakes behind dots, and its password manager offers an old saved word to a
+       password box), spaces, capitals and stray marks do not count, and the door opens the moment the word is right: no need to find Enter. */
+    function clean(v) { return String(v || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+    inp.addEventListener('input', function () { if (clean(inp.value) === PASS) letIn(); });
     document.getElementById('gateForm').addEventListener('submit', function (e) {
       e.preventDefault();
-      if (inp.value.trim().toLowerCase() === PASS) { letIn(); return; }
+      if (clean(inp.value) === PASS) { letIn(); return; }
       no.textContent = 'That is not it. Try again.';
       gate.classList.remove('wrong'); void gate.offsetWidth; gate.classList.add('wrong');
       inp.value = ''; try { inp.focus(); } catch (x) { /* ignore */ }
