@@ -10,9 +10,12 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font:15px/1.
 .top{position:fixed;inset:0 0 auto 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:10px max(12px,env(safe-area-inset-right,0px)) 10px max(12px,env(safe-area-inset-left,0px));pointer-events:none;z-index:5}
 .top>*{pointer-events:auto}
 .brand{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-size:13px}
-.acts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.row3{display:flex;gap:6px;flex-wrap:nowrap}.row3 button{white-space:nowrap}
-@media (max-width:640px){.acts{width:100%}.row3{width:100%;display:grid;grid-template-columns:1fr 1fr}.row3 button{padding:9px 6px;font-size:12.5px}}
+.acts{display:grid;grid-template-columns:repeat(6,152px);gap:6px;align-items:stretch}
+.row3{display:contents}
+.acts button,.acts select,.acts a.btn{box-sizing:border-box;width:100%;min-height:38px;margin:0;padding:8px 6px;text-align:center;text-align-last:center;white-space:nowrap;display:flex;align-items:center;justify-content:center;font-size:12.5px}
+.acts select{display:block}
+@media (max-width:1180px){.acts{grid-template-columns:repeat(3,152px)}}
+@media (max-width:640px){.acts{width:100%;grid-template-columns:1fr 1fr}.acts button,.acts select,.acts a.btn{min-height:40px}}
 button,select,a.btn{font:700 13px system-ui,sans-serif;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:9px 13px;cursor:pointer;text-decoration:none}
 button[aria-pressed=true]{background:var(--gold);color:#0b0c0f;border-color:var(--gold)}
 #hint{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:12.5px;color:var(--muted);z-index:5;white-space:nowrap;max-width:94vw;overflow:hidden;text-overflow:ellipsis}
