@@ -449,7 +449,7 @@ if (typeof module !== 'undefined') module.exports = Core;
 
 </script>
 <script>
-/* ---------- Fantasy League Jai Alai: Coffee Table ----------
+/* ---------- Fantasy League Jai Alai: Cocktail Table ----------
    The phone lies flat and you play from its short side. The court runs up the phone: the front wall, with the scoreboard on it,
    is at the far end; the back wall is at your end; the side wall, with the line numbers, is on your left. A joystick sits in the
    middle at your end with three throw buttons either side of it. It runs on the same rules engine and the same settings as every
@@ -724,7 +724,7 @@ window.Table = (function () {
     ctx.drawImage(bg, 0, 0, W, H);
     if (game) { ctx.save(); ctx.beginPath(); ctx.rect(0, L.wallH, W, L.barY - L.wallH); ctx.clip(); drawGuides(dt); var me2 = mine(), P = game.players.filter(function (p) { return !p.out; }).sort(function (a, b) { return b.x - a.x; }); P.forEach(function (p) { drawPlayer(p, p === me2); }); drawBall(); ctx.restore(); }
     drawControls(); drawFx(dt);
-    if (mode === 'intro') panel(['COFFEE TABLE', 'Lay your phone flat and play from this end.', 'Move with the stick, or touch the court.', 'Serve when lines 4 and 7 flash red.', 'Throw with the colored buttons.'], 'TAP TO PLAY');
+    if (mode === 'intro') panel(['COCKTAIL TABLE', 'Lay your phone flat and play from this end.', 'Move with the stick, or touch the court.', 'Serve when lines 4 and 7 flash red.', 'Throw with the colored buttons.'], 'TAP TO PLAY');
     else if (mode === 'over') panel([O.teams[game.winner].n.toUpperCase() + ' WIN', game.score[0] + ' – ' + game.score[1]], 'PLAY AGAIN');
     else if (tip) panel(['HOW TO PLAY', 'Lay your phone flat and play from this end.', 'Move: push the red stick, or touch the court.', 'Serve: tap SERVE when lines 4 and 7 flash red.', 'Throw: tap a colored button once you catch it.', 'Rebound call: it is going to the back wall. Get behind it.'], 'GOT IT');   // the match waits behind this card until it is closed
     else if (paused) panel(['PAUSED'], 'TAP TO PLAY ON');
