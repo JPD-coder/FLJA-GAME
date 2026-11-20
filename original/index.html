@@ -4018,12 +4018,19 @@ window.Table = (function () {
   var TOP = [{ k: 'menu', n: 'MENU' }, { k: 'mode', n: 'MODE' }, { k: 'music', n: '♪' }, { k: 'pause', n: 'PAUSE' }];
   var SHOTCOL = ['#f52f9b', '#3cb5e4', '#fcfc04', '#c6ee32', '#8f0bcd'];
   /* painted on the floor: three club logos in a line between lines 1 and 3, three between 12 and 14, all one size, and the Fantasy League mark in the middle */
-  var FLOOR = [['team-a.png', 3.5, 0.2], ['team-b.png', 3, 0.5], ['logo-skunk-apes.png', 3.5, 0.8], ['logo-don-juans.png', 12.5, 0.2], ['logo-booties.png', 12, 0.5], ['logo-seamen.png', 12.5, 0.8]];   // [logo, line, across]: the middle one sits half a line further up, the tip of a small triangle
+  var FLOOR = [['team-a.png', 3.5, 0.2], ['team-b.png', 4, 0.5], ['logo-skunk-apes.png', 3.5, 0.8], ['logo-don-juans.png', 12.5, 0.2], ['logo-booties.png', 12, 0.5], ['logo-seamen.png', 12.5, 0.8]];   // [logo, line, across]: at each end the two outer logos sit nearer the wall and the middle one comes half a line out toward mid-court, the tip of a small triangle
   var CALLS = { over: 'OVER THE LINE', under: 'TOO LOW', short: 'SHORT', serveOut: 'SERVE OUT', double: 'TWO BOUNCES', chula: 'CHULA!', ceiling: 'CEILING', backOver: 'OVER THE BACK WALL', held: 'HELD TOO LONG' };
   var GOLD = '#c9a55c', TOUCH = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
   var img = {}, bg = null;
   function load(s) { if (!s || img[s]) return img[s]; var i = new Image(); i.onload = function () { bg = null; }; i.src = s; img[s] = i; return i; }
   function ok(i) { return i && i.complete && i.naturalWidth > 0; }
+  var BOX = {};
+  function inkBox(src) {                                              // where the picture really is inside its file, as fractions: logos come with different empty margins
+    if (BOX[src]) return BOX[src]; var im = img[src], full = { x: 0, y: 0, w: 1, h: 1 }; if (!ok(im)) return full;
+    try { var n = 96, c = document.createElement('canvas'); c.width = c.height = n; var x = c.getContext('2d'); x.drawImage(im, 0, 0, n, n); var d = x.getImageData(0, 0, n, n).data, x0 = n, y0 = n, x1 = -1, y1 = -1, i, j;
+      for (j = 0; j < n; j++) for (i = 0; i < n; i++) if (d[(j * n + i) * 4 + 3] > 24) { if (i < x0) x0 = i; if (i > x1) x1 = i; if (j < y0) y0 = j; if (j > y1) y1 = j; }
+      BOX[src] = x1 < 0 ? full : { x: x0 / n, y: y0 / n, w: (x1 - x0 + 1) / n, h: (y1 - y0 + 1) / n }; } catch (e) { BOX[src] = full; }
+    return BOX[src]; }
 
   /* ---- layout: the table is always portrait (W x H). A phone that flips to landscape gets it turned back; a wide desktop window shows it in the middle ---- */
   var vw = 0, vh = 0, dpr = 1, turn = 0, ox = 0, W = 0, H = 0, L = {};
@@ -4054,9 +4061,11 @@ window.Table = (function () {
     c.fillStyle = '#07070a'; c.fillRect(0, 0, W, H);
     var g = c.createLinearGradient(0, L.cy, 0, L.cy + L.ch); g.addColorStop(0, '#1d1e24'); g.addColorStop(0.5, '#141519'); g.addColorStop(1, '#1b1c21'); c.fillStyle = g; c.fillRect(L.cx, L.cy, L.cw, L.ch);
     g = c.createRadialGradient(W / 2, L.cy + L.ch * 0.45, 10, W / 2, L.cy + L.ch * 0.5, L.ch * 0.6); g.addColorStop(0, 'rgba(255,220,160,.09)'); g.addColorStop(1, 'rgba(255,220,160,0)'); c.fillStyle = g; c.fillRect(L.cx, L.cy, L.cw, L.ch);
-    function decal(src, x, z, s, a) { var im = img[src]; if (!ok(im)) return; var ar = im.naturalWidth / im.naturalHeight, dw = ar >= 1 ? s : s * ar, dh = ar >= 1 ? s / ar : s; c.globalAlpha = a; c.drawImage(im, Xz(z) - dw / 2, Y(x) - dh / 2, dw, dh); c.globalAlpha = 1; }
-    decal('brand.png', (C.LINES[7] + C.LINES[8]) / 2, 0.5, W * 0.42, 0.24);
-    FLOOR.forEach(function (f) { var l0 = Math.floor(f[1]); decal(f[0], C.LINES[l0] + (C.LINES[l0 + 1] - C.LINES[l0]) * (f[1] - l0), f[2], Math.min(W * 0.2, (C.LINES[1] - C.LINES[3]) * L.u * 0.86), 0.34); });
+    function decal(src, x, z, s, a) { var im = img[src]; if (!ok(im)) return; var b = inkBox(src), iw = im.naturalWidth * b.w, ih = im.naturalHeight * b.h, k = s / Math.max(iw, ih), dw = iw * k, dh = ih * k;   // s is the longest side of the visible art
+      c.globalAlpha = a; c.drawImage(im, im.naturalWidth * b.x, im.naturalHeight * b.y, iw, ih, Xz(z) - dw / 2, Y(x) - dh / 2, dw, dh); c.globalAlpha = 1; }
+    var ls = (C.LINES[1] - C.LINES[2]) * L.u, ts = Math.min(W * 0.19, ls * 1.7);                                  // one size for every club logo; the Fantasy League mark is exactly twice it
+    decal('brand.png', (C.LINES[7] + C.LINES[8]) / 2, 0.5, ts * 2, 0.24);
+    FLOOR.forEach(function (f) { var l0 = Math.floor(f[1]); decal(f[0], C.LINES[l0] + (C.LINES[l0 + 1] - C.LINES[l0]) * (f[1] - l0), f[2], ts, 0.34); });
     /* lines, with their numbers down the side wall: 1 is nearest the front wall, 4 and 7 are the serve lines */
     c.textAlign = 'center'; c.textBaseline = 'middle'; var fs = Math.max(10, W * 0.036); c.font = '800 ' + fs + 'px system-ui,Arial,sans-serif';
     for (var i = 1; i <= 14; i++) { var y = Y(C.LINES[i]), red = false; c.fillStyle = red ? '#e0392c' : 'rgba(244,241,232,.9)'; c.fillRect(L.cx, y - (red ? 1.6 : 1), L.cw, red ? 3.2 : 2);
@@ -4081,7 +4090,7 @@ window.Table = (function () {
   var game = null, mode = 'intro', paused = false, target = null, joy = { id: null, x: 0, y: 0 }, lastZ = 0.5, throwReq = null, fx = { rings: [], trail: [], bits: [], texts: [] }, T = 0, pressed = -1, pressT = 0, topHit = -1, topT = 0, glowPh = 0, serveOK = false;
   function newMatch(score) {
     game = Core.newGame({ seats: O.singles ? [1, 0, 0, 0] : [1, 1, 0, 0], solo: [!O.singles, false], singles: !!O.singles, target: O.target, level: O.level, rebHold: O.rebHold, firstServe: 0,
-      latK: 1.2, latAcc: 3800, latZ: 1.3 });                       // a long court under one finger: the player you steer covers it faster here
+      latK: 1.5, latAcc: 14000, latZ: 1.9 });                       // a long court under one finger: the player you steer covers it faster here
     game.lat = true; if (score) game.score = score.slice(0, 2);
     target = null; throwReq = null; fx.trail = []; fx.texts = []; paused = false; mode = 'play';
   }
@@ -4132,14 +4141,16 @@ window.Table = (function () {
   function down(e) {
     if (!running) return; e.preventDefault(); audio(); if (ac && ac.state === 'suspended') ac.resume();
     var p = toLogical(e), t = topAt(p);
-    if (t >= 0) { topDo(t); return; }
+    if (t >= 0) { topDown = t; topHit = t; topT = T; return; }
     if (mode !== 'play') { newMatch(); return; }
     if (paused) { paused = false; return; }
     if (p.y >= L.barY) { var b = btnAt(p); if (b >= 0) { fire(b); return; } if (Math.hypot(p.x - L.jx, p.y - L.jy) < L.jr * 1.7) { joy.id = e.pointerId; setJoy(p); target = null; } return; }
     if (p.y > L.cy) { ptrs[e.pointerId] = 1; var c = courtPt(p); target = c; lastZ = c.z; }
   }
   function move(e) { if (!running) return; if (e.pointerId === joy.id) { e.preventDefault(); setJoy(toLogical(e)); return; } if (!ptrs[e.pointerId]) return; e.preventDefault(); var c = courtPt(toLogical(e)); target = c; lastZ = c.z; }
-  function up(e) { if (e.pointerId === joy.id) { joy.id = null; joy.x = joy.y = 0; } delete ptrs[e.pointerId]; }
+  var topDown = -1;
+  function up(e) { if (topDown >= 0) { var tu = topDown; topDown = -1; if (running && e.type === 'pointerup' && topAt(toLogical(e)) === tu) topDo(tu); return; }   // Menu, Mode, Music and Pause act when the finger lifts: a phone only lets sound start from a finished tap
+    if (e.pointerId === joy.id) { joy.id = null; joy.x = joy.y = 0; } delete ptrs[e.pointerId]; }
   var keys = {};
   function kd(e) { if (!running) return; keys[e.key.toLowerCase()] = 1; var n = ' 12345'.indexOf(e.key); if (e.key.toLowerCase() === 'p') { topDo(3); return; } if (n >= 0 && mode === 'play') { if (n === 0 && holding() && !game.flags.serve) n = 1; fire(n); e.preventDefault(); } else if (mode !== 'play' && (e.key === ' ' || e.key === 'Enter')) { newMatch(); e.preventDefault(); } e.stopPropagation(); }
   function ku(e) { keys[e.key.toLowerCase()] = 0; }
@@ -4232,8 +4243,9 @@ window.Table = (function () {
       var me = mine(), inp = { dir: 0, lat: 0 };
       var kx = (keys.arrowright || keys.d ? 1 : 0) - (keys.arrowleft || keys.a ? 1 : 0), ky = (keys.arrowup || keys.w ? 1 : 0) - (keys.arrowdown || keys.s ? 1 : 0);
       var jx = joy.id != null ? joy.x : kx, jy = joy.id != null ? -joy.y : ky;          // stick up = up the court, toward the front wall
-      if (Math.abs(jx) > 0.28 || Math.abs(jy) > 0.28) { target = null; inp.dir = jy > 0.28 ? 1 : jy < -0.28 ? -1 : 0; inp.lat = jx > 0.28 ? 1 : jx < -0.28 ? -1 : 0; lastZ = jx < -0.28 ? 0.2 : jx > 0.28 ? 0.8 : 0.5; }
-      else if (target) { var dx = target.x - me.x, dz = target.z - me.z; if (Math.abs(dx) > 16) inp.dir = dx > 0 ? 1 : -1; if (Math.abs(dz) > 0.03) inp.lat = dz > 0 ? 1 : -1; if (!inp.dir && !inp.lat && !Object.keys(ptrs).length) target = null; }
+      var DZ = 0.16, ax2 = Math.abs(jx), ay2 = Math.abs(jy);                             // a small dead middle, then full pace by half a push; let go and he stops
+      if (ax2 > DZ || ay2 > DZ) { target = null; inp.dir = ay2 > DZ ? (jy > 0 ? 1 : -1) * Math.min(1, (ay2 - DZ) / 0.34) : 0; inp.lat = ax2 > DZ ? (jx > 0 ? 1 : -1) * Math.min(1, (ax2 - DZ) / 0.34) : 0; lastZ = jx < -0.3 ? 0.2 : jx > 0.3 ? 0.8 : 0.5; }
+      else if (target) { var dx = target.x - me.x, dz = target.z - me.z; if (Math.abs(dx) > 6) inp.dir = Math.max(-1, Math.min(1, dx / 70)); if (Math.abs(dz) > 0.012) inp.lat = Math.max(-1, Math.min(1, dz / 0.07)); if (!inp.dir && !inp.lat && !Object.keys(ptrs).length) target = null; }   // flat out to your finger, easing in over the last step so he stops on it
       else if (!holding()) lastZ = 0.5;
       if (throwReq != null && holding()) { var hp = game.players[game.holder], serve = game.flags.serve; inp.throw = true; inp.hard = serve ? 0 : throwReq; if (!serve) inp.angle = pickAngle(hp, throwReq); inp.lat = lastZ < 0.38 ? -1 : lastZ > 0.62 ? 1 : 0; }   // the serve goes at whatever the sweep is on right now
       throwReq = null;
