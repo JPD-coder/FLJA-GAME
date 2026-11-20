@@ -479,9 +479,10 @@ window.Table = (function () {
     return BOX[src]; }
 
   /* ---- layout: the table is always portrait (W x H). A phone that flips to landscape gets it turned back; a wide desktop window shows it in the middle ---- */
+  var sw0 = 0, sh0 = 0;
   var vw = 0, vh = 0, dpr = 1, turn = 0, ox = 0, W = 0, H = 0, L = {};
   function layout() {
-    vw = window.innerWidth; vh = window.innerHeight; dpr = Math.min(window.devicePixelRatio || 1, 2.5); turn = 0; ox = 0;
+    var vv = window.visualViewport, de = document.documentElement; vw = Math.max(vv && vv.width ? vv.width : 0, de.clientWidth || 0) || window.innerWidth; vh = Math.max(vv && vv.height ? vv.height : 0, de.clientHeight || 0) || window.innerHeight; sw0 = window.innerWidth; sh0 = window.innerHeight;   // a turned phone can leave innerWidth behind dpr = Math.min(window.devicePixelRatio || 1, 2.5); turn = 0; ox = 0;
     if (vw > vh && TOUCH) { var a = (screen.orientation && typeof screen.orientation.angle === 'number') ? screen.orientation.angle : (typeof window.orientation === 'number' ? window.orientation : 90); turn = (a === 270 || a === -90) ? 2 : 1; W = vh; H = vw; }
     else if (vw > vh) { W = Math.min(vw, Math.round(vh * 0.52)); H = vh; ox = Math.round((vw - W) / 2); }
     else { W = vw; H = vh; }
@@ -703,7 +704,7 @@ window.Table = (function () {
   function frame(now) {
     if (!running) return; raf = requestAnimationFrame(frame);
     var dt = Math.min(0.05, (now - last) / 1000 || 0); last = now; T += dt;
-    if (window.innerWidth !== vw || window.innerHeight !== vh) layout();
+    var vq = window.visualViewport; if (window.innerWidth !== sw0 || window.innerHeight !== sh0 || (vq && (Math.abs(vq.width - vw) > 1 && Math.abs(vq.height - vh) > 1))) layout();
     if (!bg) paintBg();
     if (game && mode !== 'intro' && !paused && !tip) {
       var me = mine(), inp = { dir: 0, lat: 0 };

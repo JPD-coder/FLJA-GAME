@@ -1786,11 +1786,15 @@ if (typeof module !== 'undefined') module.exports = Core;
     var v = window.visualViewport;
     return Math.min(window.innerHeight || 700, v && v.height ? v.height : 1e9, document.documentElement.clientHeight || 1e9);
   }
+  /* a turned phone does not always update window.innerWidth (an iPhone home-screen app can keep the old number), so the width is read from
+     whichever of the three measures has caught up, and the phone's own answer to "am I sideways?" settles the question */
+  function viewW() { var v = window.visualViewport; return Math.max(v && v.width ? v.width : 0, document.documentElement.clientWidth || 0, document.body ? document.body.clientWidth : 0) || window.innerWidth || 0; }
+  function landscape() { var m = false; try { m = window.matchMedia('(orientation: landscape)').matches; } catch (e) { m = false; } return m || viewW() > viewH(); }
   /* phone held sideways with one person playing: arrows sit left of the court, Throw sits right of it */
   function wantSides() {                                          // the film asks PC or phone; without an answer, the screen decides
     if (!(mode === 'match' && game && game.phase !== 'over' && humans().length === 1)) return false;
-    if (window.FL_PLAY === 'mobile') return window.innerWidth > viewH();
-    return window.innerWidth > viewH() * 1.15;                   // any window wider than it is tall: shots left, joystick right
+    if (window.FL_PLAY === 'mobile') return landscape();
+    return viewW() > viewH() * 1.15;                   // any window wider than it is tall: shots left, joystick right
   }
   var SHOT_ES = ['Saque', 'Pelotazo', 'Rebote', 'Cortada', 'Dos Paredes', 'Costado'];
   var SHOT_EN = ['Serve', 'Throw', 'Rebound', 'Cut', 'Two-Wall', 'Side Wall'];
@@ -2180,7 +2184,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   function fitHeader() {
     var h1 = elBar.querySelector('h1'), links = elBar.querySelector('.links'), k = 1;
     elBar.classList.remove('tight'); elBar.style.setProperty('--k', '1');
-    if (window.innerWidth > 640) return;
+    if (viewW() > 640) return;
     function wrapped() { return links.offsetTop > h1.offsetTop + h1.offsetHeight * 0.6; }
     while (wrapped() && k > 0.72) { k -= 0.04; elBar.style.setProperty('--k', k.toFixed(2)); }
     if (wrapped()) {                                   // still too wide at the smallest readable size: one-word labels
@@ -2217,7 +2221,8 @@ if (typeof module !== 'undefined') module.exports = Core;
      So the visible height is watched directly, and the court is fitted again whenever it changes. */
   if (window.visualViewport) window.visualViewport.addEventListener('resize', onResize);
   window.addEventListener('orientationchange', function () { setTimeout(onResize, 250); });
-  var seenVH = 0, seenVW = 0; setInterval(function () { var h = viewH(), w2 = window.innerWidth; if (h !== seenVH || w2 !== seenVW) { seenVH = h; seenVW = w2; onResize(); } }, 400);
+  var seenVH = 0, seenVW = 0; setInterval(function () { var h = viewH(), w2 = viewW() + (landscape() ? 0.5 : 0); if (h !== seenVH || w2 !== seenVW) { seenVH = h; seenVW = w2; onResize(); } }, 400);
+  try { var mqo = window.matchMedia('(orientation: landscape)'), mqf = function () { setTimeout(onResize, 60); setTimeout(onResize, 500); }; if (mqo.addEventListener) mqo.addEventListener('change', mqf); else if (mqo.addListener) mqo.addListener(mqf); } catch (e) { /* the timer above still catches it */ }
   window.addEventListener('orientationchange', function () { setTimeout(onResize, 250); });
   if (window.visualViewport) window.visualViewport.addEventListener('resize', onResize);
 
@@ -4054,9 +4059,10 @@ window.Table = (function () {
     return BOX[src]; }
 
   /* ---- layout: the table is always portrait (W x H). A phone that flips to landscape gets it turned back; a wide desktop window shows it in the middle ---- */
+  var sw0 = 0, sh0 = 0;
   var vw = 0, vh = 0, dpr = 1, turn = 0, ox = 0, W = 0, H = 0, L = {};
   function layout() {
-    vw = window.innerWidth; vh = window.innerHeight; dpr = Math.min(window.devicePixelRatio || 1, 2.5); turn = 0; ox = 0;
+    var vv = window.visualViewport, de = document.documentElement; vw = Math.max(vv && vv.width ? vv.width : 0, de.clientWidth || 0) || window.innerWidth; vh = Math.max(vv && vv.height ? vv.height : 0, de.clientHeight || 0) || window.innerHeight; sw0 = window.innerWidth; sh0 = window.innerHeight;   // a turned phone can leave innerWidth behind dpr = Math.min(window.devicePixelRatio || 1, 2.5); turn = 0; ox = 0;
     if (vw > vh && TOUCH) { var a = (screen.orientation && typeof screen.orientation.angle === 'number') ? screen.orientation.angle : (typeof window.orientation === 'number' ? window.orientation : 90); turn = (a === 270 || a === -90) ? 2 : 1; W = vh; H = vw; }
     else if (vw > vh) { W = Math.min(vw, Math.round(vh * 0.52)); H = vh; ox = Math.round((vw - W) / 2); }
     else { W = vw; H = vh; }
@@ -4278,7 +4284,7 @@ window.Table = (function () {
   function frame(now) {
     if (!running) return; raf = requestAnimationFrame(frame);
     var dt = Math.min(0.05, (now - last) / 1000 || 0); last = now; T += dt;
-    if (window.innerWidth !== vw || window.innerHeight !== vh) layout();
+    var vq = window.visualViewport; if (window.innerWidth !== sw0 || window.innerHeight !== sh0 || (vq && (Math.abs(vq.width - vw) > 1 && Math.abs(vq.height - vh) > 1))) layout();
     if (!bg) paintBg();
     if (game && mode !== 'intro' && !paused && !tip) {
       var me = mine(), inp = { dir: 0, lat: 0 };
