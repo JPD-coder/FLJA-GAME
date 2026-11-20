@@ -2233,6 +2233,7 @@ window.FLFeedback = (function () {
   function moveTipClose() { var el = $('moveTip'); if (el) el.hidden = true; tipOpen = false; }
   if ($('moveTip')) { $('moveTip').addEventListener('click', function (e) { if (e.target.closest('.mt-x, .mt-go') || e.target.id === 'moveTip') moveTipClose(); }); }
   function startMatch(score) {
+    cfg.guide = true;
     if (window.FLFeedback && !net.role) window.FLFeedback.played(view);
     mode = 'match'; paused = false; trail = []; fxReset(); moveTip(); held = [{}, {}, {}, {}]; throwQ = [0, 0, 0, 0]; hardQ = [0, 0, 0, 0]; chg = [0, 0, 0, 0];
     if (net.role !== 'guest') track('start', (cfg.singles ? 'singles' : 'doubles') + '.' + cfg.comp + '.' + (net.role ? 'online' : cfg.seats[0] && cfg.seats[2] ? 'local' : 'cpu'));
