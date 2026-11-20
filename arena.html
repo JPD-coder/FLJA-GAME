@@ -147,16 +147,28 @@ function sharkBar(x,z,gold){ box(26,3.6,7,x,TERY+1.8,z,new T.MeshLambertMaterial
   var tank=new T.Mesh(new T.BoxGeometry(25.4,2.6,6.4),new T.MeshLambertMaterial({color:0x1890d8,transparent:true,opacity:0.2,emissive:0x0a4f86,depthWrite:false})); tank.position.set(x,TERY+5.15,z); scene.add(tank);
   box(26.4,0.12,7.4,x,TERY+6.6,z,new T.MeshLambertMaterial({color:0xbfe8ff,transparent:true,opacity:0.1,depthWrite:false})); box(25.2,0.25,6.2,x,TERY+4.0,z,glow(0x0b4a78));
   sign(gold?'EXOTIC GOLDFISH BAR':'SHARK BAR',gold?13:9,1.4,x,TERY+1.9,z+3.56,0,{border:false,bg:'#0b0c0f',fg:'#c9a55c'});
-  if(gold){ for(var q=0;q<9;q++){ var gg=new T.Group(), c1=new T.MeshBasicMaterial({color:[0xff6a00,0xffffff,0xff3a10,0x1a1a1a][q%4]}), c2=new T.MeshBasicMaterial({color:[0xffffff,0xff6a00,0xffd9b0,0xff6a00][q%4]});
-      gg.scale.set(1.55,1.55,1.55); var bd=new T.Mesh(new T.SphereGeometry(0.42,10,8),c1); bd.scale.set(1.5,1.15,1); gg.add(bd); var hd=new T.Mesh(new T.SphereGeometry(0.3,8,6),new T.MeshBasicMaterial({color:0xff2a10})); hd.position.set(0.5,0.18,0); gg.add(hd);
-      [0.45,-0.45].forEach(function(r){ var tf=new T.Mesh(new T.ConeGeometry(0.6,1.3,5),c2); tf.rotation.z=Math.PI/2; tf.rotation.y=r; tf.position.set(-1.1,0,r*0.5); tf.scale.z=0.3; gg.add(tf); });
-      var df=new T.Mesh(new T.ConeGeometry(0.3,0.7,4),c2); df.position.set(-0.1,0.6,0); df.scale.z=0.2; gg.add(df);
-      scene.add(gg); sharks.push({g:gg,x:x,z:z,y:TERY+4.5+(q%3)*0.55,ph:q*0.7,sp:0.28+(q%4)*0.05}); } }
-  else for(var i=0;i<4;i++){ var g=new T.Group(), sm=new T.MeshLambertMaterial({color:0xe6d6ac,emissive:0x6a5a38});
-    g.scale.set(1.45,1.45,1.45); var b=new T.Mesh(new T.SphereGeometry(0.5,10,8),sm); b.scale.set(3.2,0.9,0.8); g.add(b); for(var sp=0;sp<5;sp++){ var dot=new T.Mesh(new T.SphereGeometry(0.16,6,5),new T.MeshBasicMaterial({color:0x2a2218})); dot.position.set(-1.1+sp*0.55,0.36,(sp%2?0.18:-0.18)); dot.scale.y=0.4; g.add(dot); }
-    var tl=new T.Mesh(new T.ConeGeometry(0.55,1.2,4),sm); tl.rotation.z=Math.PI/2; tl.position.x=-1.9; tl.scale.z=0.25; g.add(tl);
-    var f=new T.Mesh(new T.ConeGeometry(0.35,0.9,4),sm); f.position.set(0.1,0.6,0); f.scale.z=0.2; g.add(f);
-    scene.add(g); sharks.push({g:g,x:x,z:z,y:TERY+4.6+(i%2)*0.9,ph:i*1.57,sp:0.45+i*0.07}); }
+  /* fish are built nose-forward along +x: a tapered body turned on a lathe, flat fins cut from shapes, and a tail on a hinge so it can beat */
+  function body(pts,m){ var g=new T.LatheGeometry(pts.map(function(p){ return new T.Vector2(p[1],p[0]); }),14); g.rotateZ(-Math.PI/2); return new T.Mesh(g,m); }
+  function fin(pts,m){ var sh=new T.Shape(pts.map(function(p){ return new T.Vector2(p[0],p[1]); })); return new T.Mesh(new T.ShapeGeometry(sh),m); }
+  function dbl(c,o){ o=o||{}; o.color=c; o.side=T.DoubleSide; return new T.MeshLambertMaterial(o); }
+  if(gold){ for(var q=0;q<11;q++){ var gg=new T.Group(), pal=[[0xff7a1a,0xffb070],[0xfaf6ee,0xff7a1a],[0xff4a1a,0xffd9b0],[0x2a2420,0xff8a2a],[0xffa02a,0xfff0d8]][q%5];
+      var bm=new T.MeshBasicMaterial({color:pal[0]}), fm=new T.MeshBasicMaterial({color:pal[1],side:T.DoubleSide,transparent:true,opacity:0.8});
+      var bd=body([[-0.5,0.02],[-0.4,0.12],[-0.2,0.25],[0.05,0.31],[0.3,0.27],[0.48,0.17],[0.58,0.04]],bm); bd.scale.set(1,1.12,0.85); gg.add(bd);
+      var wen=new T.Mesh(new T.SphereGeometry(0.17,8,6),new T.MeshBasicMaterial({color:0xf02a12})); wen.position.set(0.36,0.17,0); wen.scale.set(1.2,0.8,1.1); gg.add(wen);
+      [0.13,-0.13].forEach(function(ez){ var e=new T.Mesh(new T.SphereGeometry(0.05,6,5),new T.MeshBasicMaterial({color:0x101010})); e.position.set(0.45,0.06,ez); gg.add(e); });
+      var tail=new T.Group(); tail.position.x=-0.46; [0.38,-0.38].forEach(function(r){ var tf=fin([[0,0],[-0.75,0.52],[-0.95,0.12],[-0.7,-0.05],[-0.9,-0.42],[-0.45,-0.3]],fm); tf.rotation.y=r; tail.add(tf); }); gg.add(tail);
+      var df=fin([[0.25,0.3],[-0.05,0.68],[-0.4,0.5],[-0.35,0.18]],fm); gg.add(df);
+      [1,-1].forEach(function(sd){ var pf=fin([[0,0],[-0.32,-0.08],[-0.26,-0.26]],fm); pf.position.set(0.18,-0.12,sd*0.2); pf.rotation.x=sd*1.1; gg.add(pf); });
+      gg.scale.set(0.85,0.85,0.85); scene.add(gg); sharks.push({g:gg,tail:tail,x:x,z:z,y:TERY+4.5+(q%4)*0.42,ph:q*0.57,sp:0.24+(q%4)*0.05,rz:0.6+0.25*(q%3)}); } }
+  else for(var i=0;i<5;i++){ var g=new T.Group(), sm=new T.MeshBasicMaterial({color:0xb9a06a}), sf=new T.MeshBasicMaterial({color:0x9c8654,side:T.DoubleSide}), dk=new T.MeshBasicMaterial({color:0x2e261a});
+    var b=body([[-1.5,0.03],[-1.2,0.09],[-0.6,0.19],[0.1,0.28],[0.7,0.26],[1.1,0.17],[1.38,0.05]],sm); b.scale.set(1,0.9,1.05); g.add(b);          // long, low and tapered, with a blunt snout
+    var belly=body([[-1.1,0.05],[-0.4,0.15],[0.3,0.22],[0.9,0.18],[1.3,0.03]],new T.MeshBasicMaterial({color:0xe4d9b8})); belly.position.y=-0.07; belly.scale.set(1,0.7,0.95); g.add(belly);
+    for(var sp=0;sp<16;sp++){ var dot=new T.Mesh(new T.SphereGeometry(0.055,5,4),dk), u=-1.15+sp*0.155, rr2=0.1+0.17*Math.max(0,1-Math.abs(u-0.3)/1.5); dot.position.set(u,rr2*0.82,(sp%3-1)*rr2*0.7); dot.scale.y=0.35; g.add(dot); }   // leopard spots down the back
+    var tl=new T.Group(); tl.position.x=-1.45; tl.add(fin([[0,0.05],[-0.75,0.62],[-0.55,0.1],[-0.42,-0.3],[0,-0.05]],sf)); g.add(tl);                    // the long upper lobe of a shark's tail
+    g.add(fin([[0.35,0.24],[0.02,0.66],[-0.18,0.24]],sf)); var d2=fin([[-0.62,0.17],[-0.82,0.4],[-0.95,0.15]],sf); g.add(d2);                         // two dorsal fins
+    [1,-1].forEach(function(sd){ var pf=fin([[0,0],[-0.55,-0.02],[-0.4,-0.3]],sf); pf.position.set(0.55,-0.08,sd*0.2); pf.rotation.x=sd*1.25; g.add(pf); });  // pectorals held out flat
+    [0.17,-0.17].forEach(function(ez){ var e=new T.Mesh(new T.SphereGeometry(0.04,6,5),dk); e.position.set(1.08,0.07,ez); g.add(e); });
+    g.scale.set(1.25,1.25,1.25); scene.add(g); sharks.push({g:g,tail:tl,x:x,z:z,y:TERY+4.45+(i%3)*0.5,ph:i*1.26,sp:0.36+i*0.05,rz:1}); }
   for(var k=0;k<9;k++){ box(1.3,0.3,1.3,x-11+k*2.75,TERY+2.4,z+5,0x0b0c0f); box(0.25,2.3,0.25,x-11+k*2.75,TERY+1.15,z+5,GOLD); } }
 sharkBar(42,115); sharkBar(126,115,true);
 sign('SHARK TANK BAR',14,2.4,42,TERY+9.2,111.4,Math.PI); sign('SHARK TANK BAR',14,2.4,126,TERY+9.2,111.4,Math.PI);
@@ -473,7 +485,7 @@ function filmAt(t){ filming=true; roof.visible=true;
     cam.position.set(v[1],fy+v[2],v[3]); cam.rotation.order='YXZ'; cam.rotation.set(v[5],v[4],0); }
   else { var w=(t-40)/5, e=w*w*(3-2*w), a=0.2+0.75*e, d=150+230*e, el=0.5+0.2*e, c=new T.Vector3(L/2+16*e,8,60+120*e);
     cam.position.set(c.x+Math.sin(a)*Math.cos(el)*d,c.y+Math.sin(el)*d,c.z+Math.cos(a)*Math.cos(el)*d); cam.lookAt(c); }
-  sharks.forEach(function(s){ var a2=t*s.sp+s.ph; s.g.position.set(s.x+Math.cos(a2)*10.4,s.y+Math.sin(a2*2.3)*0.25,s.z+Math.sin(a2)*2.1); s.g.rotation.y=-a2-Math.PI/2; });
+  sharks.forEach(function(s){ var a2=t*s.sp+s.ph; s.g.position.set(s.x+Math.cos(a2)*10.4,s.y+Math.sin(a2*2.3)*0.25,s.z+Math.sin(a2)*2.1*(s.rz||1)); s.g.rotation.y=-a2-Math.PI/2; if(s.tail) s.tail.rotation.y=Math.sin(t*7+s.ph*3)*0.4; });
   animExtras(t); renderer.render(scene,cam); }
 var last=performance.now();
 function frame(now){ if(touring){ tourFrame(now); requestAnimationFrame(frame); return; } if(filming){ requestAnimationFrame(frame); return; } var dt=Math.min(0.05,(now-last)/1000); last=now;
@@ -483,7 +495,7 @@ function frame(now){ if(touring){ tourFrame(now); requestAnimationFrame(frame); 
     cam.position.copy(pos); cam.rotation.order='YXZ'; cam.rotation.set(pitch,yaw,0); }
   else if(mode==='doll'){ var ok=Math.max(0,Math.min(1,(orbit.d-170)/330)), c=new T.Vector3(L/2+18*ok,8,END/2-6+125*ok); cam.position.set(c.x+Math.sin(orbit.a)*Math.cos(orbit.e)*orbit.d, c.y+Math.sin(orbit.e)*orbit.d, c.z+Math.cos(orbit.a)*Math.cos(orbit.e)*orbit.d); cam.lookAt(c); }
   else { var ak=Math.max(0,Math.min(1,(orbit.d-170)/330)); cam.position.set(L/2+18*ak,Math.max(150,orbit.d*1.5),END/2+0.01+115*ak); cam.rotation.order='YXZ'; cam.rotation.set(-Math.PI/2,0,0); }
-  var t=now/1000; sharks.forEach(function(s){ var a=t*s.sp+s.ph; s.g.position.set(s.x+Math.cos(a)*10.4,s.y+Math.sin(a*2.3)*0.25,s.z+Math.sin(a)*2.1); s.g.rotation.y=-a-Math.PI/2; });
+  var t=now/1000; sharks.forEach(function(s){ var a=t*s.sp+s.ph; s.g.position.set(s.x+Math.cos(a)*10.4,s.y+Math.sin(a*2.3)*0.25,s.z+Math.sin(a)*2.1*(s.rz||1)); s.g.rotation.y=-a-Math.PI/2; if(s.tail) s.tail.rotation.y=Math.sin(t*7+s.ph*3)*0.4; });
   animExtras(now/1000); renderer.render(scene,cam); requestAnimationFrame(frame); }
 pos.y=TERY+5.6; requestAnimationFrame(frame);
 window.__arena={info:function(){ return renderer.info.render; },film:filmAt,tourAt:function(sec){ tourT0=performance.now()-sec*1000; },isTouring:function(){ return touring; },pos:pos,setMode:setMode,go:function(k){ var s=SPOTS[k]; pos.x=s[0]; pos.z=s[1]; yaw=s[2]; pitch=-0.05; },goSpot:function(k){ goSpot(k); },look:function(y,p){ yaw=y; pitch=p||0; }};
