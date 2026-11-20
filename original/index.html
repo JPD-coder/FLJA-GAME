@@ -3734,7 +3734,8 @@ window.FLFeedback = (function () {
       '#promo[hidden]{display:none}body.promo-open{overflow:hidden}' +
       '#promo .pm-in{width:100%;max-width:470px;min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:8px;padding:max(10px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}' +
       '#promo .pm-tag{text-align:center;font:800 11px/1.2 ' + F + ';letter-spacing:.2em;text-transform:uppercase;color:#c9a55c}' +
-      '#promo .pm-art{align-self:center;display:flex;flex:0 0 auto;width:min(100%, calc((100dvh - 372px) * 1.07), 420px);min-width:160px;aspect-ratio:1128/1054;border-radius:12px;overflow:hidden;background:#000}' +
+      '#promo .pm-art{align-self:center;display:flex;flex:0 0 auto;position:relative;width:min(100%, calc((100dvh - 372px) * 1.158), 440px);min-width:160px;aspect-ratio:1520/1312;border-radius:12px;overflow:hidden;background:#000}' +
+      '#promo .pm-vs{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:900 clamp(26px,9vw,46px)/1 var(--display,Impact,"Arial Narrow",sans-serif);color:#fff;text-shadow:0 3px 0 #000,0 0 14px rgba(0,0,0,.9);letter-spacing:.02em;pointer-events:none}' +
       '#promo .pm-half{display:block;width:50%;height:100%;object-fit:contain}' +
       '#promo .pm-ctl{display:flex;flex-direction:column;gap:8px}' +
       '#promo .pm-lbl{font:700 10.5px/1 ' + F + ';letter-spacing:.16em;text-transform:uppercase;color:#9a9da6;text-align:center}' +
@@ -3752,11 +3753,11 @@ window.FLFeedback = (function () {
       '#promo .pm-go small{font:700 11.5px/1 ' + F + ';letter-spacing:.04em;opacity:.85}' +
       '#promo .pm-note{margin:0;text-align:center;font:500 11px/1.3 ' + F + ';color:#8d909a}' +
       '#promo button:focus-visible{outline:3px solid #fff;outline-offset:2px}' +
-      '@media (orientation:landscape) and (max-height:560px){#promo .pm-in{max-width:none;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 18px}#promo .pm-tag{flex:0 0 100%}#promo .pm-art{width:min(44%, calc((100dvh - 50px) * 1.07))}#promo .pm-ctl{flex:0 1 400px;min-width:0;gap:6px}#promo select.pm-team{min-height:36px}#promo .pm-name{min-height:42px}#promo .pm-go button{min-height:46px}#promo .pm-modes button{min-height:38px}}';
+      '@media (orientation:landscape) and (max-height:560px){#promo .pm-in{max-width:none;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 18px}#promo .pm-tag{flex:0 0 100%}#promo .pm-art{width:min(46%, calc((100dvh - 50px) * 1.158))}#promo .pm-ctl{flex:0 1 400px;min-width:0;gap:6px}#promo select.pm-team{min-height:36px}#promo .pm-name{min-height:42px}#promo .pm-go button{min-height:46px}#promo .pm-modes button{min-height:38px}}';
     document.head.appendChild(st);
     var el = document.createElement('div'); el.id = 'promo'; el.hidden = true;
     el.innerHTML = '<div class="pm-in"><div class="pm-tag">' + esc(P.tag) + '</div>' +
-      '<div class="pm-art" role="img" aria-label="' + esc(P.people[0].name + ' versus ' + P.people[1].name) + '">' + P.people.map(function (w, i) { return '<img class="pm-half" data-i="' + i + '" alt="">'; }).join('') + '</div>' +
+      '<div class="pm-art" role="img" aria-label="' + esc(P.people[0].name + ' versus ' + P.people[1].name) + '">' + P.people.map(function (w, i) { return '<img class="pm-half" data-i="' + i + '" alt="">'; }).join('') + '<span class="pm-vs" aria-hidden="true">VS</span></div>' +
       '<div class="pm-ctl"><div class="pm-lbl" id="pmAsL">Play as</div>' +
       '<div class="pm-row" role="group" aria-labelledby="pmAsL">' + P.people.map(function (w, i) { return '<button type="button" class="pm-name" data-i="' + i + '"><span>' + esc(w.name) + '</span><em></em></button>'; }).join('') + '</div>' +
       '<div class="pm-row pm-teams">' + P.people.map(function (w, i) { return '<label class="pm-pick"><span class="pm-sr">' + esc(w.name) + ' team</span><select class="pm-team" data-i="' + i + '">' +
