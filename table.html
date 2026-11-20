@@ -458,7 +458,7 @@ if (typeof module !== 'undefined') module.exports = Core;
 window.Table = (function () {
   'use strict';
   var C = Core.C, cv = null, ctx = null, O = null, running = false, raf = 0, bound = false;
-  var DEF = { teams: [{ n: 'Squared Groupers', logo: 'team-a.png', c1: '#c6ee32', c2: '#fcfc04' }, { n: 'Peloteros', logo: 'team-b.png', c1: '#f52f9b', c2: '#3cb5e4' }], singles: true, target: 15, level: 'normal', pace: 0.88, rebHold: 2, sound: true, score: null, intro: true, hooks: {}, names: ['Serve', 'Throw', 'Rebound', 'Cut', 'Two-Wall', 'Side Wall'] };   // names[0] is the serve, then the five shots in core order; English unless the game hands over others
+  var DEF = { teams: [{ n: 'Squared Groupers', logo: 'team-a.png', c1: '#c6ee32', c2: '#fcfc04' }, { n: 'Peloteros', logo: 'team-b.png', c1: '#f52f9b', c2: '#3cb5e4' }], singles: true, target: 15, level: 'normal', pace: 0.88, rebHold: 2, sound: true, score: null, intro: true, ads: 0, hooks: {}, names: ['Serve', 'Throw', 'Rebound', 'Cut', 'Two-Wall', 'Side Wall'] };   // names[0] is the serve, then the five shots in core order; English unless the game hands over others
   /* six buttons: three to the left of the stick, three to the right. s = core shot index, -1 = the serve */
   var BTNS = [{ s: -1 }, { s: 0 }, { s: 1 }, { s: 3 }, { s: 2 }, { s: 4 }];
   var TOP = [{ k: 'menu', n: 'MENU' }, { k: 'mode', n: 'MODE' }, { k: 'music', n: '♪' }, { k: 'pause', n: 'PAUSE' }];
@@ -553,7 +553,7 @@ window.Table = (function () {
     game = Core.newGame({ seats: O.singles ? [1, 0, 0, 0] : [1, 1, 0, 0], solo: [!O.singles, false], singles: !!O.singles, target: O.target, level: O.level, rebHold: O.rebHold, firstServe: 0,
       latK: 1, latAcc: 1e6, latZ: 1 }); tune();
     game.lat = true; if (score) game.score = score.slice(0, 2);
-    target = null; throwReq = null; fx.trail = []; fx.texts = []; paused = false; mode = 'play';
+    target = null; throwReq = null; fx.trail = []; fx.texts = []; paused = false; mode = 'play'; adv.on = false; adv.due = false; adv.n = 0;
   }
   /* one speed, the same in every direction ON THE GLASS. The engine runs the length of the court in court units and the width as a fraction, so the two are
      matched here from the real size of the court on this screen: VRUN court units a second lengthwise (the whole court in about a second and a half), and
@@ -586,7 +586,7 @@ window.Table = (function () {
       else if (ev === 'point' || ev === 'win') { var w = game.pointWinner; crowd(ev === 'win' ? 2.6 : 1.3, ev === 'win' ? 0.4 : 0.26); tone(w === 0 ? 660 : 330, 0.25, 'triangle', 0.15, w === 0 ? 990 : 220);
         fx.texts = []; if (CALLS[game.msg.ev]) say(CALLS[game.msg.ev], '#f2efe6', W / 2, L.cy + L.ch * 0.4, true); say('POINT ' + O.teams[w].n.toUpperCase(), O.teams[w].c1, W / 2, L.cy + L.ch * 0.4 + W * 0.11, true);
         confetti(W / 2, L.cy + L.ch * 0.45, ev === 'win' ? 120 : 26, [O.teams[w].c1, O.teams[w].c2, '#fff']);
-        if (ev === 'win') mode = 'over'; }
+        if (ev === 'win') mode = 'over'; else if (O.ads > 0 && (game.score[0] + game.score[1]) % O.ads === 0) adv.due = true; }
     });
     game.events.length = 0;
   }
@@ -609,6 +609,7 @@ window.Table = (function () {
     if (t >= 0) { topDown = t; topHit = t; topT = T; return; }
     if (mode !== 'play') { newMatch(); return; }
     if (tip) { tip = false; return; }
+    if (adv.on) { if (adv.t > 0.3) adv.t = 0.3; return; }                    // a tap sends the sponsor card back to the floor
     if (paused) { paused = false; return; }
     if (p.y >= L.barY) { var b = btnAt(p); if (b >= 0) { fire(b); return; } if (Math.abs(p.x - L.jx) < W / 2 - L.br * 4.4 || Math.hypot(p.x - L.jx, p.y - L.jy) < L.jr * 1.5) { joy.id = e.pointerId; joy.ox = p.x; joy.oy = p.y; joy.x = joy.y = 0; target = null; } return; }
     if (p.y > L.cy) { ptrs[e.pointerId] = 1; tapT = T; var c = courtPt(p); target = c; lastZ = c.z; }
@@ -668,7 +669,7 @@ window.Table = (function () {
     var s = L.wallH * 0.7, y = L.wallH / 2 - 1, i, h = O.hooks || {}, mid = W / 2, fsz = L.wallH * 0.62;
     ctx.font = '900 ' + fsz + 'px system-ui,Arial,sans-serif'; ctx.textBaseline = 'middle';
     for (i = 0; i < 2; i++) { var sc = String(game ? game.score[i] : 0), tw = ctx.measureText(sc).width, sx = i ? mid + 9 : mid - 9, lx = i ? sx + tw + 7 + s / 2 : sx - tw - 7 - s / 2;
-      ctx.fillStyle = '#f2efe6'; ctx.textAlign = i ? 'left' : 'right'; ctx.fillText(sc, sx, y + 2); logoDisc(O.teams[i].logo, lx, y, s / 2, O.teams[i].c1);
+      ctx.fillStyle = '#f2efe6'; ctx.textAlign = i ? 'left' : 'right'; ctx.fillText(sc, sx, y + 2); logoDisc(O.teams[i].face || O.teams[i].logo, lx, y, s / 2, O.teams[i].c1);
       if (game && game.server === i && game.phase !== 'over') { ctx.fillStyle = GOLD; ctx.beginPath(); ctx.arc(lx, y + s / 2 + 2.5, 2.4, 0, 6.3); ctx.fill(); } }
     ctx.fillStyle = 'rgba(242,239,230,.45)'; ctx.fillRect(mid - 0.75, y - s * 0.3, 1.5, s * 0.6);
     for (i = 0; i < 4; i++) { var b = topPos(i), k = TOP[i].k, on = (k === 'pause' && paused) || (k === 'music' && h.musicOn && h.musicOn()), hit = topHit === i && T - topT < 0.18;
@@ -693,6 +694,46 @@ window.Table = (function () {
     fx.texts = fx.texts.filter(function (t) { t.life -= dt; if (t.life <= 0) return false; var fs = t.big ? Math.min(W * 0.085, W * 0.94 / (t.t.length * 0.62)) : Math.min(W * 0.062, W * 0.9 / (t.t.length * 0.62)); ctx.globalAlpha = Math.min(1, t.life * 2.2); ctx.font = '900 ' + fs + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.lineWidth = fs * 0.2; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(5,6,10,.9)'; ctx.strokeText(t.t, t.x, t.y); ctx.fillStyle = t.c; ctx.fillText(t.t, t.x, t.y); ctx.globalAlpha = 1; return true; });
   }
+  /* ---------- sponsor pop-out (only when the page asks for it with ads: N): every N points one of the four floor sponsors lifts off the floor
+     and stands up in the middle of the table, tilted toward the player at the short end, for a few seconds. The match waits; a tap sends it back. ---------- */
+  var AD_SECS = 4, adv = { on: false, due: false, t: 0, n: 0, i: 0 }, adCv = {};
+  var ADS = [
+    { n: 'Silver Palm Capital', line: 'Your trusted M&A advisor', crop: [10.7, 17.5, 11.6, 9.4], at: [0.37, 2] },
+    { n: 'The Casino at Dania Beach', line: 'Come play our slots', crop: [22.6, 17.5, 11.6, 9.4], at: [0.65, 4.5] },
+    { n: 'Open Book', line: 'Fair HVAC pricing for homeowners', crop: null, at: [0.37, 10.5] },
+    { n: 'rewyld', line: 'Adopt a bunny, save the Everglades', crop: [78.0, 16.2, 11.5, 9.6], at: [0.65, 13] }
+  ];
+  function adMark(i) {                                                // the sponsor's white mark, lifted off the wall picture (made once)
+    if (adCv[i]) return adCv[i];
+    var a = ADS[i], im = img['fronton6.jpg'], oc = document.createElement('canvas'), g;
+    if (!a.crop) {                                                    // Open Book is drawn: an open book and the name
+      oc.width = 520; oc.height = 150; g = oc.getContext('2d'); g.translate(70, 75); g.fillStyle = '#fff';
+      for (var sd = -1; sd <= 1; sd += 2) { g.beginPath(); g.moveTo(sd * 4, -30); g.quadraticCurveTo(sd * 28, -46, sd * 56, -34); g.lineTo(sd * 56, 28); g.quadraticCurveTo(sd * 28, 16, sd * 4, 34); g.closePath(); g.fill(); }
+      g.font = 'bold 70px Georgia,"Times New Roman",serif'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText('Open Book', 76, 4, 370);
+      return (adCv[i] = oc);
+    }
+    if (!ok(im)) return null;
+    var sw = im.naturalWidth * a.crop[2] / 100, sh = im.naturalHeight * a.crop[3] / 100; oc.width = Math.round(sw); oc.height = Math.round(sh); g = oc.getContext('2d');
+    g.drawImage(im, im.naturalWidth * a.crop[0] / 100, im.naturalHeight * a.crop[1] / 100, sw, sh, 0, 0, oc.width, oc.height);
+    try { var id = g.getImageData(0, 0, oc.width, oc.height), d = id.data; for (var q = 0; q < d.length; q += 4) { var lum = Math.max(d[q], d[q + 1], d[q + 2]); d[q] = d[q + 1] = d[q + 2] = 255; d[q + 3] = lum < 40 ? 0 : Math.min(255, (lum - 40) * 1.5); } g.putImageData(id, 0, 0); } catch (e) { /* the picture as it is */ }
+    return (adCv[i] = oc);
+  }
+  function drawAd() {
+    var a = ADS[adv.i], mk = adMark(adv.i), inT = Math.min(1, (AD_SECS - adv.t) / 0.45), outT = Math.min(1, adv.t / 0.3), k = Math.min(1 - Math.pow(1 - inT, 3), outT);
+    var l0 = Math.floor(a.at[1]), fx0 = Xz(a.at[0]), fy0 = Y(C.LINES[l0] + (C.LINES[l0 + 1] - C.LINES[l0]) * (a.at[1] - l0));   // where the mark sits on the floor
+    var cx = fx0 + (W / 2 - fx0) * k, cy = fy0 + (L.cy + L.ch * 0.46 - fy0) * k, cw = W * 0.8, chh = cw * 0.56, s = 0.3 + 0.7 * k;
+    ctx.save(); ctx.fillStyle = 'rgba(3,3,6,' + 0.55 * k + ')'; ctx.fillRect(0, L.wallH, W, L.barY - L.wallH);
+    ctx.fillStyle = 'rgba(0,0,0,' + 0.5 * k + ')'; ctx.beginPath(); ctx.ellipse(cx + cw * 0.03 * s, cy + chh * 0.62 * s, cw * 0.46 * s, chh * 0.13 * s, 0, 0, 6.3); ctx.fill();   // its shadow on the floor
+    ctx.translate(cx, cy); ctx.rotate(-0.07 * k); ctx.transform(1, 0, -0.16 * k, 1, 0, 0); ctx.scale(s, s); ctx.globalAlpha = Math.min(1, 0.25 + k);   // leaning back, as a card standing on the table looks from the short end
+    ctx.fillStyle = '#050508'; rr(ctx, -cw / 2, -chh / 2, cw, chh, cw * 0.035); ctx.fill(); ctx.strokeStyle = GOLD; ctx.lineWidth = Math.max(2, W * 0.006); ctx.stroke();
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = GOLD; ctx.font = '800 ' + cw * 0.034 + 'px system-ui,Arial,sans-serif'; ctx.fillText('S P O N S O R', 0, -chh * 0.4);
+    if (mk) { var mkk = Math.min(cw * 0.8 / mk.width, chh * 0.44 / mk.height); ctx.drawImage(mk, -mk.width * mkk / 2, -chh * 0.07 - mk.height * mkk / 2, mk.width * mkk, mk.height * mkk); }
+    else { ctx.fillStyle = '#fff'; ctx.font = '900 ' + cw * 0.085 + 'px system-ui,Arial,sans-serif'; ctx.fillText(a.n, 0, -chh * 0.07, cw * 0.86); }
+    ctx.fillStyle = '#f2efe6'; ctx.font = '700 ' + cw * 0.048 + 'px system-ui,Arial,sans-serif'; ctx.fillText(a.line, 0, chh * 0.25, cw * 0.9);
+    ctx.fillStyle = 'rgba(242,239,230,.55)'; ctx.font = '600 ' + cw * 0.032 + 'px system-ui,Arial,sans-serif'; ctx.fillText('TAP TO SKIP', 0, chh * 0.39);
+    ctx.fillStyle = '#23262e'; ctx.fillRect(-cw * 0.44, chh * 0.455, cw * 0.88, Math.max(2, chh * 0.012)); ctx.fillStyle = GOLD; ctx.fillRect(-cw * 0.44, chh * 0.455, cw * 0.88 * Math.max(0, adv.t / AD_SECS), Math.max(2, chh * 0.012));
+    ctx.restore();
+  }
   function panel(lines, sub) {
     ctx.fillStyle = 'rgba(5,6,10,.8)'; ctx.fillRect(0, L.wallH, W, H - L.wallH); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     var y = H * 0.3; if (ok(img['brand.png'])) { var s = W * 0.3; ctx.drawImage(img['brand.png'], W / 2 - s / 2, H * 0.12, s, s * img['brand.png'].naturalHeight / img['brand.png'].naturalWidth); y = H * 0.36; }
@@ -706,7 +747,9 @@ window.Table = (function () {
     var dt = Math.min(0.05, (now - last) / 1000 || 0); last = now; T += dt;
     var vq = window.visualViewport; if (window.innerWidth !== sw0 || window.innerHeight !== sh0 || (vq && (Math.abs(vq.width - vw) > 1 && Math.abs(vq.height - vh) > 1))) layout();
     if (!bg) paintBg();
-    if (game && mode !== 'intro' && !paused && !tip) {
+    if (adv.due && game && mode === 'play' && game.phase === 'serve' && !tip) { adv.due = false; adv.on = true; adv.t = AD_SECS; adv.i = adv.n++ % ADS.length; }
+    if (adv.on && !paused) { adv.t -= dt; if (adv.t <= 0) adv.on = false; }
+    if (game && mode !== 'intro' && !paused && !tip && !adv.on) {
       var me = mine(), inp = { dir: 0, lat: 0 };
       var kx = (keys.arrowright || keys.d ? 1 : 0) - (keys.arrowleft || keys.a ? 1 : 0), ky = (keys.arrowup || keys.w ? 1 : 0) - (keys.arrowdown || keys.s ? 1 : 0);
       var jx = joy.id != null ? joy.x : kx, jy = joy.id != null ? -joy.y : ky;          // stick up = up the court, toward the front wall
@@ -725,9 +768,10 @@ window.Table = (function () {
     if (game) { ctx.save(); ctx.beginPath(); ctx.rect(0, L.wallH, W, L.barY - L.wallH); ctx.clip(); drawGuides(dt); var me2 = mine(), P = game.players.filter(function (p) { return !p.out; }).sort(function (a, b) { return b.x - a.x; }); P.forEach(function (p) { drawPlayer(p, p === me2); }); drawBall(); ctx.restore(); }
     drawControls(); drawFx(dt);
     if (mode === 'intro') panel(['COCKTAIL TABLE', 'Lay your phone flat and play from this end.', 'Move with the stick, or touch the court.', 'Serve when lines 4 and 7 flash red.', 'Throw with the colored buttons.'], 'TAP TO PLAY');
-    else if (mode === 'over') panel([O.teams[game.winner].n.toUpperCase() + ' WIN', game.score[0] + ' – ' + game.score[1]], 'PLAY AGAIN');
+    else if (mode === 'over') panel([O.teams[game.winner].n.toUpperCase() + (O.teams[game.winner].one ? ' WINS' : ' WIN'), game.score[0] + ' – ' + game.score[1]], 'PLAY AGAIN');
     else if (tip) panel(['HOW TO PLAY', 'Lay your phone flat and play from this end.', 'Move: push the red stick, or touch the court.', 'Serve: tap SERVE when lines 4 and 7 flash red.', 'Throw: tap a colored button once you catch it.', 'Rebound call: it is going to the back wall. Get behind it.'], 'GOT IT');   // the match waits behind this card until it is closed
     else if (paused) panel(['PAUSED'], 'TAP TO PLAY ON');
+    else if (adv.on) drawAd();
     drawBoard();
   }
   function open(opts) {
@@ -736,14 +780,14 @@ window.Table = (function () {
     if (!cv) { cv = document.createElement('canvas'); cv.id = 'tableCv'; cv.style.cssText = 'position:fixed;left:0;top:0;z-index:10020;display:block;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:#07070a'; document.body.appendChild(cv); }
     cv.hidden = false; cv.style.display = 'block'; ctx = cv.getContext('2d');
     if (!bound) { bound = true; cv.addEventListener('pointerdown', down); cv.addEventListener('pointermove', move); cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up); window.addEventListener('keydown', kd, true); window.addEventListener('keyup', ku, true); }
-    FLOOR.forEach(function (f) { load(f[0]); }); load('brand.png'); load('fronton6.jpg'); load(O.teams[0].logo); load(O.teams[1].logo);
+    FLOOR.forEach(function (f) { load(f[0]); }); load('brand.png'); load('fronton6.jpg'); load(O.teams[0].logo); load(O.teams[1].logo); if (O.teams[0].face) load(O.teams[0].face); if (O.teams[1].face) load(O.teams[1].face);
     layout(); game = null; mode = 'intro'; keys = {}; joy.id = null; joy.x = joy.y = 0;
     tip = false; if (!O.intro) { newMatch(O.score); tip = true; }   // opened from the game: the how-to card first, every time
     if (!running) { running = true; last = performance.now(); raf = requestAnimationFrame(frame); }
   }
   function close() { running = false; cancelAnimationFrame(raf); if (cv) { cv.style.display = 'none'; } keys = {}; }
   var api = { open: open, close: close, isOpen: function () { return running; }, score: function () { return game ? game.score.slice() : null; },
-    game: function () { return game; }, L: function () { return L; }, Xz: Xz, Y: Y, btnPos: btnPos, topPos: topPos, mode: function () { return mode; }, tip: function () { return tip; }, paused: function () { return paused; }, pause: function () { if (mode === 'play') paused = true; }, serveOK: function () { return serveOK; }, geo: function () { return { turn: turn, ox: ox, W: W, H: H, vw: vw, vh: vh }; } };
+    game: function () { return game; }, L: function () { return L; }, Xz: Xz, Y: Y, btnPos: btnPos, topPos: topPos, mode: function () { return mode; }, tip: function () { return tip; }, paused: function () { return paused; }, pause: function () { if (mode === 'play') paused = true; }, ad: function () { return adv; }, serveOK: function () { return serveOK; }, geo: function () { return { turn: turn, ox: ox, W: W, H: H, vw: vw, vh: vh }; } };
   window.__table = api;
   if (document.getElementById('tableCv')) open(null);               // the test page: straight in, with the defaults
   return api;

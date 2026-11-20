@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261120153415";
+window.FL_BUILD = "20261120193757";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -1264,7 +1264,7 @@ window.FLFeedback = (function () {
   }
   /* between matches, once every mode has been played and they have not already answered: open it, once per visit */
   setInterval(function () {
-    if (asked || get(K_DONE) || !allPlayed()) return;
+    if (window.FL_PROMO || asked || get(K_DONE) || !allPlayed()) return;   // a promo page never asks
     var s; try { s = state(); } catch (e) { s = { idle: false }; }
     if (!s) return;
     if (s.idle) { open(); return; }
@@ -1349,7 +1349,8 @@ window.FLFeedback = (function () {
   try { localStorage.removeItem('flja-hvp-pass'); } catch (e) { /* nothing kept */ }
   function hvpOpen() { return false; }
   if (window.FL_LOOK2 && /[?&]hvp\b/.test(location.search)) { if (hvpOpen()) { cfg.comp = 'hvp'; cfg.pick = [12, 13]; if (cfg.view !== 'side') cfg.view = 'aerial'; } else hvpWant = true; }   // a link straight to Hoots vs Peaks
-  function save() { try { localStorage.setItem(STORE, JSON.stringify(cfg)); } catch (e) { /* ignore */ } }
+  var PROMO = window.FL_PROMO || null;                           // a limited-edition match-up page: its own landing screen, no setup page
+  function save() { if (PROMO) return; try { localStorage.setItem(STORE, JSON.stringify(cfg)); } catch (e) { /* ignore */ } }
 
   var seatsNow = null, solo = -1, soloBoth = [false, false], mode = 'demo', game = null, paused = false, cssScale = 0.5, trail = [];
   var held = [{}, {}, {}, {}], throwQ = [0, 0, 0, 0], humanNo = [0, 0, 0, 0];
@@ -1366,7 +1367,7 @@ window.FLFeedback = (function () {
   var spApi = null, spCtl = null, spReq = false, spWant = false, spWait = 0, spPlayed = false, musTap = 0, spLive = false, spTryT = 0, spUri = '', spReady = false, spLoadT = 0;
   var MUSIC = { side: '80s', aerial: '80s', retro: '80s', vintage: '90s', sixties: '50s' }, musicOn = false;
   var VIEWS = { sixties: '', retro: '', vintage: 'fronton5.jpg', side: 'fronton6.jpg', aerial: 'aerial-view.jpg' }, bgs = {}, RETRO = false;
-  function viewOK(v) { return VIEWS[v] != null && (!HVP || v === 'aerial' || v === 'side'); }   // Hoots vs Peaks is played in Pro and Amateur only
+  function viewOK(v) { return VIEWS[v] != null && ((!HVP && !PROMO) || v === 'aerial' || v === 'side'); }   // Hoots vs Peaks is played in Pro and Amateur only
   var view = window.FL_VIEW3 === 2 ? 'aerial' : window.FL_VIEW3 ? 'aerial' : (MULTI && VIEWS[cfg.view] != null ? cfg.view : MULTI ? 'aerial' : 'vintage');
   var VIEW3 = false, AER = false, CROWD_H = 0.125, sprSide = null, sprBack = null;
   function setView(v) {
@@ -1465,7 +1466,7 @@ window.FLFeedback = (function () {
       var fr = 150, wob = Math.sin(t * 4.6 + p.i) * 0.07 + Math.sin(t * 11 + p.i) * 0.05 * st.mv;
       ctx.translate(f.hx - f.ax, f.hy - f.h + 30); ctx.rotate(wob); ctx.translate(0, -fr);
       ctx.beginPath(); ctx.arc(0, 0, fr + 5, 0, 6.3); ctx.fillStyle = '#08090b'; ctx.fill();
-      ctx.save(); ctx.beginPath(); ctx.arc(0, 0, fr, 0, 6.3); ctx.clip(); ctx.scale(p.face, 1); ctx.drawImage(faceImg, -fr, -fr, fr * 2, fr * 2); ctx.restore();
+      ctx.save(); ctx.beginPath(); ctx.arc(0, 0, fr, 0, 6.3); ctx.clip(); ctx.scale(p.face, 1); ctx.drawImage(faceNow, -fr, -fr, fr * 2, fr * 2); ctx.restore();
       ctx.lineCap = 'round'; ctx.strokeStyle = '#08090b'; ctx.lineWidth = 28; ctx.beginPath(); ctx.arc(0, 0, fr + 2, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke();
       ctx.strokeStyle = (KIT[p.team].nk || KIT[p.team]).helm; ctx.lineWidth = 20; ctx.beginPath(); ctx.arc(0, 0, fr + 2, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke();
     }
@@ -1551,7 +1552,7 @@ window.FLFeedback = (function () {
     if ([9, 15, 21].indexOf(cfg.target) < 0) cfg.target = 9;      // older saved setups used 5, 7 or 10
     for (var t = 0; t < 2; t++) {
       var r = ROSTER[p[t]];
-      TEAM[t] = { ui: r.ui, legs: r.kit.sash, flag: r.flag || null, flagImg: !!r.flagImg }; KIT[t] = r.kit; cfg.names[t] = r.name;
+      TEAM[t] = { ui: r.ui, legs: r.kit.sash, flag: r.flag || null, flagImg: !!r.flagImg }; KIT[t] = r.kit; cfg.names[t] = PROMO ? promoName(p[t], r.name) : r.name;
       if (r.logo && img[t].getAttribute('src') !== r.logo) img[t].src = r.logo;
       document.documentElement.style.setProperty(t ? '--team-b' : '--team-a', r.ui);
       document.documentElement.style.setProperty(t ? '--team-b-ink' : '--team-a-ink', inkFor(r.ui));
@@ -1814,9 +1815,17 @@ window.FLFeedback = (function () {
     rd.readAsDataURL(f);
   });
   $('faceClear').addEventListener('click', function () { try { localStorage.removeItem(FACE_KEY); } catch (e) { /* ignore */ } faceImg = null; faceUI(); });
+  var faceNow = null;                                              // the picture the next bobble head is drawn from
   function faceFor(p) {                                            // your photo rides on your own player in a singles match
+    faceNow = null;
+    if (PROMO) {                                                   // a match-up page: each of the two players wears his own face
+      var pf = promoFaces[cfg.pick[p.team]];
+      if (!game.cfg.singles || mode !== 'match' || p.i % 2 || !pf || !pf.complete || !pf.naturalWidth) return false;
+      faceNow = pf; return true;
+    }
     if (!faceImg || !game.cfg.singles || mode !== 'match' || p.i % 2) return false;
-    return solo >= 0 ? p.team === solo : p.human;
+    if (solo >= 0 ? p.team === solo : p.human) { faceNow = faceImg; return true; }
+    return false;
   }
   function changeView(v) {                                         // same match, different camera: allowed at any moment
     if (!MULTI) return;
@@ -2245,6 +2254,7 @@ window.FLFeedback = (function () {
     drag = null; cv.style.touchAction = ''; cv.style.cursor = 'pointer';
     document.body.classList.toggle('pv-setup', POSTER && !net.role);   // preview: no court on the setup screen (an online wait still shows its message)
     buildSetup(); show();
+    if (PROMO) promoShow();
   }
   /* a quick reminder from the guide on how to move, every time a match starts; the match waits until it is closed */
   var tipOpen = false;
@@ -2303,9 +2313,9 @@ window.FLFeedback = (function () {
   function openTable(score) {
     if (window.FLFeedback) window.FLFeedback.played('table');
     var tm = [0, 1].map(function (t) { var r = ROSTER[cfg.pick[t]] || ROSTER[t], k = r.kit || {}, nk = k.nk || {};
-      return { n: cfg.names[t] || r.name, logo: r.crest || r.logo, c1: nk.helm || r.ui || k.jersey || '#f2efe6', c2: nk.belt || k.sash || '#c9a55c' }; });   // USA wears its crest, the other countries their flag, Hooters and Twin Peaks their own marks
+      return { n: cfg.names[t] || r.name, face: PROMO ? promoFaceSrc(cfg.pick[t]) : null, one: !!PROMO, logo: r.crest || r.logo, c1: nk.helm || r.ui || k.jersey || '#f2efe6', c2: nk.belt || k.sash || '#c9a55c' }; });   // USA wears its crest, the other countries their flag, Hooters and Twin Peaks their own marks
     track('start', (cfg.singles ? 'singles' : 'doubles') + '.' + cfg.comp + '.table');
-    window.Table.open({ teams: tm, singles: !!cfg.singles, target: cfg.target, level: cfg.level, pace: PACE[cfg.pace] || 0.88, rebHold: rebHold(), sound: !!cfg.sound, names: shotNames(), score: score || null, intro: false, hooks: {
+    window.Table.open({ teams: tm, singles: !!cfg.singles, target: cfg.target, level: cfg.level, pace: PACE[cfg.pace] || 0.88, rebHold: rebHold(), sound: !!cfg.sound, names: shotNames(), score: score || null, intro: false, ads: window.FL_ADS ? adEvery() : 0, hooks: {
       menu: function () { window.Table.close(); startDemo(); },
       mode: function (sc) { window.Table.close(); cfg.table = false; var nx = viewOK('vintage') ? 'vintage' : 'aerial'; setView(nx); cfg.view = view; save(); startMatch(sc || undefined); },   // on to the next mode, same match
       music: window.FL_MUSIC ? function () { musToggle(); } : null, musicOn: function () { return !!spLive; } } });
@@ -2674,7 +2684,7 @@ window.FLFeedback = (function () {
       ctx.save(); ctx.translate(hdx + 1, hdy + 9); ctx.rotate(wob); ctx.translate(0, -fr - 2 + Math.sin(t * 9.2 + p.i) * 1.5 * (0.4 + mv));   // pivots on the neck
       ctx.beginPath(); ctx.arc(0, 0, fr + 2.6, 0, 6.3); ctx.fillStyle = '#08090b'; ctx.fill();
       ctx.save(); ctx.beginPath(); ctx.arc(0, 0, fr, 0, 6.3); ctx.clip(); ctx.scale(p.face, 1);
-      ctx.drawImage(faceImg, -fr, -fr, fr * 2, fr * 2); ctx.restore();
+      ctx.drawImage(faceNow, -fr, -fr, fr * 2, fr * 2); ctx.restore();
       ctx.lineCap = 'round'; ctx.strokeStyle = '#08090b'; ctx.lineWidth = 15; ctx.beginPath(); ctx.arc(0, 0, fr + 1, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke();   // helmet worn as a cap
       ctx.strokeStyle = fht[1]; ctx.lineWidth = 11; ctx.beginPath(); ctx.arc(0, 0, fr + 1, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke();
       ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, fr + 2.5, Math.PI * 1.3, Math.PI * 1.55); ctx.stroke();
@@ -3252,7 +3262,7 @@ window.FLFeedback = (function () {
       var fr = 150 * k, wob = Math.sin(t * 4.6 + p.i) * 0.07 + Math.sin(t * 11 + p.i) * 0.05 * st.mv;
       ctx.save(); ctx.translate(ox + f.jx * k, oy + (f.hy + 14) * k); ctx.rotate(wob); ctx.translate(0, -fr);
       ctx.beginPath(); ctx.arc(0, 0, fr + 4 * k, 0, 6.3); ctx.fillStyle = '#08090b'; ctx.fill();
-      ctx.save(); ctx.beginPath(); ctx.arc(0, 0, fr, 0, 6.3); ctx.clip(); ctx.drawImage(faceImg, -fr, -fr, fr * 2, fr * 2); ctx.restore();
+      ctx.save(); ctx.beginPath(); ctx.arc(0, 0, fr, 0, 6.3); ctx.clip(); ctx.drawImage(faceNow, -fr, -fr, fr * 2, fr * 2); ctx.restore();
       ctx.lineCap = 'round'; ctx.strokeStyle = (KIT[p.team].nk || KIT[p.team]).helm; ctx.lineWidth = 18 * k; ctx.beginPath(); ctx.arc(0, 0, fr + 2 * k, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke();
       ctx.restore();
     }
@@ -3372,7 +3382,7 @@ window.FLFeedback = (function () {
     if (net.lost) banner('OPPONENT DISCONNECTED', 'Tap New match to leave');
     else if (paused) banner('PAUSED', net.role === 'guest' ? 'The host paused the match'
       : hasKeys() ? 'Press P or tap Resume' : 'Tap Resume');   // no keyboard, no point naming a key
-    else if (game.phase === 'over') banner(cfg.names[game.winner].toUpperCase() + ' WIN ' + game.score[game.winner] + ' TO ' + game.score[1 - game.winner], null, TEAM[game.winner].ui);
+    else if (game.phase === 'over') banner(cfg.names[game.winner].toUpperCase() + (PROMO ? ' WINS ' : ' WIN ') + game.score[game.winner] + ' TO ' + game.score[1 - game.winner], null, TEAM[game.winner].ui);
     else if (game.phase === 'point') banner('POINT ' + cfg.names[game.msg.winner].toUpperCase(), whoDid(game.msg) + MSG[game.msg.ev], TEAM[game.msg.winner].ui);
     else if (game.phase === 'serve' && holder && !RETRO && !SIX) {
       var fz = Math.max(34, 11 / cssScale);
@@ -3612,6 +3622,7 @@ window.FLFeedback = (function () {
     { name: 'Open Book', line: 'Fair HVAC pricing for homeowners', spot: 'spot3', drawn: true },   // this mark is drawn by the game, not painted on the wall picture
     { name: 'rewyld', line: 'Adopt a bunny, save the Everglades', spot: 'spot4', link: 'rewSite', crop: [78.0, 14.53, 11.5, 14.75] }
   ];
+  function adEvery() { return (PROMO && PROMO.adEvery) || AD_EVERY[game ? game.cfg.target : cfg.target] || 2; }
   function adBuild() {
     var el = document.createElement('div'); el.id = 'adCard'; el.hidden = true; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Sponsor');
     el.innerHTML = '<canvas id="adLogo" width="464" height="296"></canvas><div class="ad-side"><div class="ad-tag">Sponsor</div><div class="ad-line" id="adLine"></div>' +
@@ -3668,9 +3679,67 @@ window.FLFeedback = (function () {
     if (mode !== 'match' || !game) { if (ad.el && !ad.el.hidden) adHide(true); ad.lastPh = ''; return; }
     var ph = game.phase, tot = game.score[0] + game.score[1];
     if (ad.g !== game) { ad.g = game; ad.n = 0; }                   // a new match: each sponsor gets one showing, then no more
-    if (!ad.on && !paused && !net.role && ad.n < SPONS.length && ad.lastPh === 'point' && ph === 'serve' && tot > 0 && tot % (AD_EVERY[game.cfg.target] || 2) === 0) adShow();
+    if (!ad.on && !paused && !net.role && (PROMO || ad.n < SPONS.length) && ad.lastPh === 'point' && ph === 'serve' && tot > 0 && tot % adEvery() === 0) adShow();
     ad.lastPh = ph;
     if (ad.on && !paused) { ad.t -= dt; $('adBar').style.width = Math.max(0, 100 * ad.t / AD_SECS) + '%'; throwQ = [0, 0, 0, 0]; if (ad.t <= 0) adHide(); }
+  }
+
+  /* ---------- limited-edition match-up page (only where window.FL_PROMO is set) ----------
+     The page opens on the match-up art. Under it: who you play as, the mode, and two ways to play (with sponsor pop-outs, or without).
+     Everything else is the game as it is: same engine, same teams and kits, same modes. Menu comes back here. */
+  var promoFaces = {}, promoEl = null, promoMode = 'aerial';
+  function promoWho(ri) { for (var i = 0; PROMO && i < PROMO.people.length; i++) if (PROMO.people[i].team === ri) return PROMO.people[i]; return null; }
+  function promoName(ri, fallback) { var w = promoWho(ri); return w ? w.name : fallback; }
+  function promoFaceSrc(ri) { var w = promoWho(ri); return w ? w.face : null; }
+  function promoShow() {
+    if (!promoEl) promoBuild();
+    promoEl.hidden = false; document.body.classList.add('promo-open');
+  }
+  function promoGo(ads) {
+    var me = +$('pmWho').value, other = PROMO.people[1 - me];
+    window.FL_ADS = ads ? 1 : 0;
+    cfg.comp = 'league'; cfg.pick = [PROMO.people[me].team, other.team]; picked = [true, true];
+    cfg.singles = true; cfg.seats = [1, 1, 0, 0]; cfg.target = PROMO.target || 15; cfg.level = 'normal'; cfg.pace = 'standard';
+    cfg.who = 'men'; cfg.whoT = ['men', 'men'];
+    cfg.table = promoMode === 'table';
+    if (!cfg.table) { setView(promoMode); cfg.view = view; }
+    applyTeams();
+    promoEl.hidden = true; document.body.classList.remove('promo-open');
+    unlock(); tryStart();
+  }
+  function promoBuild() {
+    var P = PROMO, NAMES = { aerial: 'Professional', side: 'Amateur', table: 'Cocktail Table' }, st = document.createElement('style');
+    st.textContent = '#promo{position:fixed;inset:0;z-index:10040;background:#07070a;color:#f2efe6;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;justify-content:center;font-family:var(--body,system-ui,sans-serif)}' +
+      '#promo[hidden]{display:none}body.promo-open{overflow:hidden}' +
+      '#promo .pm-in{width:100%;max-width:470px;min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;gap:10px;padding:max(10px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) max(14px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}' +
+      '#promo .pm-tag{text-align:center;font:800 11px/1.2 var(--body,system-ui,sans-serif);letter-spacing:.2em;text-transform:uppercase;color:#c9a55c}' +
+      '#promo .pm-art{display:block;align-self:center;width:auto;max-width:100%;height:auto;max-height:calc(100dvh - 268px);min-height:150px;object-fit:contain;border-radius:12px}' +
+      '#promo .pm-ctl{display:flex;flex-direction:column;gap:10px}' +
+      '#promo .pm-row{display:flex;gap:8px;align-items:stretch}' +
+      '#promo .pm-who{align-items:center}#promo .pm-who span{flex:0 0 auto;font:700 12px/1 var(--body,system-ui,sans-serif);letter-spacing:.12em;text-transform:uppercase;color:#9a9da6}' +
+      '#promo select{flex:1 1 auto;min-width:0;min-height:46px;padding:0 12px;border-radius:10px;border:1px solid #c9a55c;background:#0b0c0f;color:#f2efe6;font:700 16px/1.2 var(--body,system-ui,sans-serif)}' +
+      '#promo .pm-modes button{flex:1 1 0;min-width:0;min-height:46px;padding:6px 4px;border-radius:10px;border:1px solid #2a2d36;background:#12131a;color:#c8cad0;font:700 13px/1.15 var(--body,system-ui,sans-serif);cursor:pointer}' +
+      '#promo .pm-modes button[aria-pressed="true"]{background:#f2efe6;color:#0b0c0f;border-color:#f2efe6}' +
+      '#promo .pm-go button{flex:1 1 0;min-width:0;min-height:58px;padding:8px 6px;border-radius:12px;border:0;font:900 16px/1.15 var(--body,system-ui,sans-serif);letter-spacing:.02em;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}' +
+      '#promo #pmAds{background:#c9a55c;color:#0b0c0f}#promo #pmFree{background:transparent;color:#f2efe6;border:2px solid #c9a55c}' +
+      '#promo .pm-go small{font:700 11.5px/1 var(--body,system-ui,sans-serif);letter-spacing:.04em;opacity:.85}' +
+      '#promo .pm-note{margin:0;text-align:center;font:500 11.5px/1.35 var(--body,system-ui,sans-serif);color:#8d909a}' +
+      '#promo button:focus-visible,#promo select:focus-visible{outline:3px solid #fff;outline-offset:2px}' +
+      '@media (orientation:landscape) and (max-height:560px){#promo .pm-in{max-width:none;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 18px}#promo .pm-tag{flex:0 0 100%}#promo .pm-art{max-height:calc(100dvh - 54px);max-width:46%}#promo .pm-ctl{flex:0 1 380px;min-width:0}}';
+    document.head.appendChild(st);
+    var el = document.createElement('div'); el.id = 'promo'; el.hidden = true;
+    el.innerHTML = '<div class="pm-in"><div class="pm-tag">' + esc(P.tag) + '</div>' +
+      '<img class="pm-art" src="' + esc(P.art) + '" alt="' + esc(P.people[0].name + ' versus ' + P.people[1].name) + '">' +
+      '<div class="pm-ctl"><label class="pm-row pm-who"><span>Play as</span><select id="pmWho">' + P.people.map(function (w, i) { return '<option value="' + i + '">' + esc(w.name) + '</option>'; }).join('') + '</select></label>' +
+      '<div class="pm-row pm-modes" role="group" aria-label="Mode">' + P.modes.map(function (m) { return '<button type="button" data-m="' + m + '" aria-pressed="' + (m === promoMode) + '">' + NAMES[m] + '</button>'; }).join('') + '</div>' +
+      '<div class="pm-row pm-go"><button type="button" id="pmAds">Play with Ads</button><button type="button" id="pmFree">Play Ad Free<small>$0.99 per mo.</small></button></div>' +
+      '<p class="pm-note">Preview: ad-free play is open at no charge during this test. Nothing is billed.</p></div></div>';
+    document.body.appendChild(el); promoEl = el;
+    el.querySelector('.pm-modes').addEventListener('click', function (e) { var b = e.target.closest('button[data-m]'); if (!b) return; promoMode = b.getAttribute('data-m');
+      [].forEach.call(el.querySelectorAll('.pm-modes button'), function (x) { x.setAttribute('aria-pressed', String(x === b)); }); });
+    $('pmAds').addEventListener('click', function () { promoGo(true); });
+    $('pmFree').addEventListener('click', function () { promoGo(false); });
+    P.people.forEach(function (w) { var im = new Image(); im.src = w.face; promoFaces[w.team] = im; });
   }
 
   /* ---------- loop ---------- */
@@ -3803,6 +3872,12 @@ window.FLFeedback = (function () {
   'use strict';
   var root = document.getElementById('film');
   if (!root) return;
+  if (window.FL_PROMO) {                                            // a limited-edition match-up page is open to everyone and opens on its own landing screen
+    var touchP = ('ontouchstart' in window) || navigator.maxTouchPoints > 0, gp = document.getElementById('gate');
+    window.FL_PLAY = touchP ? 'mobile' : 'pc'; document.body.classList.add('play-' + window.FL_PLAY);
+    document.body.classList.remove('locked', 'filming'); if (gp) gp.hidden = true; root.remove();
+    return;
+  }
   var NOFILM = /[?&]nofilm/.test(location.search);                  // the film can be skipped; the door cannot
 
   var cv = document.getElementById('filmCv'), ctx = cv.getContext('2d');
@@ -4228,7 +4303,7 @@ window.FLFeedback = (function () {
 window.Table = (function () {
   'use strict';
   var C = Core.C, cv = null, ctx = null, O = null, running = false, raf = 0, bound = false;
-  var DEF = { teams: [{ n: 'Squared Groupers', logo: 'team-a.png', c1: '#c6ee32', c2: '#fcfc04' }, { n: 'Peloteros', logo: 'team-b.png', c1: '#f52f9b', c2: '#3cb5e4' }], singles: true, target: 15, level: 'normal', pace: 0.88, rebHold: 2, sound: true, score: null, intro: true, hooks: {}, names: ['Serve', 'Throw', 'Rebound', 'Cut', 'Two-Wall', 'Side Wall'] };   // names[0] is the serve, then the five shots in core order; English unless the game hands over others
+  var DEF = { teams: [{ n: 'Squared Groupers', logo: 'team-a.png', c1: '#c6ee32', c2: '#fcfc04' }, { n: 'Peloteros', logo: 'team-b.png', c1: '#f52f9b', c2: '#3cb5e4' }], singles: true, target: 15, level: 'normal', pace: 0.88, rebHold: 2, sound: true, score: null, intro: true, ads: 0, hooks: {}, names: ['Serve', 'Throw', 'Rebound', 'Cut', 'Two-Wall', 'Side Wall'] };   // names[0] is the serve, then the five shots in core order; English unless the game hands over others
   /* six buttons: three to the left of the stick, three to the right. s = core shot index, -1 = the serve */
   var BTNS = [{ s: -1 }, { s: 0 }, { s: 1 }, { s: 3 }, { s: 2 }, { s: 4 }];
   var TOP = [{ k: 'menu', n: 'MENU' }, { k: 'mode', n: 'MODE' }, { k: 'music', n: '♪' }, { k: 'pause', n: 'PAUSE' }];
@@ -4323,7 +4398,7 @@ window.Table = (function () {
     game = Core.newGame({ seats: O.singles ? [1, 0, 0, 0] : [1, 1, 0, 0], solo: [!O.singles, false], singles: !!O.singles, target: O.target, level: O.level, rebHold: O.rebHold, firstServe: 0,
       latK: 1, latAcc: 1e6, latZ: 1 }); tune();
     game.lat = true; if (score) game.score = score.slice(0, 2);
-    target = null; throwReq = null; fx.trail = []; fx.texts = []; paused = false; mode = 'play';
+    target = null; throwReq = null; fx.trail = []; fx.texts = []; paused = false; mode = 'play'; adv.on = false; adv.due = false; adv.n = 0;
   }
   /* one speed, the same in every direction ON THE GLASS. The engine runs the length of the court in court units and the width as a fraction, so the two are
      matched here from the real size of the court on this screen: VRUN court units a second lengthwise (the whole court in about a second and a half), and
@@ -4356,7 +4431,7 @@ window.Table = (function () {
       else if (ev === 'point' || ev === 'win') { var w = game.pointWinner; crowd(ev === 'win' ? 2.6 : 1.3, ev === 'win' ? 0.4 : 0.26); tone(w === 0 ? 660 : 330, 0.25, 'triangle', 0.15, w === 0 ? 990 : 220);
         fx.texts = []; if (CALLS[game.msg.ev]) say(CALLS[game.msg.ev], '#f2efe6', W / 2, L.cy + L.ch * 0.4, true); say('POINT ' + O.teams[w].n.toUpperCase(), O.teams[w].c1, W / 2, L.cy + L.ch * 0.4 + W * 0.11, true);
         confetti(W / 2, L.cy + L.ch * 0.45, ev === 'win' ? 120 : 26, [O.teams[w].c1, O.teams[w].c2, '#fff']);
-        if (ev === 'win') mode = 'over'; }
+        if (ev === 'win') mode = 'over'; else if (O.ads > 0 && (game.score[0] + game.score[1]) % O.ads === 0) adv.due = true; }
     });
     game.events.length = 0;
   }
@@ -4379,6 +4454,7 @@ window.Table = (function () {
     if (t >= 0) { topDown = t; topHit = t; topT = T; return; }
     if (mode !== 'play') { newMatch(); return; }
     if (tip) { tip = false; return; }
+    if (adv.on) { if (adv.t > 0.3) adv.t = 0.3; return; }                    // a tap sends the sponsor card back to the floor
     if (paused) { paused = false; return; }
     if (p.y >= L.barY) { var b = btnAt(p); if (b >= 0) { fire(b); return; } if (Math.abs(p.x - L.jx) < W / 2 - L.br * 4.4 || Math.hypot(p.x - L.jx, p.y - L.jy) < L.jr * 1.5) { joy.id = e.pointerId; joy.ox = p.x; joy.oy = p.y; joy.x = joy.y = 0; target = null; } return; }
     if (p.y > L.cy) { ptrs[e.pointerId] = 1; tapT = T; var c = courtPt(p); target = c; lastZ = c.z; }
@@ -4438,7 +4514,7 @@ window.Table = (function () {
     var s = L.wallH * 0.7, y = L.wallH / 2 - 1, i, h = O.hooks || {}, mid = W / 2, fsz = L.wallH * 0.62;
     ctx.font = '900 ' + fsz + 'px system-ui,Arial,sans-serif'; ctx.textBaseline = 'middle';
     for (i = 0; i < 2; i++) { var sc = String(game ? game.score[i] : 0), tw = ctx.measureText(sc).width, sx = i ? mid + 9 : mid - 9, lx = i ? sx + tw + 7 + s / 2 : sx - tw - 7 - s / 2;
-      ctx.fillStyle = '#f2efe6'; ctx.textAlign = i ? 'left' : 'right'; ctx.fillText(sc, sx, y + 2); logoDisc(O.teams[i].logo, lx, y, s / 2, O.teams[i].c1);
+      ctx.fillStyle = '#f2efe6'; ctx.textAlign = i ? 'left' : 'right'; ctx.fillText(sc, sx, y + 2); logoDisc(O.teams[i].face || O.teams[i].logo, lx, y, s / 2, O.teams[i].c1);
       if (game && game.server === i && game.phase !== 'over') { ctx.fillStyle = GOLD; ctx.beginPath(); ctx.arc(lx, y + s / 2 + 2.5, 2.4, 0, 6.3); ctx.fill(); } }
     ctx.fillStyle = 'rgba(242,239,230,.45)'; ctx.fillRect(mid - 0.75, y - s * 0.3, 1.5, s * 0.6);
     for (i = 0; i < 4; i++) { var b = topPos(i), k = TOP[i].k, on = (k === 'pause' && paused) || (k === 'music' && h.musicOn && h.musicOn()), hit = topHit === i && T - topT < 0.18;
@@ -4463,6 +4539,46 @@ window.Table = (function () {
     fx.texts = fx.texts.filter(function (t) { t.life -= dt; if (t.life <= 0) return false; var fs = t.big ? Math.min(W * 0.085, W * 0.94 / (t.t.length * 0.62)) : Math.min(W * 0.062, W * 0.9 / (t.t.length * 0.62)); ctx.globalAlpha = Math.min(1, t.life * 2.2); ctx.font = '900 ' + fs + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.lineWidth = fs * 0.2; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(5,6,10,.9)'; ctx.strokeText(t.t, t.x, t.y); ctx.fillStyle = t.c; ctx.fillText(t.t, t.x, t.y); ctx.globalAlpha = 1; return true; });
   }
+  /* ---------- sponsor pop-out (only when the page asks for it with ads: N): every N points one of the four floor sponsors lifts off the floor
+     and stands up in the middle of the table, tilted toward the player at the short end, for a few seconds. The match waits; a tap sends it back. ---------- */
+  var AD_SECS = 4, adv = { on: false, due: false, t: 0, n: 0, i: 0 }, adCv = {};
+  var ADS = [
+    { n: 'Silver Palm Capital', line: 'Your trusted M&A advisor', crop: [10.7, 17.5, 11.6, 9.4], at: [0.37, 2] },
+    { n: 'The Casino at Dania Beach', line: 'Come play our slots', crop: [22.6, 17.5, 11.6, 9.4], at: [0.65, 4.5] },
+    { n: 'Open Book', line: 'Fair HVAC pricing for homeowners', crop: null, at: [0.37, 10.5] },
+    { n: 'rewyld', line: 'Adopt a bunny, save the Everglades', crop: [78.0, 16.2, 11.5, 9.6], at: [0.65, 13] }
+  ];
+  function adMark(i) {                                                // the sponsor's white mark, lifted off the wall picture (made once)
+    if (adCv[i]) return adCv[i];
+    var a = ADS[i], im = img['fronton6.jpg'], oc = document.createElement('canvas'), g;
+    if (!a.crop) {                                                    // Open Book is drawn: an open book and the name
+      oc.width = 520; oc.height = 150; g = oc.getContext('2d'); g.translate(70, 75); g.fillStyle = '#fff';
+      for (var sd = -1; sd <= 1; sd += 2) { g.beginPath(); g.moveTo(sd * 4, -30); g.quadraticCurveTo(sd * 28, -46, sd * 56, -34); g.lineTo(sd * 56, 28); g.quadraticCurveTo(sd * 28, 16, sd * 4, 34); g.closePath(); g.fill(); }
+      g.font = 'bold 70px Georgia,"Times New Roman",serif'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText('Open Book', 76, 4, 370);
+      return (adCv[i] = oc);
+    }
+    if (!ok(im)) return null;
+    var sw = im.naturalWidth * a.crop[2] / 100, sh = im.naturalHeight * a.crop[3] / 100; oc.width = Math.round(sw); oc.height = Math.round(sh); g = oc.getContext('2d');
+    g.drawImage(im, im.naturalWidth * a.crop[0] / 100, im.naturalHeight * a.crop[1] / 100, sw, sh, 0, 0, oc.width, oc.height);
+    try { var id = g.getImageData(0, 0, oc.width, oc.height), d = id.data; for (var q = 0; q < d.length; q += 4) { var lum = Math.max(d[q], d[q + 1], d[q + 2]); d[q] = d[q + 1] = d[q + 2] = 255; d[q + 3] = lum < 40 ? 0 : Math.min(255, (lum - 40) * 1.5); } g.putImageData(id, 0, 0); } catch (e) { /* the picture as it is */ }
+    return (adCv[i] = oc);
+  }
+  function drawAd() {
+    var a = ADS[adv.i], mk = adMark(adv.i), inT = Math.min(1, (AD_SECS - adv.t) / 0.45), outT = Math.min(1, adv.t / 0.3), k = Math.min(1 - Math.pow(1 - inT, 3), outT);
+    var l0 = Math.floor(a.at[1]), fx0 = Xz(a.at[0]), fy0 = Y(C.LINES[l0] + (C.LINES[l0 + 1] - C.LINES[l0]) * (a.at[1] - l0));   // where the mark sits on the floor
+    var cx = fx0 + (W / 2 - fx0) * k, cy = fy0 + (L.cy + L.ch * 0.46 - fy0) * k, cw = W * 0.8, chh = cw * 0.56, s = 0.3 + 0.7 * k;
+    ctx.save(); ctx.fillStyle = 'rgba(3,3,6,' + 0.55 * k + ')'; ctx.fillRect(0, L.wallH, W, L.barY - L.wallH);
+    ctx.fillStyle = 'rgba(0,0,0,' + 0.5 * k + ')'; ctx.beginPath(); ctx.ellipse(cx + cw * 0.03 * s, cy + chh * 0.62 * s, cw * 0.46 * s, chh * 0.13 * s, 0, 0, 6.3); ctx.fill();   // its shadow on the floor
+    ctx.translate(cx, cy); ctx.rotate(-0.07 * k); ctx.transform(1, 0, -0.16 * k, 1, 0, 0); ctx.scale(s, s); ctx.globalAlpha = Math.min(1, 0.25 + k);   // leaning back, as a card standing on the table looks from the short end
+    ctx.fillStyle = '#050508'; rr(ctx, -cw / 2, -chh / 2, cw, chh, cw * 0.035); ctx.fill(); ctx.strokeStyle = GOLD; ctx.lineWidth = Math.max(2, W * 0.006); ctx.stroke();
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = GOLD; ctx.font = '800 ' + cw * 0.034 + 'px system-ui,Arial,sans-serif'; ctx.fillText('S P O N S O R', 0, -chh * 0.4);
+    if (mk) { var mkk = Math.min(cw * 0.8 / mk.width, chh * 0.44 / mk.height); ctx.drawImage(mk, -mk.width * mkk / 2, -chh * 0.07 - mk.height * mkk / 2, mk.width * mkk, mk.height * mkk); }
+    else { ctx.fillStyle = '#fff'; ctx.font = '900 ' + cw * 0.085 + 'px system-ui,Arial,sans-serif'; ctx.fillText(a.n, 0, -chh * 0.07, cw * 0.86); }
+    ctx.fillStyle = '#f2efe6'; ctx.font = '700 ' + cw * 0.048 + 'px system-ui,Arial,sans-serif'; ctx.fillText(a.line, 0, chh * 0.25, cw * 0.9);
+    ctx.fillStyle = 'rgba(242,239,230,.55)'; ctx.font = '600 ' + cw * 0.032 + 'px system-ui,Arial,sans-serif'; ctx.fillText('TAP TO SKIP', 0, chh * 0.39);
+    ctx.fillStyle = '#23262e'; ctx.fillRect(-cw * 0.44, chh * 0.455, cw * 0.88, Math.max(2, chh * 0.012)); ctx.fillStyle = GOLD; ctx.fillRect(-cw * 0.44, chh * 0.455, cw * 0.88 * Math.max(0, adv.t / AD_SECS), Math.max(2, chh * 0.012));
+    ctx.restore();
+  }
   function panel(lines, sub) {
     ctx.fillStyle = 'rgba(5,6,10,.8)'; ctx.fillRect(0, L.wallH, W, H - L.wallH); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     var y = H * 0.3; if (ok(img['brand.png'])) { var s = W * 0.3; ctx.drawImage(img['brand.png'], W / 2 - s / 2, H * 0.12, s, s * img['brand.png'].naturalHeight / img['brand.png'].naturalWidth); y = H * 0.36; }
@@ -4476,7 +4592,9 @@ window.Table = (function () {
     var dt = Math.min(0.05, (now - last) / 1000 || 0); last = now; T += dt;
     var vq = window.visualViewport; if (window.innerWidth !== sw0 || window.innerHeight !== sh0 || (vq && (Math.abs(vq.width - vw) > 1 && Math.abs(vq.height - vh) > 1))) layout();
     if (!bg) paintBg();
-    if (game && mode !== 'intro' && !paused && !tip) {
+    if (adv.due && game && mode === 'play' && game.phase === 'serve' && !tip) { adv.due = false; adv.on = true; adv.t = AD_SECS; adv.i = adv.n++ % ADS.length; }
+    if (adv.on && !paused) { adv.t -= dt; if (adv.t <= 0) adv.on = false; }
+    if (game && mode !== 'intro' && !paused && !tip && !adv.on) {
       var me = mine(), inp = { dir: 0, lat: 0 };
       var kx = (keys.arrowright || keys.d ? 1 : 0) - (keys.arrowleft || keys.a ? 1 : 0), ky = (keys.arrowup || keys.w ? 1 : 0) - (keys.arrowdown || keys.s ? 1 : 0);
       var jx = joy.id != null ? joy.x : kx, jy = joy.id != null ? -joy.y : ky;          // stick up = up the court, toward the front wall
@@ -4495,9 +4613,10 @@ window.Table = (function () {
     if (game) { ctx.save(); ctx.beginPath(); ctx.rect(0, L.wallH, W, L.barY - L.wallH); ctx.clip(); drawGuides(dt); var me2 = mine(), P = game.players.filter(function (p) { return !p.out; }).sort(function (a, b) { return b.x - a.x; }); P.forEach(function (p) { drawPlayer(p, p === me2); }); drawBall(); ctx.restore(); }
     drawControls(); drawFx(dt);
     if (mode === 'intro') panel(['COCKTAIL TABLE', 'Lay your phone flat and play from this end.', 'Move with the stick, or touch the court.', 'Serve when lines 4 and 7 flash red.', 'Throw with the colored buttons.'], 'TAP TO PLAY');
-    else if (mode === 'over') panel([O.teams[game.winner].n.toUpperCase() + ' WIN', game.score[0] + ' – ' + game.score[1]], 'PLAY AGAIN');
+    else if (mode === 'over') panel([O.teams[game.winner].n.toUpperCase() + (O.teams[game.winner].one ? ' WINS' : ' WIN'), game.score[0] + ' – ' + game.score[1]], 'PLAY AGAIN');
     else if (tip) panel(['HOW TO PLAY', 'Lay your phone flat and play from this end.', 'Move: push the red stick, or touch the court.', 'Serve: tap SERVE when lines 4 and 7 flash red.', 'Throw: tap a colored button once you catch it.', 'Rebound call: it is going to the back wall. Get behind it.'], 'GOT IT');   // the match waits behind this card until it is closed
     else if (paused) panel(['PAUSED'], 'TAP TO PLAY ON');
+    else if (adv.on) drawAd();
     drawBoard();
   }
   function open(opts) {
@@ -4506,14 +4625,14 @@ window.Table = (function () {
     if (!cv) { cv = document.createElement('canvas'); cv.id = 'tableCv'; cv.style.cssText = 'position:fixed;left:0;top:0;z-index:10020;display:block;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:#07070a'; document.body.appendChild(cv); }
     cv.hidden = false; cv.style.display = 'block'; ctx = cv.getContext('2d');
     if (!bound) { bound = true; cv.addEventListener('pointerdown', down); cv.addEventListener('pointermove', move); cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up); window.addEventListener('keydown', kd, true); window.addEventListener('keyup', ku, true); }
-    FLOOR.forEach(function (f) { load(f[0]); }); load('brand.png'); load('fronton6.jpg'); load(O.teams[0].logo); load(O.teams[1].logo);
+    FLOOR.forEach(function (f) { load(f[0]); }); load('brand.png'); load('fronton6.jpg'); load(O.teams[0].logo); load(O.teams[1].logo); if (O.teams[0].face) load(O.teams[0].face); if (O.teams[1].face) load(O.teams[1].face);
     layout(); game = null; mode = 'intro'; keys = {}; joy.id = null; joy.x = joy.y = 0;
     tip = false; if (!O.intro) { newMatch(O.score); tip = true; }   // opened from the game: the how-to card first, every time
     if (!running) { running = true; last = performance.now(); raf = requestAnimationFrame(frame); }
   }
   function close() { running = false; cancelAnimationFrame(raf); if (cv) { cv.style.display = 'none'; } keys = {}; }
   var api = { open: open, close: close, isOpen: function () { return running; }, score: function () { return game ? game.score.slice() : null; },
-    game: function () { return game; }, L: function () { return L; }, Xz: Xz, Y: Y, btnPos: btnPos, topPos: topPos, mode: function () { return mode; }, tip: function () { return tip; }, paused: function () { return paused; }, pause: function () { if (mode === 'play') paused = true; }, serveOK: function () { return serveOK; }, geo: function () { return { turn: turn, ox: ox, W: W, H: H, vw: vw, vh: vh }; } };
+    game: function () { return game; }, L: function () { return L; }, Xz: Xz, Y: Y, btnPos: btnPos, topPos: topPos, mode: function () { return mode; }, tip: function () { return tip; }, paused: function () { return paused; }, pause: function () { if (mode === 'play') paused = true; }, ad: function () { return adv; }, serveOK: function () { return serveOK; }, geo: function () { return { turn: turn, ox: ox, W: W, H: H, vw: vw, vh: vh }; } };
   window.__table = api;
   if (document.getElementById('tableCv')) open(null);               // the test page: straight in, with the defaults
   return api;
