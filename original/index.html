@@ -1167,7 +1167,7 @@ if (typeof module !== 'undefined') module.exports = Core;
 <script>
 /* ---------- Fantasy League Jai Alai: tester feedback ----------
    The game notes, in this browser only, which of the six modes a tester has started a match in. Once all six have been played, the
-   survey opens the next time they are between matches. They give their name and answer ten short questions (choices open as a drop-down list; one or several can be ticked); the answers are posted to
+   survey opens the next time they are between matches. They give their name and answer nine short questions (choices open as a drop-down list; one or several can be ticked); the answers are posted to
    the relay (window.FL_FEEDBACK, set on the hosted game only). A "Give Feedback" link on the selection page opens it at any time.
    Where there is nowhere to post to (the Claude preview), the form says so and collects nothing. */
 window.FLFeedback = (function () {
@@ -1192,7 +1192,6 @@ window.FLFeedback = (function () {
     ['serve', 'Was it clear when and how to serve and throw?', 'pick', ['Yes', 'Somewhat', 'No']],
     ['glitch', 'Did anything freeze, glitch or look wrong? What were you doing?', 'text'],
     ['music', 'Did the music work for you?', 'pick', ['Yes', 'No', 'Did not try']],
-    ['cpu', 'How hard was the CPU?', 'pick', ['Too easy', 'About right', 'Too hard']],
     ['more', 'Please provide any additional thoughts and feedback (use your phone’s mic to dictate if you prefer).', 'text']
   ];
   var ans = {};
@@ -1202,7 +1201,7 @@ window.FLFeedback = (function () {
     box = el('div'); box.id = 'fb'; box.hidden = true; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-labelledby', 'fbTitle');
     var form = el('form'); form.id = 'fbForm'; form.setAttribute('autocomplete', 'off'); form.noValidate = true;
     var h = el('h2', null, 'Tell us what you think'); h.id = 'fbTitle'; form.appendChild(h);
-    form.appendChild(el('p', 'fb-sub', 'Ten quick questions. It takes about a minute, and it helps us fix the game.'));
+    form.appendChild(el('p', 'fb-sub', 'Nine quick questions. It takes about a minute, and it helps us fix the game.'));
     var nl = el('label', 'fb-q'); nl.appendChild(el('span', null, 'Your name')); var ni = el('input'); ni.id = 'fbName'; ni.type = 'text'; ni.maxLength = 80; ni.setAttribute('autocapitalize', 'words'); ni.setAttribute('autocomplete', 'name'); nl.appendChild(ni); form.appendChild(nl);
     var num = 0;
     Q.forEach(function (q) {
