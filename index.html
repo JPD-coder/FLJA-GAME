@@ -548,9 +548,17 @@ body.hvp .pick-label, body.hvp .picker { display: none !important; }
 #fb input, #fb textarea { width: 100%; box-sizing: border-box; padding: 12px 13px; border-radius: 10px; border: 1px solid var(--line); background: #0b0c0f; color: var(--text); font: 500 16px/1.4 var(--body); }
 #fb textarea { resize: vertical; min-height: 58px; }
 #fb input:focus, #fb textarea:focus, #fb button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-#fb .fb-picks { display: flex; flex-wrap: wrap; gap: 8px; }
-#fb .fb-picks button { flex: 1 1 auto; min-height: 42px; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line); background: #15161c; color: var(--text); font: 700 14px/1 var(--body); cursor: pointer; }
-#fb .fb-picks button[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: #0b0c0f; }
+#fb .fb-dd { position: relative; width: 100%; min-height: 48px; padding: 12px 40px 12px 13px; border-radius: 10px; border: 1px solid var(--line); background: #0b0c0f; color: var(--muted); font: 500 16px/1.3 var(--body); text-align: left; cursor: pointer; }
+#fb .fb-dd.has { color: var(--text); font-weight: 700; border-color: var(--gold); }
+#fb .fb-dd::after { content: ""; position: absolute; right: 16px; top: 50%; width: 9px; height: 9px; margin-top: -8px; border-right: 2px solid var(--gold); border-bottom: 2px solid var(--gold); transform: rotate(45deg); }
+#fb .fb-dd[aria-expanded="true"]::after { transform: rotate(-135deg); margin-top: -2px; }
+#fb .fb-list { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin-top: -2px; }
+#fb .fb-list[hidden] { display: none; }
+#fb .fb-list button { display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 10px 13px; border: 0; border-top: 1px solid var(--line); background: #15161c; color: var(--text); font: 600 15px/1.2 var(--body); text-align: left; cursor: pointer; }
+#fb .fb-list button:first-child { border-top: 0; }
+#fb .fb-list button::before { content: ""; flex: 0 0 20px; height: 20px; border-radius: 5px; border: 2px solid var(--muted); box-sizing: border-box; }
+#fb .fb-list button[aria-checked="true"] { background: #1d1a12; }
+#fb .fb-list button[aria-checked="true"]::before { border-color: var(--gold); background: var(--gold) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4 10.5l4 4 8-9' fill='none' stroke='%230b0c0f' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat; }
 #fb .fb-note { min-height: 18px; color: #ff6b5e; font: 700 13px/1.3 var(--body); }
 #fb .fb-acts { display: flex; flex-direction: column; gap: 10px; }
 #fb .fb-send { min-height: 52px; border: 0; border-radius: 999px; background: var(--gold); color: #0b0c0f; font: 900 16px/1 var(--display); letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
@@ -1162,7 +1170,7 @@ if (typeof module !== 'undefined') module.exports = Core;
 <script>
 /* ---------- Fantasy League Jai Alai: tester feedback ----------
    The game notes, in this browser only, which of the six modes a tester has started a match in. Once all six have been played, the
-   survey opens the next time they are between matches. They give their name and answer ten short questions; the answers are posted to
+   survey opens the next time they are between matches. They give their name and answer ten short questions (choices open as a drop-down list; one or several can be ticked); the answers are posted to
    the relay (window.FL_FEEDBACK, set on the hosted game only). A "Give Feedback" link on the selection page opens it at any time.
    Where there is nowhere to post to (the Claude preview), the form says so and collects nothing. */
 window.FLFeedback = (function () {
@@ -1176,19 +1184,19 @@ window.FLFeedback = (function () {
   function allPlayed() { var o = playedSet(); return MODES.every(function (m) { return o[m[0]]; }); }
   function device() { var u = navigator.userAgent || ''; return /iPhone|iPod/.test(u) ? 'iPhone' : /iPad/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1) ? 'iPad' : /Android/.test(u) ? 'Android' : 'Computer'; }
 
-  /* [key, question, kind, choices]. kind: 'pick' = one tap, 'text' = a line or two */
+  /* [key, question, kind, choices]. kind: 'pick' = a drop-down list where one or several choices can be ticked, 'text' = a line or two */
   var Q = [
     ['device', 'What did you play on?', 'pick', ['iPhone', 'Android', 'iPad', 'Computer']],
     ['start', 'Was it clear how to pick teams and start a match?', 'pick', ['Yes', 'Somewhat', 'No']],
     ['stuck', 'If you got stuck anywhere, where?', 'text'],
     ['favorite', 'Which mode was your favorite?', 'pick', MODES.map(function (m) { return m[1]; })],
+    ['setting', 'What was your favorite game setting?', 'pick', ['League', 'World Cup', 'Hoots vs Peaks']],
     ['move', 'How did moving your player feel?', 'pick', ['Too slow', 'About right', 'Too fast']],
     ['serve', 'Was it clear when and how to serve and throw?', 'pick', ['Yes', 'Somewhat', 'No']],
     ['glitch', 'Did anything freeze, glitch or look wrong? What were you doing?', 'text'],
     ['music', 'Did the music work for you?', 'pick', ['Yes', 'No', 'Did not try']],
     ['cpu', 'How hard was the CPU?', 'pick', ['Too easy', 'About right', 'Too hard']],
-    ['again', 'Would you play again or share it with a friend?', 'pick', ['Yes', 'Maybe', 'No']],
-    ['change', 'What one thing would you change?', 'text']
+    ['more', 'Please provide any additional thoughts and feedback (use your phone’s mic to dictate if you prefer).', 'text']
   ];
   var ans = {};
   function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
@@ -1202,11 +1210,17 @@ window.FLFeedback = (function () {
     var num = 0;
     Q.forEach(function (q) {
       var w = el('div', 'fb-q'); w.appendChild(el('span', null, q[0] === 'stuck' ? q[1] : (++num) + '. ' + q[1]));   // the follow-up to question 2 carries no number of its own
-      if (q[2] === 'pick') { var row = el('div', 'fb-picks'); row.setAttribute('role', 'group'); row.setAttribute('aria-label', q[1]);
-        q[3].forEach(function (c) { var b = el('button', null, c); b.type = 'button'; b.setAttribute('aria-pressed', 'false');
-          b.addEventListener('click', function () { ans[q[0]] = c; Array.prototype.forEach.call(row.children, function (x) { x.setAttribute('aria-pressed', String(x === b)); }); });
-          row.appendChild(b); }); w.appendChild(row); w._row = row; }
-      else { var ta = el('textarea'); ta.rows = 2; ta.maxLength = 600; ta.setAttribute('aria-label', q[1]); ta.addEventListener('input', function () { ans[q[0]] = ta.value; }); w.appendChild(ta); }
+      if (q[2] === 'pick') {
+        var dd = el('button', 'fb-dd'); dd.type = 'button'; dd.setAttribute('aria-expanded', 'false'); dd.setAttribute('aria-label', q[1]);
+        var list = el('div', 'fb-list'); list.hidden = true; list.setAttribute('role', 'group'); list.setAttribute('aria-label', q[1]);
+        var show = function () { var a = ans[q[0]] || []; dd.textContent = a.length ? a.join(', ') : 'Tap to choose (one or more)'; dd.classList.toggle('has', !!a.length); };
+        dd.addEventListener('click', function () { var o = list.hidden; list.hidden = !o; dd.setAttribute('aria-expanded', String(o)); });
+        q[3].forEach(function (c) { var b = el('button', null, c); b.type = 'button'; b.setAttribute('role', 'checkbox'); b.setAttribute('aria-checked', 'false');
+          b.addEventListener('click', function () { var a = (ans[q[0]] || []).slice(), i = a.indexOf(c); if (i < 0) a.push(c); else a.splice(i, 1);
+            ans[q[0]] = q[3].filter(function (x) { return a.indexOf(x) >= 0; }); b.setAttribute('aria-checked', String(i < 0)); show(); });
+          list.appendChild(b); });
+        w.appendChild(dd); w.appendChild(list); w._list = list; w._show = show; }
+      else { var ta = el('textarea'); ta.rows = q[0] === 'more' ? 4 : 2; ta.maxLength = q[0] === 'more' ? 1400 : 600; ta.setAttribute('aria-label', q[1]); ta.addEventListener('input', function () { ans[q[0]] = ta.value; }); w.appendChild(ta); }
       w._k = q[0]; form.appendChild(w);
     });
     var note = el('div', 'fb-note'); note.id = 'fbNote'; note.setAttribute('role', 'alert'); form.appendChild(note);
@@ -1218,8 +1232,10 @@ window.FLFeedback = (function () {
     box.addEventListener('keyup', function (e) { e.stopPropagation(); }, true);
   }
   function open() {
-    build(); asked = true; ans = { device: device() }; var f = box.firstChild;
-    Array.prototype.forEach.call(f.querySelectorAll('.fb-q'), function (w) { if (w._row) Array.prototype.forEach.call(w._row.children, function (b) { b.setAttribute('aria-pressed', String(w._k === 'device' && b.textContent === ans.device)); }); var t = w.querySelector('textarea'); if (t) t.value = ''; });
+    build(); asked = true; ans = { device: [device()] }; var f = box.firstChild;
+    Array.prototype.forEach.call(f.querySelectorAll('.fb-q'), function (w) {
+      if (w._list) { Array.prototype.forEach.call(w._list.children, function (b) { b.setAttribute('aria-checked', String(w._k === 'device' && b.textContent === ans.device[0])); }); w._list.hidden = true; w.querySelector('.fb-dd').setAttribute('aria-expanded', 'false'); w._show(); }
+      var t = w.querySelector('textarea'); if (t) t.value = ''; });
     document.getElementById('fbNote').textContent = ''; f.querySelector('.fb-send').disabled = false; f.querySelector('.fb-send').textContent = 'Send Feedback'; f.hidden = false;
     var th = box.querySelector('.fb-thanks'); if (th) th.remove();
     box.hidden = false; box.scrollTop = 0; document.body.classList.add('fb-open');
@@ -1232,7 +1248,7 @@ window.FLFeedback = (function () {
   function submit(ni, note, send) {
     var name = ni.value.trim(); if (!name) { note.textContent = 'Please add your name so we know who to thank.'; ni.focus(); return; }
     var o = playedSet(), row = { name: name, modes: MODES.filter(function (m) { return o[m[0]]; }).map(function (m) { return m[1]; }).join(', ') || 'none yet' };
-    Q.forEach(function (q) { row[q[0]] = (ans[q[0]] || '').trim(); });
+    Q.forEach(function (q) { var v = ans[q[0]]; row[q[0]] = (Array.isArray(v) ? v.join(', ') : (v || '')).trim(); });
     var url = window.FL_FEEDBACK;
     if (!url || (window.claude && window.claude.use)) { note.textContent = 'This preview copy does not collect answers. Feedback is sent from the live game.'; return; }
     send.disabled = true; send.textContent = 'Sending...'; note.textContent = '';
