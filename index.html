@@ -20,6 +20,7 @@ img { max-width: 100%; }
 <script>
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
+window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
 </script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <title>Fantasy League Jai Alai</title>
@@ -536,6 +537,26 @@ body.hvp .pick-label, body.hvp .picker { display: none !important; }
 #a2hs .a2-x { flex: none; width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; }
 /* matchup poster (preview): a still court, a Tap to Play button, then the two teams face off while the match loads */
 [hidden] { display: none !important; }
+#fb { position: fixed; inset: 0; z-index: 10060; background: rgba(5,6,10,.94); overflow-y: auto; -webkit-overflow-scrolling: touch; padding: calc(18px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(28px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+#fb[hidden] { display: none; }
+#fb form, #fb .fb-thanks { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+#fb form[hidden] { display: none; }
+#fb h2 { margin: 0; font: 900 26px/1.1 var(--display); letter-spacing: .04em; text-transform: uppercase; color: var(--gold); }
+#fb .fb-sub, #fb .fb-thanks p { margin: -8px 0 0; color: var(--muted); font: 500 14px/1.45 var(--body); }
+#fb .fb-q { display: flex; flex-direction: column; gap: 8px; }
+#fb .fb-q > span { font: 700 15px/1.35 var(--body); color: var(--text); }
+#fb input, #fb textarea { width: 100%; box-sizing: border-box; padding: 12px 13px; border-radius: 10px; border: 1px solid var(--line); background: #0b0c0f; color: var(--text); font: 500 16px/1.4 var(--body); }
+#fb textarea { resize: vertical; min-height: 58px; }
+#fb input:focus, #fb textarea:focus, #fb button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+#fb .fb-picks { display: flex; flex-wrap: wrap; gap: 8px; }
+#fb .fb-picks button { flex: 1 1 auto; min-height: 42px; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line); background: #15161c; color: var(--text); font: 700 14px/1 var(--body); cursor: pointer; }
+#fb .fb-picks button[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: #0b0c0f; }
+#fb .fb-note { min-height: 18px; color: #ff6b5e; font: 700 13px/1.3 var(--body); }
+#fb .fb-acts { display: flex; flex-direction: column; gap: 10px; }
+#fb .fb-send { min-height: 52px; border: 0; border-radius: 999px; background: var(--gold); color: #0b0c0f; font: 900 16px/1 var(--display); letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
+#fb .fb-send:disabled { opacity: .6; }
+#fb .fb-later { min-height: 44px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--muted); font: 700 14px/1 var(--body); cursor: pointer; }
+body.fb-open { overflow: hidden; }
 .face-toggle { display: block; background: transparent; border: 0; padding: 4px 0; margin: 2px 0 6px; color: var(--gold); font: 700 13px/1.2 var(--body); letter-spacing: .06em; text-transform: uppercase; cursor: pointer; text-align: left; }
 .face-toggle[hidden] { display: none; }
 #arenaLink { display: block; margin: 14px auto 18px; max-width: 420px; text-align: center; text-decoration: none; padding: 13px 16px; border-radius: 14px; border: 1px solid #c9a55c; color: #c9a55c; font: 800 15px/1.2 var(--body); letter-spacing: .14em; text-transform: uppercase; }
@@ -680,6 +701,7 @@ body.poster-on #tapPlay { display: block; position: sticky; bottom: calc(26px + 
       <div class="opt-label">Play a friend online</div>
       <div id="onlineBody"></div>
     </div>
+    <button type="button" class="face-toggle" id="fbLink">Give Feedback</button>
   <button type="button" id="tapPlay">Tap to Play</button>
   </section>
 
@@ -1138,6 +1160,99 @@ if (typeof module !== 'undefined') module.exports = Core;
 
 </script>
 <script>
+/* ---------- Fantasy League Jai Alai: tester feedback ----------
+   The game notes, in this browser only, which of the six modes a tester has started a match in. Once all six have been played, the
+   survey opens the next time they are between matches. They give their name and answer ten short questions; the answers are posted to
+   the relay (window.FL_FEEDBACK, set on the hosted game only). A "Give Feedback" link on the selection page opens it at any time.
+   Where there is nowhere to post to (the Claude preview), the answers can be copied as text instead. */
+window.FLFeedback = (function () {
+  'use strict';
+  var MODES = [['aerial', 'Professional'], ['side', 'Amateur'], ['table', 'Cocktail Table'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', '50s Vintage']];
+  var K_PLAYED = 'flja-modes', K_DONE = 'flja-fb-done', asked = false, box = null, state = function () { return { idle: false }; };
+  function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private window: the survey still works, it just will not remember */ } }
+  function playedSet() { var o = {}; try { o = JSON.parse(get(K_PLAYED) || '{}') || {}; } catch (e) { o = {}; } return o; }
+  function played(v) { if (!v) return; var o = playedSet(); if (!o[v]) { o[v] = 1; set(K_PLAYED, JSON.stringify(o)); } }
+  function allPlayed() { var o = playedSet(); return MODES.every(function (m) { return o[m[0]]; }); }
+  function device() { var u = navigator.userAgent || ''; return /iPhone|iPod/.test(u) ? 'iPhone' : /iPad/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1) ? 'iPad' : /Android/.test(u) ? 'Android' : 'Computer'; }
+
+  /* [key, question, kind, choices]. kind: 'pick' = one tap, 'text' = a line or two */
+  var Q = [
+    ['device', 'What did you play on?', 'pick', ['iPhone', 'Android', 'iPad', 'Computer']],
+    ['start', 'Was it clear how to pick teams and start a match?', 'pick', ['Yes', 'Somewhat', 'No']],
+    ['stuck', 'If you got stuck anywhere, where?', 'text'],
+    ['favorite', 'Which mode was your favorite?', 'pick', MODES.map(function (m) { return m[1]; })],
+    ['move', 'How did moving your player feel?', 'pick', ['Too slow', 'About right', 'Too fast']],
+    ['serve', 'Was it clear when and how to serve and throw?', 'pick', ['Yes', 'Somewhat', 'No']],
+    ['glitch', 'Did anything freeze, glitch or look wrong? What were you doing?', 'text'],
+    ['music', 'Did the music work for you?', 'pick', ['Yes', 'No', 'Did not try']],
+    ['cpu', 'How hard was the CPU?', 'pick', ['Too easy', 'About right', 'Too hard']],
+    ['again', 'Would you play again or share it with a friend?', 'pick', ['Yes', 'Maybe', 'No']],
+    ['change', 'What one thing would you change?', 'text']
+  ];
+  var ans = {};
+  function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+  function build() {
+    if (box) return;
+    box = el('div'); box.id = 'fb'; box.hidden = true; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-labelledby', 'fbTitle');
+    var form = el('form'); form.id = 'fbForm'; form.setAttribute('autocomplete', 'off'); form.noValidate = true;
+    var h = el('h2', null, 'Tell us what you think'); h.id = 'fbTitle'; form.appendChild(h);
+    form.appendChild(el('p', 'fb-sub', 'Ten quick questions. It takes about a minute, and it helps us fix the game.'));
+    var nl = el('label', 'fb-q'); nl.appendChild(el('span', null, 'Your name')); var ni = el('input'); ni.id = 'fbName'; ni.type = 'text'; ni.maxLength = 80; ni.setAttribute('autocapitalize', 'words'); ni.setAttribute('autocomplete', 'name'); nl.appendChild(ni); form.appendChild(nl);
+    var num = 0;
+    Q.forEach(function (q) {
+      var w = el('div', 'fb-q'); w.appendChild(el('span', null, q[0] === 'stuck' ? q[1] : (++num) + '. ' + q[1]));   // the follow-up to question 2 carries no number of its own
+      if (q[2] === 'pick') { var row = el('div', 'fb-picks'); row.setAttribute('role', 'group'); row.setAttribute('aria-label', q[1]);
+        q[3].forEach(function (c) { var b = el('button', null, c); b.type = 'button'; b.setAttribute('aria-pressed', 'false');
+          b.addEventListener('click', function () { ans[q[0]] = c; Array.prototype.forEach.call(row.children, function (x) { x.setAttribute('aria-pressed', String(x === b)); }); });
+          row.appendChild(b); }); w.appendChild(row); w._row = row; }
+      else { var ta = el('textarea'); ta.rows = 2; ta.maxLength = 600; ta.setAttribute('aria-label', q[1]); ta.addEventListener('input', function () { ans[q[0]] = ta.value; }); w.appendChild(ta); }
+      w._k = q[0]; form.appendChild(w);
+    });
+    var note = el('div', 'fb-note'); note.id = 'fbNote'; note.setAttribute('role', 'alert'); form.appendChild(note);
+    var acts = el('div', 'fb-acts'), send = el('button', 'fb-send', 'Send Feedback'); send.type = 'submit'; var later = el('button', 'fb-later', 'Not now'); later.type = 'button'; later.addEventListener('click', close);
+    acts.appendChild(send); acts.appendChild(later); form.appendChild(acts);
+    form.addEventListener('submit', function (e) { e.preventDefault(); submit(ni, note, send); });
+    box.appendChild(form); document.body.appendChild(box);
+    box.addEventListener('keydown', function (e) { e.stopPropagation(); if (e.key === 'Escape') close(); }, true);   // typing here must not steer the game
+    box.addEventListener('keyup', function (e) { e.stopPropagation(); }, true);
+  }
+  function open() {
+    build(); asked = true; ans = { device: device() }; var f = box.firstChild;
+    Array.prototype.forEach.call(f.querySelectorAll('.fb-q'), function (w) { if (w._row) Array.prototype.forEach.call(w._row.children, function (b) { b.setAttribute('aria-pressed', String(w._k === 'device' && b.textContent === ans.device)); }); var t = w.querySelector('textarea'); if (t) t.value = ''; });
+    document.getElementById('fbNote').textContent = ''; f.querySelector('.fb-send').disabled = false; f.querySelector('.fb-send').textContent = 'Send Feedback'; f.hidden = false;
+    var th = box.querySelector('.fb-thanks'); if (th) th.remove();
+    box.hidden = false; box.scrollTop = 0; document.body.classList.add('fb-open');
+  }
+  function close() { if (box) box.hidden = true; document.body.classList.remove('fb-open'); }
+  function text(row) { return ['Name: ' + row.name].concat(Q.map(function (q) { return q[1] + ' ' + (row[q[0]] || '-'); })).concat(['Modes played: ' + row.modes]).join('\n'); }
+  function thanks(msg, row) {
+    var f = box.firstChild; f.hidden = true; var t = el('div', 'fb-thanks'); t.appendChild(el('h2', null, 'Thank you!')); t.appendChild(el('p', null, msg));
+    if (row) { var ta = el('textarea'); ta.readOnly = true; ta.rows = 10; ta.value = text(row); t.appendChild(ta); var cp = el('button', 'fb-send', 'Copy my answers'); cp.type = 'button';
+      cp.addEventListener('click', function () { ta.select(); try { navigator.clipboard.writeText(ta.value).then(function () { cp.textContent = 'Copied'; }, function () { /* the text stays selected to copy by hand */ }); } catch (e) { /* same */ } }); t.appendChild(cp); }
+    var ok = el('button', 'fb-later', 'Back to the game'); ok.type = 'button'; ok.addEventListener('click', close); t.appendChild(ok); box.appendChild(t); box.scrollTop = 0;
+  }
+  function submit(ni, note, send) {
+    var name = ni.value.trim(); if (!name) { note.textContent = 'Please add your name so we know who to thank.'; ni.focus(); return; }
+    var o = playedSet(), row = { name: name, modes: MODES.filter(function (m) { return o[m[0]]; }).map(function (m) { return m[1]; }).join(', ') || 'none yet' };
+    Q.forEach(function (q) { row[q[0]] = (ans[q[0]] || '').trim(); });
+    var url = window.FL_FEEDBACK;
+    if (!url || (window.claude && window.claude.use)) { thanks('This preview copy cannot send answers. Copy them below and text or email them to us.', row); return; }
+    send.disabled = true; send.textContent = 'Sending...'; note.textContent = '';
+    var timer = setTimeout(fail, 12000), finished = false;
+    function fail() { if (finished) return; finished = true; clearTimeout(timer); send.disabled = false; send.textContent = 'Send Feedback'; note.textContent = 'That did not go through. Check your connection and tap Send again.'; }
+    fetch(url, { method: 'POST', headers: { 'content-type': 'text/plain' }, body: JSON.stringify(row) })
+      .then(function (r) { if (finished) return; if (!r.ok) { fail(); return; } finished = true; clearTimeout(timer); set(K_DONE, '1'); thanks('Your feedback was sent. We read every one.'); }, fail);
+  }
+  /* between matches, once every mode has been played and they have not already answered: open it, once per visit */
+  setInterval(function () {
+    if (asked || get(K_DONE) || !allPlayed()) return;
+    var s; try { s = state(); } catch (e) { s = { idle: false }; }
+    if (s && s.idle) open();
+  }, 1200);
+  return { played: played, open: open, close: close, allPlayed: allPlayed, isOpen: function () { return !!(box && !box.hidden); }, bind: function (fn) { state = fn; } };
+})();
+
 /* ---------- Rendering, input, setup ---------- */
 (function () {
   'use strict';
@@ -1749,6 +1864,14 @@ if (typeof module !== 'undefined') module.exports = Core;
     }
     setTimeout(function () { try { $('hvpPass').focus(); } catch (e) { /* ignore */ } }, 30);
   }
+  /* the feedback survey waits for a quiet moment: the selection page, or a match that has just finished */
+  if (window.FLFeedback) { window.FLFeedback.bind(function () {
+    if (document.body.classList.contains('locked') || document.getElementById('film')) return { idle: false };
+    var p = $('poster'); if (p && !p.hidden) return { idle: false };
+    if (window.Table && window.Table.isOpen()) return { idle: window.Table.mode() === 'over' };
+    if (mode === 'match') return { idle: !!game && game.phase === 'over' };
+    return { idle: document.body.classList.contains('pv-setup') };
+  }); if ($('fbLink')) $('fbLink').addEventListener('click', function () { window.FLFeedback.open(); }); }
   function hvpClean(v) { return String(v || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
   if ($('hvpForm')) {
     $('hvpForm').addEventListener('submit', function (e) {
@@ -2090,6 +2213,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   function moveTipClose() { var el = $('moveTip'); if (el) el.hidden = true; tipOpen = false; }
   if ($('moveTip')) { $('moveTip').addEventListener('click', function (e) { if (e.target.closest('.mt-x, .mt-go') || e.target.id === 'moveTip') moveTipClose(); }); }
   function startMatch(score) {
+    if (window.FLFeedback && !net.role) window.FLFeedback.played(view);
     mode = 'match'; paused = false; trail = []; fxReset(); moveTip(); held = [{}, {}, {}, {}]; throwQ = [0, 0, 0, 0]; hardQ = [0, 0, 0, 0]; chg = [0, 0, 0, 0];
     if (net.role !== 'guest') track('start', (cfg.singles ? 'singles' : 'doubles') + '.' + cfg.comp + '.' + (net.role ? 'online' : cfg.seats[0] && cfg.seats[2] ? 'local' : 'cpu'));
     if (net.role) {                                               // online: each person runs a whole team; the host is team 1
@@ -2125,6 +2249,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   /* Cocktail Table: the same match and the same settings, played on the flat top-down table. It covers the page until Menu or Mode */
   function openTable(score) {
+    if (window.FLFeedback) window.FLFeedback.played('table');
     var tm = [0, 1].map(function (t) { var r = ROSTER[cfg.pick[t]] || ROSTER[t], k = r.kit || {}, nk = k.nk || {};
       return { n: cfg.names[t] || r.name, logo: r.crest || r.logo, c1: nk.helm || r.ui || k.jersey || '#f2efe6', c2: nk.belt || k.sash || '#c9a55c' }; });   // USA wears its crest, the other countries their flag, Hooters and Twin Peaks their own marks
     track('start', (cfg.singles ? 'singles' : 'doubles') + '.' + cfg.comp + '.table');
