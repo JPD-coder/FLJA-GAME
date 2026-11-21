@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261121211354";
+window.FL_BUILD = "20261121222236";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -3107,6 +3107,16 @@ window.FLFeedback = (function () {
     ctx.restore();
   }
 
+  function pointMsg(title, sub, color) {                            // the point result: small, just under the scoreboard and above the players' heads
+    var y0 = PT_Y[AER ? 1 : 0], ts = Math.max(50, 12 / cssScale), ss = Math.max(26, 7.5 / cssScale), h = ts + ss * 1.5;
+    var g = ctx.createLinearGradient(0, y0 - 12, 0, y0 + h + 12);
+    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.2, 'rgba(0,0,0,.72)'); g.addColorStop(0.8, 'rgba(0,0,0,.72)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.fillRect(C.BACK, y0 - 12, C.FRONT - C.BACK, h + 24);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = '900 ' + ts + 'px ' + DISPLAY; ctx.fillStyle = color || CHALK; ctx.fillText(title, 1000, y0 + ts * 0.5, 1300);
+    ctx.font = '600 ' + ss + 'px ' + BODY; ctx.fillStyle = CHALK; ctx.fillText(sub, 1000, y0 + ts + ss * 0.7, 1500);
+  }
+  var PT_Y = [334, 250];                                             // top of the message: Amateur, Pro
   function banner(title, sub, color) {
     var g = ctx.createLinearGradient(0, 430, 0, 600);
     g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.25, 'rgba(0,0,0,.82)'); g.addColorStop(0.75, 'rgba(0,0,0,.82)'); g.addColorStop(1, 'rgba(0,0,0,0)');
@@ -3487,7 +3497,7 @@ window.FLFeedback = (function () {
     else if (paused) banner('PAUSED', net.role === 'guest' ? 'The host paused the match'
       : hasKeys() ? 'Press P or tap Resume' : 'Tap Resume');   // no keyboard, no point naming a key
     else if (game.phase === 'over') banner(cfg.names[game.winner].toUpperCase() + (PROMO ? ' WINS ' : ' WIN ') + game.score[game.winner] + ' TO ' + game.score[1 - game.winner], null, TEAM[game.winner].ui);
-    else if (game.phase === 'point') banner('POINT ' + cfg.names[game.msg.winner].toUpperCase(), whoDid(game.msg) + MSG[game.msg.ev], TEAM[game.msg.winner].ui);
+    else if (game.phase === 'point') pointMsg('POINT ' + cfg.names[game.msg.winner].toUpperCase(), whoDid(game.msg) + MSG[game.msg.ev], TEAM[game.msg.winner].ui);
     else if (game.phase === 'serve' && holder && !RETRO && !SIX) {
       var fz = Math.max(34, 11 / cssScale);
       ctx.textBaseline = 'alphabetic'; ctx.font = '800 ' + fz + 'px ' + DISPLAY; ctx.fillStyle = GOLD;
