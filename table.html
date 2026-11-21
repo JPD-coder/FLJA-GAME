@@ -336,6 +336,7 @@ var Core = (function () {
   var FIGHT_S = 3, FIGHT_REACH = 95, FIGHT_LAT = 0.14;
   function fightTarget(g, p) {
     var opp = g.players.filter(function (q) { return q.team !== p.team && !q.out; }); if (!opp.length) return null;
+    if (g.holder >= 0 && g.players[g.holder].team !== p.team) return g.players[g.holder];   // he has the ball: go for him
     var fielding = g.phase === 'rally' && g.holder < 0 && g.lastTeam === p.team;          // the ball is on its way to them
     var key = fielding ? function (q) { return Math.abs(q.x - g.ball.x) + (g.lat ? Math.abs(q.z - g.ball.z) * 600 : 0); } : function (q) { return Math.abs(q.x - p.x) + (g.lat ? Math.abs(q.z - p.z) * 600 : 0); };
     return opp.sort(function (a, b) { return key(a) - key(b); })[0];
@@ -360,6 +361,7 @@ var Core = (function () {
           if (near) {                                                // in reach: the cesta comes down on him again and again
             p.swing = (p.swing || 0) - dt; if (p.swing <= 0) { p.swing = 0.32; g.whack = { i: ft.i, by: i }; g.events.push('whack'); }
             ft.stun = g.t + 0.55; p.face = fdx >= 0 ? 1 : -1;
+            if (g.holder === ft.i && (g.phase === 'rally' || g.phase === 'serve')) { g.lastTeam = p.team; g.holder = -1; point(g, 'dropped'); return; }   // hit with the ball in his cesta: he drops it, and the point goes to the attacker
           } else p.swing = 0;
         }
       }
@@ -397,7 +399,7 @@ var Core = (function () {
         p.z = jw < 0.34 ? 0.02 : 0.02 + (p.zh - 0.02) * Math.min(1, (jw - 0.34) / 0.5);
       }
       p.cool -= dt; p.anim -= dt; if (p.jump > 0) { p.jump -= dt; if (p.jump <= 0) p.wall = false; }
-      if (g.holder === i || p.anim > 0) p.face = 1;
+      if (g.holder === i || p.anim > 0 || g.phase !== 'rally') p.face = 1;   // between rallies (and holding or throwing) everyone faces the front wall
       else if (Math.abs(g.ball.x - p.x) > 30) p.face = g.ball.x > p.x ? 1 : -1;
     }
 
@@ -493,7 +495,7 @@ window.Table = (function () {
   var SHOTCOL = ['#f52f9b', '#3cb5e4', '#fcfc04', '#c6ee32', '#8f0bcd'];
   /* painted on the floor: three club logos in a line between lines 1 and 3, three between 12 and 14, all one size, and the Fantasy League mark in the middle */
   var FLOOR = [];                                                  // the floor carries only the Fantasy League mark, in the middle
-  var CALLS = { over: 'OVER THE LINE', under: 'TOO LOW', short: 'SHORT', serveOut: 'SERVE OUT', double: 'TWO BOUNCES', chula: 'CHULA!', ceiling: 'CEILING', backOver: 'OVER THE BACK WALL', held: 'HELD TOO LONG' };
+  var CALLS = { over: 'OVER THE LINE', under: 'TOO LOW', short: 'SHORT', serveOut: 'SERVE OUT', double: 'TWO BOUNCES', chula: 'CHULA!', ceiling: 'CEILING', backOver: 'OVER THE BACK WALL', held: 'HELD TOO LONG', dropped: 'KNOCKED LOOSE!' };
   var GOLD = '#c9a55c', TOUCH = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
   var img = {}, bg = null;
   function load(s) { if (!s || img[s]) return img[s]; var i = new Image(); i.onload = function () { bg = null; }; i.src = s; img[s] = i; return i; }
@@ -606,7 +608,7 @@ window.Table = (function () {
   function events() {
     var b = game.ball, bx = Xz(b.z), by = Y(b.x), col = SHOTCOL[game.hard | 0] || '#fff';
     game.events.forEach(function (ev) {
-      if (ev === 'whack' && game.whack) { var wt = game.players[game.whack.i]; tone(190, 0.09, 'square', 0.16, 70); say('WHACK!', '#ff4b3e', Xz(wt.z), Y(wt.x) - 24, false, 0.6); return; }
+      if (ev === 'whack' && game.whack) { var wt = game.players[game.whack.i]; tone(190, 0.09, 'square', 0.16, 70); say('\ud83d\udca5', '#ff4b3e', Xz(wt.z), Y(wt.x) - 24, false, 0.6); return; }
       if (ev === 'throw') { tone(520, 0.12, 'triangle', 0.12, 260); fx.trail = [];
         if (!game.flags.serve && (game.hard | 0) === 1) say(String(O.names[2]).toUpperCase() + ' · BACK WALL', SHOTCOL[1], W / 2, L.cy + L.ch * 0.52, false, 1.9); }             // the one call: it is going to the back wall, so do not chase it, get into position
       else if (ev === 'front') { tone(170, 0.09, 'square', 0.22, 90); ring(bx, L.cy, col, 1.5); }
