@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261121201209";
+window.FL_BUILD = "20261121202155";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -688,7 +688,7 @@ body.poster-on #tapPlay { display: block; position: sticky; bottom: calc(26px + 
       <li><b>Shots.</b> Saque (Serve) starts the point: it must bounce between the two red lines on the floor at lines 4 and 7, or it is a fault. In play, Pelotazo (Throw) is the normal throw, straight to the front wall. Rebote (Rebound) carries long, to come off the back wall. Cortada (Cut) goes low and hard into the front wall first, then comes back into the side wall around line 3 and kicks across the court. Dos Paredes (Two-Wall) takes the side wall first and then the front wall, and dies short at a sharp angle. Costado (Side Wall) is a backhand off the side wall up by line 2, then the front wall, and comes back deep and low. Amateur, 90s Throwback, 80s Retro and Vintage give you Pelotazo, Rebote and Dos Paredes; Professional and Cocktail Table add Cortada and Costado, and holding left or right on the joystick as you throw sends the ball to that side. When the pelota (ball) comes off the back wall and one of your players catches it, it must go back to the front wall in one motion: you have three seconds at Slow pace, two at Normal and one at Fast to press a shot button, or the ball drops and the other team scores. Each shot shows where it will go, with a marker on the wall and floor or a dotted path; red means a fault. Under the shot buttons, the first small button switches every name between Spanish and English, and Shot Guide On / Off under it shows or hides those markers and paths. Shot Guide starts On every match.</li>
       <li><b>Cocktail Table.</b> Lay your phone flat and play from its short side. The court runs up the phone, seen from straight above: the front wall and the score are at the far end, the back wall is at your end, and the line numbers run down the side wall on your left. Push the red stick in the middle to move (up is toward the front wall), or touch the court and your player runs to your finger. To serve, hold the ball and watch lines 4 and 7: tap Serve when they flash red and it lands between them; tap at any other moment and it is a fault. In play you have all five shots, three buttons on each side of the stick, and the game picks a safe line for each throw; push the stick left or right as you throw to send it to that side. A ring on the floor shows where your opponent's throw will land. Only the Rebound is called out: it is going to the back wall, so do not chase it, get behind it. Menu and Mode are at the top left, Music and Pause at the top right. Cocktail Table is one player against the CPU and uses the same teams, points, CPU level and pace as every other mode.</li>
       <li><b>Music.</b> On the hosted game, tap ♪ Music in the Menu / Mode / Music / Pause row to play that mode's playlist, and tap it again to pause. On some phones the first tap only wakes the player: tap once more. The button lights and its record spins while a song plays. Changing modes switches to that mode's playlist. While it plays the ball and crowd sounds stand down so the music is clear. Spotify only plays full songs when you are signed in to Spotify in that browser: sign in once at spotify.com, otherwise you hear 30-second previews.</li>
-      <li><b>Fight.</b> The red Fight button under Serve (E on a keyboard) sends your player running at the other side: at the one about to field the ball, or else the one nearest you. He swings his cesta at him for 3 seconds, and the button pulses while the fight is on: keep tapping it to keep fighting. A player being hit can barely move and cannot catch, so landing a hit before the ball reaches him wins you the point. On the Cocktail Table, Fight is the red button above the joystick.</li>
+      <li><b>Fight.</b> The red Fight button under Serve (E on a keyboard) sends your player running at the other side: at the one about to field the ball, or else the one nearest you. He swings his cesta at him for 3 seconds, and the button pulses while the fight is on: keep tapping it to keep fighting. A player being hit can barely move and cannot catch, so landing a hit before the ball reaches him wins you the point. On the Cocktail Table there are two red Fight buttons on the bottom row, one beside Rebound and one beside Side Wall.</li>
       <li><b>Feedback.</b> Once you have tried all six modes, a short survey opens: your name and ten quick questions. If you are in the middle of a match it pauses the match first, and Resume carries on afterwards. Tap Give Feedback above Tap to Play to open it at any time.</li>
       </ul>
       <h3>Your buttons</h3>
@@ -4429,7 +4429,7 @@ window.Table = (function () {
   var C = Core.C, cv = null, ctx = null, O = null, running = false, raf = 0, bound = false;
   var DEF = { teams: [{ n: 'Squared Groupers', logo: 'team-a.png', c1: '#c6ee32', c2: '#fcfc04' }, { n: 'Peloteros', logo: 'team-b.png', c1: '#f52f9b', c2: '#3cb5e4' }], singles: true, target: 15, level: 'normal', pace: 0.88, rebHold: 2, sound: true, score: null, intro: true, ads: 0, hooks: {}, names: ['Serve', 'Throw', 'Rebound', 'Cut', 'Two-Wall', 'Side Wall'] };   // names[0] is the serve, then the five shots in core order; English unless the game hands over others
   /* six buttons: three to the left of the stick, three to the right. s = core shot index, -1 = the serve */
-  var BTNS = [{ s: -1 }, { s: 0 }, { s: 1 }, { s: 3 }, { s: 2 }, { s: 4 }, { s: 'F' }];   // the last is Fight, above the joystick
+  var BTNS = [{ s: -1 }, { s: 0 }, { s: 1 }, { s: 3 }, { s: 2 }, { s: 4 }, { s: 'F', side: -1 }, { s: 'F', side: 1 }];   // the last two are Fight: one beside Rebound, one beside Side Wall
   var TOP = [{ k: 'menu', n: 'MENU' }, { k: 'mode', n: 'MODE' }, { k: 'music', n: '♪' }, { k: 'pause', n: 'PAUSE' }];
   var SHOTCOL = ['#f52f9b', '#3cb5e4', '#fcfc04', '#c6ee32', '#8f0bcd'];
   /* painted on the floor: three club logos in a line between lines 1 and 3, three between 12 and 14, all one size, and the Fantasy League mark in the middle */
@@ -4468,7 +4468,11 @@ window.Table = (function () {
   function toLogical(e) { return turn === 1 ? { x: vh - e.clientY, y: e.clientX } : turn === 2 ? { x: e.clientY, y: vw - e.clientX } : { x: e.clientX - ox, y: e.clientY }; }
   function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r); c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h); c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r); c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath(); }
   function btnPos(i) {
-    if (BTNS[i].s === 'F') { var fr = L.br * 0.56; return { x: L.jx, y: Math.max(L.barY + fr + 2, L.jy - L.jr - fr * 0.45), r: fr }; }   // Fight: just above the joystick, drawn over its rim
+    if (BTNS[i].s === 'F') {                                       // Fight: in the gap on the bottom row between the joystick and Rebound (left) or Side Wall (right)
+      var sd = BTNS[i].side, sw0 = W / 2 - L.jr - 10, cx0 = sd < 0 ? sw0 / 2 + 2 : W - sw0 / 2 - 2, jEdge = W / 2 + sd * L.jr;
+      var a0 = cx0 - sd * L.br, gap = Math.abs(jEdge - a0), fr = Math.min(L.br * 0.56, gap / 2 - 3);
+      return { x: (a0 + jEdge) / 2, y: L.barY + L.barH * 0.74, r: fr };
+    }
     var left = i < 3, k = i % 3, sw = W / 2 - L.jr - 10, r = L.br, cxs = left ? sw / 2 + 2 : W - sw / 2 - 2, y1 = L.barY + L.barH * 0.3, y2 = L.barY + L.barH * 0.74;
     return k === 0 ? { x: cxs - r * 1.12, y: y1, r: r } : k === 1 ? { x: cxs + r * 1.12, y: y1, r: r } : { x: cxs, y: y2, r: r }; }
   function topPos(i) { var g = 4, x = i < 2 ? 4 + i * (L.tw + g) : W - 4 - (4 - i) * L.tw - (3 - i) * g; return { x: x, y: (L.wallH - L.th) / 2 - 1, w: L.tw, h: L.th }; }   // Menu and Mode far left, Music and Pause far right
@@ -4650,9 +4654,9 @@ window.Table = (function () {
       ctx.fillStyle = on ? '#0b0c0f' : '#f2efe6'; var nm = k === 'pause' && paused ? 'PLAY' : TOP[i].n; ctx.font = '800 ' + (nm.length === 1 ? b.h * 0.78 : Math.max(6.5, Math.min(b.h * 0.36, (b.w - 6) / (nm.length * 0.66)))) + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.fillText(nm, b.x + b.w / 2, b.y + b.h / 2 + 0.5); ctx.globalAlpha = 1; }
   }
   function drawControls() {
-    var me = holding() && !paused, serve = game && game.flags.serve, i, fIdx = -1;
+    var me = holding() && !paused, serve = game && game.flags.serve, i, fIdx = [];
     for (i = 0; i < BTNS.length; i++) {
-      if (BTNS[i].s === 'F') { fIdx = i; continue; }               // Fight is drawn last, over the joystick's rim
+      if (BTNS[i].s === 'F') { fIdx.push(i); continue; }           // the Fight buttons are drawn after the joystick
       var b = btnPos(i), s = BTNS[i].s, col = s < 0 ? '#ffffff' : SHOTCOL[s], on = me && (serve ? s < 0 : s >= 0), hit = pressed === i && T - pressT < 0.18;
       ctx.globalAlpha = on ? 1 : 0.3; ctx.save(); if (on) { ctx.shadowColor = s < 0 && serveOK ? '#ff2a1a' : col; ctx.shadowBlur = 10 + 6 * Math.sin(T * 7); } ctx.fillStyle = col; ctx.beginPath(); ctx.arc(b.x, b.y, b.r * (hit ? 0.9 : 1), 0, 6.3); ctx.fill(); ctx.restore();
       if (s < 0) { ctx.strokeStyle = '#e0392c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(b.x, b.y, b.r - 2.5, 0, 6.3); ctx.stroke(); }
@@ -4661,12 +4665,12 @@ window.Table = (function () {
     ctx.fillStyle = 'rgba(10,11,15,.7)'; ctx.strokeStyle = 'rgba(242,239,230,.5)'; ctx.lineWidth = 2; ctx.beginPath(); var JX = joy.id != null ? joy.ox : L.jx, JY = joy.id != null ? joy.oy : L.jy; ctx.arc(JX, JY, L.jr, 0, 6.3); ctx.fill(); ctx.stroke();
     ctx.fillStyle = 'rgba(242,239,230,.35)'; var q = L.jr * 0.82; [[0, -q, 0], [q, 0, 1.57], [0, q, 3.14], [-q, 0, 4.71]].forEach(function (a) { ctx.save(); ctx.translate(JX + a[0], JY + a[1]); ctx.rotate(a[2]); ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(5, 3); ctx.lineTo(-5, 3); ctx.closePath(); ctx.fill(); ctx.restore(); });
     ctx.save(); ctx.shadowColor = '#ff3a2a'; ctx.shadowBlur = joy.id != null ? 14 : 4; ctx.fillStyle = '#e0261c'; ctx.beginPath(); ctx.arc(JX + joy.x * L.jr * 0.6, JY + joy.y * L.jr * 0.6, L.jr * 0.42, 0, 6.3); ctx.fill(); ctx.restore();
-    if (fIdx >= 0) {                                                 // Fight: red, and pulsing while the fight is on (tap again to keep it going)
-        var i = fIdx, fb = btnPos(i), fon = game && game.players.some(function (q) { return q.human && q.fightT > game.t; }), fp = fon ? 0.5 + 0.5 * Math.sin(T * 12.5) : 0, fh = pressed === i && T - pressT < 0.18;
+    fIdx.forEach(function (i) {                                       // Fight: red, and pulsing while the fight is on (tap again to keep it going)
+        var fb = btnPos(i), fon = game && game.players.some(function (q) { return q.human && q.fightT > game.t; }), fp = fon ? 0.5 + 0.5 * Math.sin(T * 12.5) : 0, fh = pressed === i && T - pressT < 0.18;
         ctx.save(); ctx.globalAlpha = mode === 'play' && !paused ? 1 : 0.35; ctx.shadowColor = '#ff2a1a'; ctx.shadowBlur = 6 + 16 * fp; ctx.fillStyle = fon ? 'rgb(' + Math.round(26 + 198 * fp) + ',' + Math.round(11 + 46 * fp) + ',' + Math.round(11 + 33 * fp) + ')' : '#1a0b0b';
         ctx.beginPath(); ctx.arc(fb.x, fb.y, fb.r * (fh ? 0.9 : 1 + 0.08 * fp), 0, 6.3); ctx.fill(); ctx.shadowBlur = 0; ctx.strokeStyle = '#e0392c'; ctx.lineWidth = 2.5; ctx.stroke();
         ctx.fillStyle = fon && fp > 0.5 ? '#fff' : '#ff6a5c'; ctx.font = '900 ' + Math.max(8, fb.r * 0.42) + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('FIGHT', fb.x, fb.y + 1); ctx.restore();
-    }
+    });
   }
   function drawFx(dt) {
     if (paused) dt = 0;

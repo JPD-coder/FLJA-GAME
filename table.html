@@ -490,7 +490,7 @@ window.Table = (function () {
   var C = Core.C, cv = null, ctx = null, O = null, running = false, raf = 0, bound = false;
   var DEF = { teams: [{ n: 'Squared Groupers', logo: 'team-a.png', c1: '#c6ee32', c2: '#fcfc04' }, { n: 'Peloteros', logo: 'team-b.png', c1: '#f52f9b', c2: '#3cb5e4' }], singles: true, target: 15, level: 'normal', pace: 0.88, rebHold: 2, sound: true, score: null, intro: true, ads: 0, hooks: {}, names: ['Serve', 'Throw', 'Rebound', 'Cut', 'Two-Wall', 'Side Wall'] };   // names[0] is the serve, then the five shots in core order; English unless the game hands over others
   /* six buttons: three to the left of the stick, three to the right. s = core shot index, -1 = the serve */
-  var BTNS = [{ s: -1 }, { s: 0 }, { s: 1 }, { s: 3 }, { s: 2 }, { s: 4 }, { s: 'F' }];   // the last is Fight, above the joystick
+  var BTNS = [{ s: -1 }, { s: 0 }, { s: 1 }, { s: 3 }, { s: 2 }, { s: 4 }, { s: 'F', side: -1 }, { s: 'F', side: 1 }];   // the last two are Fight: one beside Rebound, one beside Side Wall
   var TOP = [{ k: 'menu', n: 'MENU' }, { k: 'mode', n: 'MODE' }, { k: 'music', n: '♪' }, { k: 'pause', n: 'PAUSE' }];
   var SHOTCOL = ['#f52f9b', '#3cb5e4', '#fcfc04', '#c6ee32', '#8f0bcd'];
   /* painted on the floor: three club logos in a line between lines 1 and 3, three between 12 and 14, all one size, and the Fantasy League mark in the middle */
@@ -529,7 +529,11 @@ window.Table = (function () {
   function toLogical(e) { return turn === 1 ? { x: vh - e.clientY, y: e.clientX } : turn === 2 ? { x: e.clientY, y: vw - e.clientX } : { x: e.clientX - ox, y: e.clientY }; }
   function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r); c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h); c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r); c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath(); }
   function btnPos(i) {
-    if (BTNS[i].s === 'F') { var fr = L.br * 0.56; return { x: L.jx, y: Math.max(L.barY + fr + 2, L.jy - L.jr - fr * 0.45), r: fr }; }   // Fight: just above the joystick, drawn over its rim
+    if (BTNS[i].s === 'F') {                                       // Fight: in the gap on the bottom row between the joystick and Rebound (left) or Side Wall (right)
+      var sd = BTNS[i].side, sw0 = W / 2 - L.jr - 10, cx0 = sd < 0 ? sw0 / 2 + 2 : W - sw0 / 2 - 2, jEdge = W / 2 + sd * L.jr;
+      var a0 = cx0 - sd * L.br, gap = Math.abs(jEdge - a0), fr = Math.min(L.br * 0.56, gap / 2 - 3);
+      return { x: (a0 + jEdge) / 2, y: L.barY + L.barH * 0.74, r: fr };
+    }
     var left = i < 3, k = i % 3, sw = W / 2 - L.jr - 10, r = L.br, cxs = left ? sw / 2 + 2 : W - sw / 2 - 2, y1 = L.barY + L.barH * 0.3, y2 = L.barY + L.barH * 0.74;
     return k === 0 ? { x: cxs - r * 1.12, y: y1, r: r } : k === 1 ? { x: cxs + r * 1.12, y: y1, r: r } : { x: cxs, y: y2, r: r }; }
   function topPos(i) { var g = 4, x = i < 2 ? 4 + i * (L.tw + g) : W - 4 - (4 - i) * L.tw - (3 - i) * g; return { x: x, y: (L.wallH - L.th) / 2 - 1, w: L.tw, h: L.th }; }   // Menu and Mode far left, Music and Pause far right
@@ -711,9 +715,9 @@ window.Table = (function () {
       ctx.fillStyle = on ? '#0b0c0f' : '#f2efe6'; var nm = k === 'pause' && paused ? 'PLAY' : TOP[i].n; ctx.font = '800 ' + (nm.length === 1 ? b.h * 0.78 : Math.max(6.5, Math.min(b.h * 0.36, (b.w - 6) / (nm.length * 0.66)))) + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.fillText(nm, b.x + b.w / 2, b.y + b.h / 2 + 0.5); ctx.globalAlpha = 1; }
   }
   function drawControls() {
-    var me = holding() && !paused, serve = game && game.flags.serve, i, fIdx = -1;
+    var me = holding() && !paused, serve = game && game.flags.serve, i, fIdx = [];
     for (i = 0; i < BTNS.length; i++) {
-      if (BTNS[i].s === 'F') { fIdx = i; continue; }               // Fight is drawn last, over the joystick's rim
+      if (BTNS[i].s === 'F') { fIdx.push(i); continue; }           // the Fight buttons are drawn after the joystick
       var b = btnPos(i), s = BTNS[i].s, col = s < 0 ? '#ffffff' : SHOTCOL[s], on = me && (serve ? s < 0 : s >= 0), hit = pressed === i && T - pressT < 0.18;
       ctx.globalAlpha = on ? 1 : 0.3; ctx.save(); if (on) { ctx.shadowColor = s < 0 && serveOK ? '#ff2a1a' : col; ctx.shadowBlur = 10 + 6 * Math.sin(T * 7); } ctx.fillStyle = col; ctx.beginPath(); ctx.arc(b.x, b.y, b.r * (hit ? 0.9 : 1), 0, 6.3); ctx.fill(); ctx.restore();
       if (s < 0) { ctx.strokeStyle = '#e0392c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(b.x, b.y, b.r - 2.5, 0, 6.3); ctx.stroke(); }
@@ -722,12 +726,12 @@ window.Table = (function () {
     ctx.fillStyle = 'rgba(10,11,15,.7)'; ctx.strokeStyle = 'rgba(242,239,230,.5)'; ctx.lineWidth = 2; ctx.beginPath(); var JX = joy.id != null ? joy.ox : L.jx, JY = joy.id != null ? joy.oy : L.jy; ctx.arc(JX, JY, L.jr, 0, 6.3); ctx.fill(); ctx.stroke();
     ctx.fillStyle = 'rgba(242,239,230,.35)'; var q = L.jr * 0.82; [[0, -q, 0], [q, 0, 1.57], [0, q, 3.14], [-q, 0, 4.71]].forEach(function (a) { ctx.save(); ctx.translate(JX + a[0], JY + a[1]); ctx.rotate(a[2]); ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(5, 3); ctx.lineTo(-5, 3); ctx.closePath(); ctx.fill(); ctx.restore(); });
     ctx.save(); ctx.shadowColor = '#ff3a2a'; ctx.shadowBlur = joy.id != null ? 14 : 4; ctx.fillStyle = '#e0261c'; ctx.beginPath(); ctx.arc(JX + joy.x * L.jr * 0.6, JY + joy.y * L.jr * 0.6, L.jr * 0.42, 0, 6.3); ctx.fill(); ctx.restore();
-    if (fIdx >= 0) {                                                 // Fight: red, and pulsing while the fight is on (tap again to keep it going)
-        var i = fIdx, fb = btnPos(i), fon = game && game.players.some(function (q) { return q.human && q.fightT > game.t; }), fp = fon ? 0.5 + 0.5 * Math.sin(T * 12.5) : 0, fh = pressed === i && T - pressT < 0.18;
+    fIdx.forEach(function (i) {                                       // Fight: red, and pulsing while the fight is on (tap again to keep it going)
+        var fb = btnPos(i), fon = game && game.players.some(function (q) { return q.human && q.fightT > game.t; }), fp = fon ? 0.5 + 0.5 * Math.sin(T * 12.5) : 0, fh = pressed === i && T - pressT < 0.18;
         ctx.save(); ctx.globalAlpha = mode === 'play' && !paused ? 1 : 0.35; ctx.shadowColor = '#ff2a1a'; ctx.shadowBlur = 6 + 16 * fp; ctx.fillStyle = fon ? 'rgb(' + Math.round(26 + 198 * fp) + ',' + Math.round(11 + 46 * fp) + ',' + Math.round(11 + 33 * fp) + ')' : '#1a0b0b';
         ctx.beginPath(); ctx.arc(fb.x, fb.y, fb.r * (fh ? 0.9 : 1 + 0.08 * fp), 0, 6.3); ctx.fill(); ctx.shadowBlur = 0; ctx.strokeStyle = '#e0392c'; ctx.lineWidth = 2.5; ctx.stroke();
         ctx.fillStyle = fon && fp > 0.5 ? '#fff' : '#ff6a5c'; ctx.font = '900 ' + Math.max(8, fb.r * 0.42) + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('FIGHT', fb.x, fb.y + 1); ctx.restore();
-    }
+    });
   }
   function drawFx(dt) {
     if (paused) dt = 0;
