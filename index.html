@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261121193617";
+window.FL_BUILD = "20261121195316";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2481,6 +2481,19 @@ window.FLFeedback = (function () {
   show = function () { var r = showRaw.apply(this, arguments); alignServe(); return r; };
   layout = function () { var r = layoutRaw.apply(this, arguments); alignServe(); return r; };
   buildPads = function () { var r = padsRaw.apply(this, arguments); alignServe(); return r; };
+  function alignFight() {                                            // outside Professional, Fight sits level with the middle of the language and Shot Guide buttons
+    [].forEach.call(document.querySelectorAll('button.fightb'), function (fb) {
+      if (!fb.offsetParent) return;
+      var pad = fb.closest('.pad'), pick = function (q) { return (pad && pad.querySelector(q)) || [].filter.call(document.querySelectorAll(q), function (b) { return b.offsetParent; })[0]; };
+      var cut = pick('.throw.s2'), lang = pick('.langbtn:not(.guidebtn)'), gd = pick('.guidebtn');
+      if (cut && cut.offsetParent) return;                           // Professional: Fight stays under Serve
+      if (!lang || !gd || !lang.offsetParent || !gd.offsetParent) return;
+      var cur = parseFloat(fb.style.top) || 0, r = fb.getBoundingClientRect(), want = (lang.getBoundingClientRect().top + gd.getBoundingClientRect().bottom) / 2;
+      var d = Math.round(cur + want - (r.top + r.height / 2));
+      if (Math.abs(d - cur) >= 1) { fb.style.position = 'relative'; fb.style.top = d + 'px'; }
+    });
+  }
+  var alignServeRaw = alignServe; alignServe = function () { alignServeRaw(); alignFight(); };
   setInterval(alignServe, 400);                                      // and a check now and then, for a late change of size
   var drawRaw = draw;                                                // a fighting player swings his cesta: every view draws him in the throwing pose, over and over
   draw = function () {
