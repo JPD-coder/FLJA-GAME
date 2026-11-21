@@ -488,7 +488,7 @@ if (typeof module !== 'undefined') module.exports = Core;
 window.Table = (function () {
   'use strict';
   var C = Core.C, cv = null, ctx = null, O = null, running = false, raf = 0, bound = false;
-  var DEF = { teams: [{ n: 'Squared Groupers', logo: 'team-a.png', c1: '#c6ee32', c2: '#fcfc04' }, { n: 'Peloteros', logo: 'team-b.png', c1: '#f52f9b', c2: '#3cb5e4' }], singles: true, target: 15, level: 'normal', pace: 0.88, rebHold: 2, sound: true, score: null, intro: true, ads: 0, hooks: {}, names: ['Serve', 'Throw', 'Rebound', 'Cut', 'Two-Wall', 'Side Wall'] };   // names[0] is the serve, then the five shots in core order; English unless the game hands over others
+  var DEF = { teams: [{ n: 'Square Groupers', logo: 'team-a.png', c1: '#c6ee32', c2: '#fcfc04' }, { n: 'Peloteros', logo: 'team-b.png', c1: '#f52f9b', c2: '#3cb5e4' }], singles: true, target: 15, level: 'normal', pace: 0.88, rebHold: 2, sound: true, score: null, intro: true, ads: 0, hooks: {}, names: ['Serve', 'Throw', 'Rebound', 'Cut', 'Two-Wall', 'Side Wall'] };   // names[0] is the serve, then the five shots in core order; English unless the game hands over others
   /* six buttons: three to the left of the stick, three to the right. s = core shot index, -1 = the serve */
   var BTNS = [{ s: -1 }, { s: 0 }, { s: 1 }, { s: 3 }, { s: 2 }, { s: 4 }, { s: 'F', side: -1 }, { s: 'F', side: 1 }];   // the last two are Fight: one beside Rebound, one beside Side Wall
   var TOP = [{ k: 'menu', n: 'MENU' }, { k: 'mode', n: 'MODE' }, { k: 'music', n: '♪' }, { k: 'pause', n: 'PAUSE' }];

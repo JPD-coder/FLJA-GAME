@@ -37,7 +37,7 @@ window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback"
   --vice-aqua: #1fd5d9;
   --vice-lime: #a8e22a;  /* the league's five team colours: pink, aqua, lime, purple, red */
   --vice-purple: #9b5cf6;
-  /* the shot buttons, from the team logos: Peloteros pink and aqua, Squared Groupers lime and yellow, Booties purple */
+  /* the shot buttons, from the team logos: Peloteros pink and aqua, Square Groupers lime and yellow, Booties purple */
   --shot-pelotazo: #f52f9b; --shot-rebota: #3cb5e4; --shot-dos: #c6ee32; --shot-cortada: #fcfc04; --shot-costado: #8f0bcd;
   --vice-red: #e0392c;
   --team-a: #a8e22a;
@@ -1319,7 +1319,7 @@ window.FLFeedback = (function () {
   var HVP = false, HVT = [null, null];                                       // Hoots vs Peaks: two fixed teams with their own painted players, Pro and Amateur only
   // every team a side can pick: name, logo, uniform colours and the colour used for its score and controls
   var ROSTER = [
-    { name: 'Squared Groupers', logo: 'team-a.png', ui: '#a8e22a', kit: { jersey: '#a8e22a', sash: '#1c4a0b', helm: '#f2e23a', num: '#12330a', nk: { helm: '#a8e22a', belt: '#f2e23a' } } },
+    { name: 'Square Groupers', logo: 'team-a.png', ui: '#a8e22a', kit: { jersey: '#a8e22a', sash: '#1c4a0b', helm: '#f2e23a', num: '#12330a', nk: { helm: '#a8e22a', belt: '#f2e23a' } } },
     { name: 'Peloteros', logo: 'team-b.png', ui: '#3bb4e6', kit: { jersey: '#3bb4e6', sash: '#ef1a8c', helm: '#ef1a8c', num: '#ffffff', nk: { helm: '#ef1a8c', belt: '#35c2f5' } } },
     { name: 'Booties', logo: 'logo-booties.png', ui: '#b06cff', kit: { jersey: '#8b35e0', sash: '#17111f', helm: '#c084fc', num: '#ffffff', nk: { helm: '#a23cf2', belt: '#a23cf2' } } },
     { name: 'Skunk Apes', logo: 'logo-skunk-apes.png', ui: '#ff5a3c', kit: { jersey: '#f2432a', sash: '#2fe0d8', helm: '#2fe0d8', num: '#ffffff', nk: { helm: '#2fe0d8', belt: '#ff8a1f' } } },
@@ -1361,21 +1361,22 @@ window.FLFeedback = (function () {
     return (mode === 'match' && solo === t ? 'YOU' : cfg.names[t].toUpperCase()) + ': ';
   }
   var STORE = 'fronton-doubles';
-  var cfg = { comp: 'league', pick: [0, 1], names: ['Squared Groupers', 'Peloteros'], seats: [1, 1, 0, 0], sv: 2, target: 9, level: 'normal', pace: 'standard', sound: true, singles: true, view: 'aerial', lang: 'en', who: 'men', whoT: ['men', 'men'] };
+  var cfg = { comp: 'league', pick: [0, 1], names: ['Square Groupers', 'Peloteros'], seats: [1, 1, 0, 0], sv: 2, target: 9, level: 'normal', pace: 'standard', sound: true, singles: true, view: 'aerial', lang: 'en', who: 'men', whoT: ['men', 'men'] };
   try {
     var saved = JSON.parse(localStorage.getItem(STORE) || 'null');
     if (saved && saved.seats && saved.names) for (var k in cfg) if (saved[k] != null) cfg[k] = saved[k];
+    if (cfg.names) cfg.names = cfg.names.map(function (n) { return n === 'Squared Groupers' ? 'Square Groupers' : n; });   // the team's name was corrected; older saves carry the old spelling
     for (var st = 0; st < 2; st++) {                             // saves made before the front/back choice: a team that was yours keeps both of its players
       if (cfg.sv !== 2) { var anyS = cfg.seats[st * 2] || cfg.seats[st * 2 + 1] ? 1 : 0; cfg.seats[st * 2] = anyS; cfg.seats[st * 2 + 1] = anyS; }
       cfg.seats[st * 2] = cfg.seats[st * 2] ? 1 : 0; cfg.seats[st * 2 + 1] = cfg.seats[st * 2 + 1] ? 1 : 0;
     }
     cfg.sv = 2;
     cfg.guide = true; cfg.target = 9; cfg.level = 'normal'; cfg.pace = 'standard'; cfg.singles = true;   // every visit opens on singles     // these always start here; they can be changed in Play Settings for the session
-    cfg.comp = 'league'; cfg.pick = [0, 1];                       // every visit opens on Squared Groupers vs Peloteros
+    cfg.comp = 'league'; cfg.pick = [0, 1];                       // every visit opens on Square Groupers vs Peloteros
     cfg.view = 'aerial'; cfg.table = false;                       // every visit opens on Professional
     cfg.lang = 'en';                                              // every version opens in English; Espa\u00f1ol is one tap away for the visit
     cfg.who = 'men'; cfg.whoT = ['men', 'men'];                    // and with men playing; each team picks Men, Women or Mixed for that visit
-    if (cfg.names[0] === 'Green') cfg.names[0] = 'Squared Groupers';
+    if (cfg.names[0] === 'Green') cfg.names[0] = 'Square Groupers';
     if (cfg.names[1] === 'Blue') cfg.names[1] = 'Peloteros';
   } catch (e) { /* storage unavailable: defaults */ }
   /* Hoots vs Peaks has a door of its own. Unlike the main password it is never remembered: every tap on Hoots vs Peaks shows the poster and asks again */
@@ -2021,7 +2022,7 @@ window.FLFeedback = (function () {
     }
   });
   elSetup.addEventListener('input', function (e) {
-    if (e.target.dataset.name != null) { cfg.names[+e.target.dataset.name] = e.target.value.trim() || (e.target.dataset.name === '0' ? 'Squared Groupers' : 'Peloteros'); save(); }
+    if (e.target.dataset.name != null) { cfg.names[+e.target.dataset.name] = e.target.value.trim() || (e.target.dataset.name === '0' ? 'Square Groupers' : 'Peloteros'); save(); }
   });
 
   function viewH() {
@@ -4448,7 +4449,7 @@ window.FLFeedback = (function () {
 window.Table = (function () {
   'use strict';
   var C = Core.C, cv = null, ctx = null, O = null, running = false, raf = 0, bound = false;
-  var DEF = { teams: [{ n: 'Squared Groupers', logo: 'team-a.png', c1: '#c6ee32', c2: '#fcfc04' }, { n: 'Peloteros', logo: 'team-b.png', c1: '#f52f9b', c2: '#3cb5e4' }], singles: true, target: 15, level: 'normal', pace: 0.88, rebHold: 2, sound: true, score: null, intro: true, ads: 0, hooks: {}, names: ['Serve', 'Throw', 'Rebound', 'Cut', 'Two-Wall', 'Side Wall'] };   // names[0] is the serve, then the five shots in core order; English unless the game hands over others
+  var DEF = { teams: [{ n: 'Square Groupers', logo: 'team-a.png', c1: '#c6ee32', c2: '#fcfc04' }, { n: 'Peloteros', logo: 'team-b.png', c1: '#f52f9b', c2: '#3cb5e4' }], singles: true, target: 15, level: 'normal', pace: 0.88, rebHold: 2, sound: true, score: null, intro: true, ads: 0, hooks: {}, names: ['Serve', 'Throw', 'Rebound', 'Cut', 'Two-Wall', 'Side Wall'] };   // names[0] is the serve, then the five shots in core order; English unless the game hands over others
   /* six buttons: three to the left of the stick, three to the right. s = core shot index, -1 = the serve */
   var BTNS = [{ s: -1 }, { s: 0 }, { s: 1 }, { s: 3 }, { s: 2 }, { s: 4 }, { s: 'F', side: -1 }, { s: 'F', side: 1 }];   // the last two are Fight: one beside Rebound, one beside Side Wall
   var TOP = [{ k: 'menu', n: 'MENU' }, { k: 'mode', n: 'MODE' }, { k: 'music', n: '♪' }, { k: 'pause', n: 'PAUSE' }];
