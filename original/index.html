@@ -2435,7 +2435,11 @@ window.FLFeedback = (function () {
       if (st) { var sc = parseFloat(st.style.top) || 0; st.style.top = (sc + d - cur) + 'px'; }
     });
   }
-  setInterval(alignServe, 400);
+  var showRaw = show, layoutRaw = layout, padsRaw = buildPads;        // the buttons are put in place in the same moment they are drawn, so nothing is seen moving
+  show = function () { var r = showRaw.apply(this, arguments); alignServe(); return r; };
+  layout = function () { var r = layoutRaw.apply(this, arguments); alignServe(); return r; };
+  buildPads = function () { var r = padsRaw.apply(this, arguments); alignServe(); return r; };
+  setInterval(alignServe, 400);                                      // and a check now and then, for a late change of size
   function onResize() { if (wantSides() !== sidesOn) show(); else layout(); }
   window.addEventListener('resize', onResize);
   /* a phone's browser bars slide away after the page has been measured, and that does not always fire a resize: the court then stays small with empty room under it.
