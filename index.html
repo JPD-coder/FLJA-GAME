@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261121185412";
+window.FL_BUILD = "20261121190907";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2269,7 +2269,7 @@ window.FLFeedback = (function () {
     drag = null; cv.style.touchAction = ''; cv.style.cursor = 'pointer';
     document.body.classList.toggle('pv-setup', POSTER && !net.role);   // preview: no court on the setup screen (an online wait still shows its message)
     buildSetup(); show();
-    if (PROMO) promoShow();
+    if (PROMO) setTimeout(function () { if (!(window.Table && window.Table.isOpen()) && mode !== 'match') promoShow(); }, 0);   // back to the match-up page, unless this was the step into the Cocktail Table
   }
   /* a quick reminder from the guide on how to move, every time a match starts; the match waits until it is closed */
   var tipOpen = false;
@@ -2426,12 +2426,12 @@ window.FLFeedback = (function () {
     if (cv.width !== pw || cv.height !== ph) { cv.width = pw; cv.height = ph; }
     if (cw > 0) cssScale = cw / C.W;                              // a hidden court (setup screen) keeps its last size, never zero
   }
-  /* the Serve button sits level with the Two-Wall button on the other side, and the joystick above it moves up with it (every mode but
+  /* the Serve button sits level with the Cut button on the other side (Two-Wall in the modes without a Cut), and the joystick above it moves up with it (every mode but
      the Cocktail Table, which draws its own controls). Measured from the live layout, so it holds in portrait, landscape and every view. */
   function alignServe() {
     [].forEach.call(document.querySelectorAll('.throw.sv'), function (sv) {
       if (!sv.offsetParent) return;
-      var pad = sv.closest('.pad'), tw = (pad && pad.querySelector('.throw.s3')) || [].filter.call(document.querySelectorAll('.throw.s3'), function (b) { return b.offsetParent; })[0];
+      var pad = sv.closest('.pad'), vis = function (q) { return (pad && pad.querySelector(q + ':not([hidden])')) || [].filter.call(document.querySelectorAll(q), function (b) { return b.offsetParent; })[0]; }, tw = vis('.throw.s2') || vis('.throw.s3');   // level with Cut where there is one (Professional), else Two-Wall
       if (!tw || !tw.offsetParent) return;
       var st = pad && pad.querySelector('.stick'), cur = parseFloat(sv.style.top) || 0, d = Math.round(tw.getBoundingClientRect().top - (sv.getBoundingClientRect().top - cur));
       if (Math.abs(d - cur) < 1) return;
@@ -4686,7 +4686,7 @@ window.Table = (function () {
   }
   function close() { running = false; cancelAnimationFrame(raf); if (cv) { cv.style.display = 'none'; } keys = {}; }
   var api = { open: open, close: close, isOpen: function () { return running; }, score: function () { return game ? game.score.slice() : null; },
-    game: function () { return game; }, L: function () { return L; }, Xz: Xz, Y: Y, btnPos: btnPos, topPos: topPos, mode: function () { return mode; }, tip: function () { return tip; }, paused: function () { return paused; }, pause: function () { if (mode === 'play') paused = true; }, ad: function () { return adv; }, serveOK: function () { return serveOK; }, geo: function () { return { turn: turn, ox: ox, W: W, H: H, vw: vw, vh: vh }; } };
+    game: function () { return game; }, L: function () { return L; }, Xz: Xz, Y: Y, btnPos: btnPos, topPos: topPos, mode: function () { return mode; }, tip: function () { return tip; }, paused: function () { return paused; }, pause: function () { if (mode === 'play') paused = true; }, ad: function () { return adv; }, topDo: function (i) { topDo(i); }, serveOK: function () { return serveOK; }, geo: function () { return { turn: turn, ox: ox, W: W, H: H, vw: vw, vh: vh }; } };
   window.__table = api;
   if (document.getElementById('tableCv')) open(null);               // the test page: straight in, with the defaults
   return api;

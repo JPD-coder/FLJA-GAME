@@ -787,7 +787,7 @@ window.Table = (function () {
   }
   function close() { running = false; cancelAnimationFrame(raf); if (cv) { cv.style.display = 'none'; } keys = {}; }
   var api = { open: open, close: close, isOpen: function () { return running; }, score: function () { return game ? game.score.slice() : null; },
-    game: function () { return game; }, L: function () { return L; }, Xz: Xz, Y: Y, btnPos: btnPos, topPos: topPos, mode: function () { return mode; }, tip: function () { return tip; }, paused: function () { return paused; }, pause: function () { if (mode === 'play') paused = true; }, ad: function () { return adv; }, serveOK: function () { return serveOK; }, geo: function () { return { turn: turn, ox: ox, W: W, H: H, vw: vw, vh: vh }; } };
+    game: function () { return game; }, L: function () { return L; }, Xz: Xz, Y: Y, btnPos: btnPos, topPos: topPos, mode: function () { return mode; }, tip: function () { return tip; }, paused: function () { return paused; }, pause: function () { if (mode === 'play') paused = true; }, ad: function () { return adv; }, topDo: function (i) { topDo(i); }, serveOK: function () { return serveOK; }, geo: function () { return { turn: turn, ox: ox, W: W, H: H, vw: vw, vh: vh }; } };
   window.__table = api;
   if (document.getElementById('tableCv')) open(null);               // the test page: straight in, with the defaults
   return api;
