@@ -3787,8 +3787,11 @@ window.FLFeedback = (function () {
   /* ---------- limited-edition match-up page (only where window.FL_PROMO is set) ----------
      The page opens on the match-up art. Under it: who you play as, the mode, and two ways to play (with sponsor pop-outs, or without).
      Everything else is the game as it is: same engine, same teams and kits, same modes. Menu comes back here. */
-  var promoEl = null, promoMode = PROMO ? PROMO.modes[0] : 'aerial', promoMe = 0, promoTeams = PROMO ? PROMO.people.map(function (w) { return w.team; }) : [];   // promoTeams[i]: the team person i is wearing
-  function promoWhoT(t) { return PROMO ? PROMO.people[t === 0 ? promoMe : 1 - promoMe] : null; }   // side 0 is you, side 1 the CPU
+  /* two slots, left and right of the VS. A page with a roster (PROMO.choose) starts both empty: a silhouette until a player is picked for it */
+  var promoEl = null, promoMode = PROMO ? PROMO.modes[0] : 'aerial', promoMe = 0;
+  var promoSel = PROMO ? (PROMO.choose ? [null, null] : [0, 1]) : [], promoTeams = PROMO ? (PROMO.slotTeams || PROMO.people.slice(0, 2).map(function (w) { return w.team; })) : [];   // per slot: who, and in which uniform
+  var NOBODY = { name: '', look: 0, face: null };
+  function promoWhoT(t) { if (!PROMO) return null; var i = promoSel[t === 0 ? promoMe : 1 - promoMe]; return i == null ? NOBODY : PROMO.people[i]; }   // side 0 is you, side 1 the CPU
   function promoTeamName(ti) { var n = ROSTER[ti].name; return n === 'USA' ? 'Team USA' : n; }
   function promoShow() {
     if (!promoEl) promoBuild();
@@ -3797,6 +3800,7 @@ window.FLFeedback = (function () {
   function promoGo(ads) {
     window.FL_ADS = ads ? 1 : 0;
     cfg.comp = 'league'; cfg.pick = [promoTeams[promoMe], promoTeams[1 - promoMe]]; picked = [true, true];
+    if (promoSel[0] == null || promoSel[1] == null) return;
     cfg.singles = true; cfg.seats = [1, 1, 0, 0]; cfg.target = PROMO.target || 15; cfg.level = 'normal'; cfg.pace = 'standard';
     cfg.who = 'men'; cfg.whoT = ['men', 'men'];
     cfg.table = promoMode === 'table';
@@ -3805,15 +3809,18 @@ window.FLFeedback = (function () {
     promoEl.hidden = true; document.body.classList.remove('promo-open');
     unlock(); tryStart();
   }
-  function promoPaint() {                                          // the art, the names and the team marks follow who wears which uniform and who you play
-    var P = PROMO, el = promoEl;
-    P.people.forEach(function (w, i) {
-      var r = ROSTER[promoTeams[i]], tc = r.ui === '#f2efe6' ? '#c9a55c' : r.ui, nb = el.querySelector('.pm-name[data-i="' + i + '"]');
-      el.querySelector('.pm-half[data-i="' + i + '"]').src = w.art[promoTeams[i]];
-      nb.style.setProperty('--tc', tc); nb.setAttribute('aria-pressed', String(i === promoMe));
-      nb.querySelector('em').textContent = i === promoMe ? 'You' : 'CPU';
-      var sel = el.querySelector('.pm-team[data-i="' + i + '"]'); sel.value = String(promoTeams[i]); sel.style.setProperty('--tc', tc);
-          });
+  function promoPaint() {                                          // the art, the names and the team marks follow who is picked, in which uniform, and who you play
+    var P = PROMO, el = promoEl, ready = promoSel[0] != null && promoSel[1] != null;
+    [0, 1].forEach(function (s) {
+      var w = promoSel[s] == null ? null : P.people[promoSel[s]], side = s ? 'R' : 'L', r = ROSTER[promoTeams[s]], tc = r.ui === '#f2efe6' ? '#c9a55c' : r.ui;
+      el.querySelector('.pm-half[data-i="' + s + '"]').src = w ? w.art[side][promoTeams[s]] : P.blank[side][promoTeams[s]];
+      var nb = el.querySelector('.pm-name[data-i="' + s + '"]'); nb.style.setProperty('--tc', tc); nb.setAttribute('aria-pressed', String(!!w && s === promoMe)); nb.disabled = !w;
+      nb.querySelector('span').textContent = w ? w.name : (s ? 'Player 2' : 'Player 1'); nb.querySelector('em').textContent = !w ? 'Pick below' : s === promoMe ? 'You' : 'CPU';
+      var ps = el.querySelector('.pm-who[data-i="' + s + '"]'); if (ps) { ps.value = w ? String(promoSel[s]) : ''; ps.style.setProperty('--tc', w ? tc : '#c9a55c'); [].forEach.call(ps.options, function (o) { o.disabled = o.value !== '' && +o.value === promoSel[1 - s]; }); }
+      var sel = el.querySelector('.pm-team:not(.pm-who)[data-i="' + s + '"]'); sel.value = String(promoTeams[s]); sel.style.setProperty('--tc', tc);
+    });
+    $('pmAds').disabled = $('pmFree').disabled = !ready;
+    el.querySelector('.pm-art').setAttribute('aria-label', ready ? P.people[promoSel[0]].name + ' versus ' + P.people[promoSel[1]].name : 'Pick two players');
   }
   function promoBuild() {
     var P = PROMO, NAMES = { aerial: 'Professional', side: 'Amateur', table: 'Cocktail Table' }, st = document.createElement('style'), F = 'var(--body,system-ui,sans-serif)';
@@ -3821,7 +3828,7 @@ window.FLFeedback = (function () {
       '#promo[hidden]{display:none}body.promo-open{overflow:hidden}' +
       '#promo .pm-in{width:100%;max-width:470px;min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:8px;padding:max(10px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}' +
       '#promo .pm-tag{text-align:center;font:800 11px/1.2 ' + F + ';letter-spacing:.2em;text-transform:uppercase;color:#c9a55c}' +
-      '#promo .pm-art{align-self:center;display:flex;flex:0 0 auto;position:relative;width:min(100%, calc((100dvh - 372px) * 1.158), 440px);min-width:160px;aspect-ratio:1520/1312;border-radius:12px;overflow:hidden;background:#000}' +
+      '#promo .pm-art{align-self:center;display:flex;flex:0 0 auto;position:relative;width:min(100%, calc((100dvh - ' + (P.choose ? 424 : 372) + 'px) * 1.158), 440px);min-width:160px;aspect-ratio:1520/1312;border-radius:12px;overflow:hidden;background:#000}' +
       '#promo .pm-vs{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:900 clamp(26px,9vw,46px)/1 var(--display,Impact,"Arial Narrow",sans-serif);color:#fff;text-shadow:0 3px 0 #000,0 0 14px rgba(0,0,0,.9);letter-spacing:.02em;pointer-events:none}' +
       '#promo .pm-half{display:block;width:50%;height:100%;object-fit:contain}' +
       '#promo .pm-ctl{display:flex;flex-direction:column;gap:8px}' +
@@ -3836,6 +3843,7 @@ window.FLFeedback = (function () {
       '#promo .pm-modes button{flex:1 1 0;min-width:0;min-height:44px;padding:6px 4px;border-radius:10px;border:1px solid #2a2d36;background:#12131a;color:#c8cad0;font:700 13px/1.15 ' + F + ';cursor:pointer}' +
       '#promo .pm-modes button[aria-pressed="true"]{background:#f2efe6;color:#0b0c0f;border-color:#f2efe6}' +
       '#promo .pm-go button{flex:1 1 0;min-width:0;min-height:56px;padding:8px 6px;border-radius:12px;border:0;font:900 16px/1.15 ' + F + ';letter-spacing:.02em;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}' +
+      '#promo .pm-go button:disabled,#promo .pm-name:disabled{opacity:.4;cursor:default}#promo .pm-name:disabled{border-style:dashed}' +
       '#promo #pmAds{background:#c9a55c;color:#0b0c0f}#promo #pmFree{background:transparent;color:#f2efe6;border:2px solid #c9a55c}' +
       '#promo .pm-go small{font:700 11.5px/1 ' + F + ';letter-spacing:.04em;opacity:.85}' +
       '#promo .pm-note{margin:0;text-align:center;font:500 11px/1.3 ' + F + ';color:#8d909a}' +
@@ -3844,10 +3852,12 @@ window.FLFeedback = (function () {
     document.head.appendChild(st);
     var el = document.createElement('div'); el.id = 'promo'; el.hidden = true;
     el.innerHTML = '<div class="pm-in"><div class="pm-tag">' + esc(P.tag) + '</div>' +
-      '<div class="pm-art" role="img" aria-label="' + esc(P.people[0].name + ' versus ' + P.people[1].name) + '">' + P.people.map(function (w, i) { return '<img class="pm-half" data-i="' + i + '" alt="">'; }).join('') + '<span class="pm-vs" aria-hidden="true">VS</span></div>' +
+      '<div class="pm-art" role="img" aria-label="">' + [0, 1].map(function (i) { return '<img class="pm-half" data-i="' + i + '" alt="">'; }).join('') + '<span class="pm-vs" aria-hidden="true">VS</span></div>' +
       '<div class="pm-ctl"><div class="pm-lbl" id="pmAsL">Play as</div>' +
-      '<div class="pm-row" role="group" aria-labelledby="pmAsL">' + P.people.map(function (w, i) { return '<button type="button" class="pm-name" data-i="' + i + '"><span>' + esc(w.name) + '</span><em></em></button>'; }).join('') + '</div>' +
-      '<div class="pm-row pm-teams">' + P.people.map(function (w, i) { return '<label class="pm-pick"><span class="pm-sr">' + esc(w.name) + ' team</span><select class="pm-team" data-i="' + i + '">' +
+      '<div class="pm-row" role="group" aria-labelledby="pmAsL">' + [0, 1].map(function (i) { return '<button type="button" class="pm-name" data-i="' + i + '"><span></span><em></em></button>'; }).join('') + '</div>' +
+      (P.choose ? '<div class="pm-row pm-teams">' + [0, 1].map(function (i) { return '<label class="pm-pick"><span class="pm-sr">' + (i ? 'Right' : 'Left') + ' player</span><select class="pm-team pm-who" data-i="' + i + '"><option value="">Pick a player</option>' +
+        P.people.map(function (w, k) { return '<option value="' + k + '">' + esc(w.name) + '</option>'; }).join('') + '</select></label>'; }).join('') + '</div>' : '') +
+      '<div class="pm-row pm-teams">' + [0, 1].map(function (i) { return '<label class="pm-pick"><span class="pm-sr">' + (i ? 'Right' : 'Left') + ' player team</span><select class="pm-team" data-i="' + i + '">' +
         P.teams.map(function (t) { return '<option value="' + t + '">' + esc(promoTeamName(t)) + '</option>'; }).join('') + '</select></label>'; }).join('') + '</div>' +
       '<div class="pm-row pm-modes" role="group" aria-label="Mode">' + P.modes.map(function (m) { return '<button type="button" data-m="' + m + '" aria-pressed="' + (m === promoMode) + '">' + NAMES[m] + '</button>'; }).join('') + '</div>' +
       '<div class="pm-row pm-go"><button type="button" id="pmAds">Play with Ads</button><button type="button" id="pmFree">Play Ad Free<small>$0.99 per mo.</small></button></div>' +
@@ -3855,13 +3865,14 @@ window.FLFeedback = (function () {
     document.body.appendChild(el); promoEl = el;
     el.addEventListener('click', function (e) {
       var nb = e.target.closest('.pm-name'), mb = e.target.closest('.pm-modes button[data-m]');
-      if (nb) { promoMe = +nb.getAttribute('data-i'); promoPaint(); }
+      if (nb && !nb.disabled) { promoMe = +nb.getAttribute('data-i'); promoPaint(); }
       else if (mb) { promoMode = mb.getAttribute('data-m'); [].forEach.call(el.querySelectorAll('.pm-modes button'), function (x) { x.setAttribute('aria-pressed', String(x === mb)); }); }
     });
-    el.addEventListener('change', function (e) { var s = e.target.closest('select.pm-team'); if (!s) return; promoTeams[+s.getAttribute('data-i')] = +s.value; promoPaint(); });
+    el.addEventListener('change', function (e) { var s = e.target.closest('select.pm-team'); if (!s) return; var k = +s.getAttribute('data-i');
+      if (s.classList.contains('pm-who')) { promoSel[k] = s.value === '' ? null : +s.value; if (promoSel[promoMe] == null && promoSel[1 - promoMe] != null) promoMe = 1 - promoMe; } else promoTeams[k] = +s.value; promoPaint(); });
     $('pmAds').addEventListener('click', function () { promoGo(true); });
     $('pmFree').addEventListener('click', function () { promoGo(false); });
-    P.people.forEach(function (w) { var im = new Image(); im.src = w.face; w._img = im; P.teams.forEach(function (t) { var pre = new Image(); pre.src = w.art[t]; }); });
+    P.people.forEach(function (w) { var im = new Image(); im.src = w.face; w._img = im; });   // the uniform pictures load as they are chosen
     promoPaint();
   }
 
