@@ -673,9 +673,9 @@ window.Table = (function () {
     ctx.fillStyle = '#f4f4f0'; ctx.beginPath(); ctx.ellipse(8 * u + st * 9 * u, -12 * u, 10 * u, 6 * u, 0, 0, 6.3); ctx.fill(); ctx.beginPath(); ctx.ellipse(8 * u - st * 9 * u, 12 * u, 10 * u, 6 * u, 0, 0, 6.3); ctx.fill();   // shoes
     var fa = p.swing > 0 && p.fightT > game.t ? 0.03 + 0.25 * Math.min(1, p.swing / 0.32) : 0;   // fighting: the cesta comes down again and again
     var sw = (fa || p.anim) > 0 ? (1 - (fa || p.anim) / 0.28) : (game.holder === p.i ? -0.25 : 0.1), ang = -1.9 + sw * 2.5;                                                                 // the cesta arm, on his right: wound back, then through
-    ctx.save(); ctx.translate(2 * u, 26 * u); ctx.rotate(ang); ctx.strokeStyle = '#d9a577'; ctx.lineWidth = 10 * u; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 24 * u); ctx.stroke();
+    ctx.save(); ctx.translate(2 * u, 26 * u); ctx.rotate(ang); ctx.strokeStyle = O.teams[p.team].skin || '#d9a577'; ctx.lineWidth = 10 * u; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 24 * u); ctx.stroke();
     ctx.strokeStyle = '#17171b'; ctx.lineWidth = 9 * u; ctx.beginPath(); ctx.moveTo(0, 22 * u); ctx.quadraticCurveTo(15 * u, 48 * u, 2 * u, 70 * u); ctx.stroke(); ctx.strokeStyle = '#4a4a54'; ctx.lineWidth = 2.5 * u; ctx.beginPath(); ctx.moveTo(0, 24 * u); ctx.quadraticCurveTo(13 * u, 48 * u, 2 * u, 68 * u); ctx.stroke(); ctx.restore();
-    ctx.strokeStyle = '#d9a577'; ctx.lineWidth = 10 * u; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(2 * u, -26 * u); ctx.lineTo(16 * u, -36 * u); ctx.stroke();                              // the other arm, on his left
+    ctx.strokeStyle = O.teams[p.team].skin || '#d9a577'; ctx.lineWidth = 10 * u; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(2 * u, -26 * u); ctx.lineTo(16 * u, -36 * u); ctx.stroke();                              // the other arm, on his left
     ctx.fillStyle = '#141418'; rr(ctx, -13 * u, -31 * u, 28 * u, 62 * u, 13 * u); ctx.fill();                                                                               // shoulders, black jersey with the team trim
     ctx.fillStyle = t.c1; ctx.fillRect(-13 * u, -31 * u, 28 * u, 7 * u); ctx.fillStyle = t.c2; ctx.fillRect(-13 * u, 24 * u, 28 * u, 7 * u);
     ctx.restore();

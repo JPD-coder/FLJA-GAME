@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261121202155";
+window.FL_BUILD = "20261121202628";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -1437,7 +1437,7 @@ window.FLFeedback = (function () {
   function sheetFor(team, p) {
     if (HVP) return hvSheet(team, p ? hvBlonde(p) : false);
     if (!sprImg || !sprImg.complete || !sprImg.naturalWidth) return null;
-    var kit = KIT[team], nk = kit.nk || null, key = (VIEW3 ? 'b' : 's') + kit.jersey + kit.helm + (nk ? 'n' + nk.belt : '') + (kit.belt ? 'b' + kit.belt : '');
+    var kit = KIT[team], nk = kit.nk || null, skinC = PROMO && promoWhoT(team) ? promoWhoT(team).skin || null : null, key = (VIEW3 ? 'b' : 's') + kit.jersey + kit.helm + (nk ? 'n' + nk.belt : '') + (kit.belt ? 'b' + kit.belt : '') + (skinC ? 'k' + skinC : '');
     if (sprSheets[key]) return sprSheets[key];
     var cvs = document.createElement('canvas'); cvs.width = sprImg.naturalWidth; cvs.height = sprImg.naturalHeight;
     var x = cvs.getContext('2d'); x.drawImage(sprImg, 0, 0);
@@ -1464,9 +1464,13 @@ window.FLFeedback = (function () {
           var BB = rgbOf(kit.belt);
           for (i = 0; i < px.length; i += 4) { r = px[i]; if (px[i + 3] > 8 && r > 90 && r > px[i + 1] * 1.9 && r > px[i + 2] * 1.9) { v = Math.min(1, r / 205); for (k = 0; k < 3; k++) px[i + k] = Math.min(255, BB[k] * (0.82 + 0.18 * v)); } }
         }
+        if (skinC) { var SK = rgbOf(skinC); for (i = 0; i < px.length; i += 4) {   // a celebrity's own skin tone on his arms, legs and neck
+          if (px[i + 3] < 8) continue; r = px[i]; g = px[i + 1]; b = px[i + 2]; mx = Math.max(r, g, b); mn = Math.min(r, g, b);
+          if (mx > 70 && r >= g && g >= b && mx - mn > 0.18 * mx && mx - mn < 0.75 * mx) { hue = 60 * (g - b) / Math.max(1, mx - mn); if (hue >= 6 && hue < 29.5) { v = Math.min(1.35, mx / 205); for (k = 0; k < 3; k++) px[i + k] = Math.min(255, SK[k] * v); } }
+        } }
         if (!nk) for (i = 0; i < px.length; i += 4) {                 // every cesta is black, whatever the kit (the black kits do this above)
           if (px[i + 3] < 8) continue; r = px[i]; g = px[i + 1]; b = px[i + 2]; mx = Math.max(r, g, b); mn = Math.min(r, g, b);
-          if (mx > 140 && r > g && g > b && mx - mn > 0.2 * mx && mx - mn < 0.72 * mx) { hue = 60 * (g - b) / (mx - mn); if (hue >= 29.5 && hue < 44) { v = 16 + (mx - 140) * 0.3; px[i] = v; px[i + 1] = v; px[i + 2] = v + 3; } }
+          if (mx > 120 && r > g && g >= b && mx - mn > 0.2 * mx) { hue = 60 * (g - b) / (mx - mn); var sat = (mx - mn) / mx; if ((hue >= 29.5 && hue < 50 && sat < 0.95) || (hue >= 11 && hue < 29.5 && sat > 0.8)) { v = 16 + Math.max(0, mx - 140) * 0.3; px[i] = v; px[i + 1] = v; px[i + 2] = v + 3; } }   // the wicker, including its bright orange flecks
         }
         for (i = 0; i < px.length; i += 4) {
           r = px[i]; g = px[i + 1]; b = px[i + 2];
@@ -2372,7 +2376,7 @@ window.FLFeedback = (function () {
   function openTable(score) {
     if (window.FLFeedback) window.FLFeedback.played('table');
     var tm = [0, 1].map(function (t) { var r = ROSTER[cfg.pick[t]] || ROSTER[t], k = r.kit || {}, nk = k.nk || {};
-      return { n: cfg.names[t] || r.name, face: PROMO ? promoWhoT(t).face : null, one: !!PROMO, logo: r.crest || r.logo, c1: nk.helm || r.ui || k.jersey || '#f2efe6', c2: nk.belt || k.sash || '#c9a55c' }; });   // USA wears its crest, the other countries their flag, Hooters and Twin Peaks their own marks
+      return { n: cfg.names[t] || r.name, face: PROMO ? promoWhoT(t).face : null, skin: PROMO ? promoWhoT(t).skin || null : null, one: !!PROMO, logo: r.crest || r.logo, c1: nk.helm || r.ui || k.jersey || '#f2efe6', c2: nk.belt || k.sash || '#c9a55c' }; });   // USA wears its crest, the other countries their flag, Hooters and Twin Peaks their own marks
     track('start', (cfg.singles ? 'singles' : 'doubles') + '.' + cfg.comp + '.table');
     window.Table.open({ teams: tm, singles: !!cfg.singles, target: cfg.target, level: cfg.level, pace: PACE[cfg.pace] || 0.88, rebHold: rebHold(), sound: !!cfg.sound, names: shotNames(), score: score || null, intro: false, ads: window.FL_ADS ? adEvery() : 0, hooks: {
       menu: function () { window.Table.close(); startDemo(); },
@@ -2682,7 +2686,7 @@ window.FLFeedback = (function () {
   }
 
   function drawPlayer(p, refl) {
-    var kit = KIT[p.team], skin = SKIN[p.i], holding = game.holder === p.i, t = game.t;
+    var kit = KIT[p.team], skin = (PROMO && promoWhoT(p.team) && promoWhoT(p.team).skin) || SKIN[p.i], holding = game.holder === p.i, t = game.t;
     var sp = Math.abs(p.vx), mv = Math.min(1, sp / 150), ph = p.run / 30;
     var dirSign = (p.vx >= 0 ? 1 : -1) * p.face;
     var receiving = game.phase === 'rally' && game.holder < 0 && p.team !== game.lastTeam;
@@ -4612,9 +4616,9 @@ window.Table = (function () {
     ctx.fillStyle = '#f4f4f0'; ctx.beginPath(); ctx.ellipse(8 * u + st * 9 * u, -12 * u, 10 * u, 6 * u, 0, 0, 6.3); ctx.fill(); ctx.beginPath(); ctx.ellipse(8 * u - st * 9 * u, 12 * u, 10 * u, 6 * u, 0, 0, 6.3); ctx.fill();   // shoes
     var fa = p.swing > 0 && p.fightT > game.t ? 0.03 + 0.25 * Math.min(1, p.swing / 0.32) : 0;   // fighting: the cesta comes down again and again
     var sw = (fa || p.anim) > 0 ? (1 - (fa || p.anim) / 0.28) : (game.holder === p.i ? -0.25 : 0.1), ang = -1.9 + sw * 2.5;                                                                 // the cesta arm, on his right: wound back, then through
-    ctx.save(); ctx.translate(2 * u, 26 * u); ctx.rotate(ang); ctx.strokeStyle = '#d9a577'; ctx.lineWidth = 10 * u; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 24 * u); ctx.stroke();
+    ctx.save(); ctx.translate(2 * u, 26 * u); ctx.rotate(ang); ctx.strokeStyle = O.teams[p.team].skin || '#d9a577'; ctx.lineWidth = 10 * u; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 24 * u); ctx.stroke();
     ctx.strokeStyle = '#17171b'; ctx.lineWidth = 9 * u; ctx.beginPath(); ctx.moveTo(0, 22 * u); ctx.quadraticCurveTo(15 * u, 48 * u, 2 * u, 70 * u); ctx.stroke(); ctx.strokeStyle = '#4a4a54'; ctx.lineWidth = 2.5 * u; ctx.beginPath(); ctx.moveTo(0, 24 * u); ctx.quadraticCurveTo(13 * u, 48 * u, 2 * u, 68 * u); ctx.stroke(); ctx.restore();
-    ctx.strokeStyle = '#d9a577'; ctx.lineWidth = 10 * u; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(2 * u, -26 * u); ctx.lineTo(16 * u, -36 * u); ctx.stroke();                              // the other arm, on his left
+    ctx.strokeStyle = O.teams[p.team].skin || '#d9a577'; ctx.lineWidth = 10 * u; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(2 * u, -26 * u); ctx.lineTo(16 * u, -36 * u); ctx.stroke();                              // the other arm, on his left
     ctx.fillStyle = '#141418'; rr(ctx, -13 * u, -31 * u, 28 * u, 62 * u, 13 * u); ctx.fill();                                                                               // shoulders, black jersey with the team trim
     ctx.fillStyle = t.c1; ctx.fillRect(-13 * u, -31 * u, 28 * u, 7 * u); ctx.fillStyle = t.c2; ctx.fillRect(-13 * u, 24 * u, 28 * u, 7 * u);
     ctx.restore();
