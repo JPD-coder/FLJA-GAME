@@ -2422,6 +2422,20 @@ window.FLFeedback = (function () {
     if (cv.width !== pw || cv.height !== ph) { cv.width = pw; cv.height = ph; }
     if (cw > 0) cssScale = cw / C.W;                              // a hidden court (setup screen) keeps its last size, never zero
   }
+  /* the Serve button sits level with the Two-Wall button on the other side, and the joystick above it moves up with it (every mode but
+     the Cocktail Table, which draws its own controls). Measured from the live layout, so it holds in portrait, landscape and every view. */
+  function alignServe() {
+    [].forEach.call(document.querySelectorAll('.throw.sv'), function (sv) {
+      if (!sv.offsetParent) return;
+      var pad = sv.closest('.pad'), tw = (pad && pad.querySelector('.throw.s3')) || [].filter.call(document.querySelectorAll('.throw.s3'), function (b) { return b.offsetParent; })[0];
+      if (!tw || !tw.offsetParent) return;
+      var st = pad && pad.querySelector('.stick'), cur = parseFloat(sv.style.top) || 0, d = Math.round(tw.getBoundingClientRect().top - (sv.getBoundingClientRect().top - cur));
+      if (Math.abs(d - cur) < 1) return;
+      sv.style.position = 'relative'; sv.style.top = d + 'px';
+      if (st) { var sc = parseFloat(st.style.top) || 0; st.style.top = (sc + d - cur) + 'px'; }
+    });
+  }
+  setInterval(alignServe, 400);
   function onResize() { if (wantSides() !== sidesOn) show(); else layout(); }
   window.addEventListener('resize', onResize);
   /* a phone's browser bars slide away after the page has been measured, and that does not always fire a resize: the court then stays small with empty room under it.
