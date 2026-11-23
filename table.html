@@ -421,7 +421,7 @@ var Core = (function () {
         if (g.reb && !(inp && inp.throw) && p.holdT > (g.cfg.rebHold || C.REBOTE_HOLD)) {   // held a rebote too long: the ball drops and the other team scores
           g.holder = -1; g.reb = false; g.lastTeam = p.team; g.ball.vx = 60; g.ball.vy = 0; point(g, 'held'); return;
         }
-        if ((inp && inp.throw) || (!serve && p.holdT > 2.4)) doThrow(g, p, inp && inp.throw && typeof inp.angle === 'number' && isFinite(inp.angle) ? inp.angle : p.aim, inp && inp.throw ? inp.hard : 0, inp ? inp.lat : 0);   // a person's serve waits for them
+        if (inp && inp.throw) doThrow(g, p, inp && inp.throw && typeof inp.angle === 'number' && isFinite(inp.angle) ? inp.angle : p.aim, inp && inp.throw ? inp.hard : 0, inp ? inp.lat : 0);   // a person's player keeps the ball until they throw it (no automatic throw)
       } else {
         p.aim += (p.ai.angle - p.aim) * Math.min(1, dt * 10);
         if (p.holdT >= p.ai.hold) doThrow(g, p, p.ai.angle, p.ai.hard);
