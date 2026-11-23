@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261121224948";
+window.FL_BUILD = "20261123021840";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -1184,7 +1184,7 @@ var Core = (function () {
           // anything higher passes over his head and belongs to whoever is behind him
           var jmp = Math.abs(dx) < C.PASS_W * 0.8 && g.ball.y < top && g.ball.y >= top - C.JUMP_UP;
           // at body height or lower it never slips through a person's player, wherever he stands in its path
-          var passing = p.human && Math.abs(dx) < C.PASS_W && g.ball.y >= top && g.ball.y < C.FEET + 14;
+          var passing = Math.abs(dx) < C.PASS_W && g.ball.y >= top && g.ball.y < C.FEET + 14;   // the CPU too: a ball he is standing on can no longer slip through between frames
           if ((jmp || passing) && d >= rr) d = rr - 1 + Math.abs(dx) * 0.001;
           if (d < rr && d < bd) { bd = d; best = p; bestUp = jmp && g.ball.y < top - C.LEAP_UP; }   // only the highest of them is worth leaving the floor for
         }
@@ -2377,7 +2377,7 @@ window.FLFeedback = (function () {
   function openTable(score) {
     if (window.FLFeedback) window.FLFeedback.played('table');
     var tm = [0, 1].map(function (t) { var r = ROSTER[cfg.pick[t]] || ROSTER[t], k = r.kit || {}, nk = k.nk || {};
-      return { n: cfg.names[t] || r.name, face: PROMO ? promoWhoT(t).face : null, skin: PROMO ? promoWhoT(t).skin || null : null, one: !!PROMO, logo: r.crest || r.logo, c1: nk.helm || r.ui || k.jersey || '#f2efe6', c2: nk.belt || k.sash || '#c9a55c' }; });   // USA wears its crest, the other countries their flag, Hooters and Twin Peaks their own marks
+      return { n: cfg.names[t] || r.name, face: PROMO ? promoWhoT(t).face : null, skin: PROMO ? promoWhoT(t).skin || null : null, one: !!PROMO, logo: r.crest || r.logo, c1: PROMO && promoWhoT(t).solo ? '#c8102e' : nk.helm || r.ui || k.jersey || '#f2efe6', c2: PROMO && promoWhoT(t).solo ? '#f4f4f0' : nk.belt || k.sash || '#c9a55c' }; });   // USA wears its crest, the other countries their flag, Hooters and Twin Peaks their own marks
     track('start', (cfg.singles ? 'singles' : 'doubles') + '.' + cfg.comp + '.table');
     window.Table.open({ teams: tm, singles: !!cfg.singles, target: cfg.target, level: cfg.level, pace: PACE[cfg.pace] || 0.88, rebHold: rebHold(), sound: !!cfg.sound, names: shotNames(), score: score || null, intro: false, ads: window.FL_ADS ? adEvery() : 0, hooks: {
       menu: function () { window.Table.close(); startDemo(); },
@@ -3828,11 +3828,14 @@ window.FLFeedback = (function () {
     var P = PROMO, el = promoEl, ready = promoSel[0] != null && promoSel[1] != null;
     [0, 1].forEach(function (s) {
       var w = promoSel[s] == null ? null : P.people[promoSel[s]], side = s ? 'R' : 'L', r = ROSTER[promoTeams[s]], tc = r.ui === '#f2efe6' ? '#c9a55c' : r.ui;
-      el.querySelector('.pm-half[data-i="' + s + '"]').src = w ? w.art[side][promoTeams[s]] : P.blank[side][promoTeams[s]];
+      el.querySelector('.pm-half[data-i="' + s + '"]').src = w ? (w.solo ? w.solo[side] : w.art[side][promoTeams[s]]) : P.blank[side][promoTeams[s]];   // solo: a player with no team uniform, one picture
       var nb = el.querySelector('.pm-name[data-i="' + s + '"]'); nb.style.setProperty('--tc', tc); nb.setAttribute('aria-pressed', String(!!w && s === promoMe)); nb.disabled = !w;
       nb.querySelector('span').textContent = w ? w.name : (s ? 'Player 2' : 'Player 1'); nb.querySelector('em').textContent = !w ? 'Pick below' : s === promoMe ? 'You' : 'CPU';
-      var ps = el.querySelector('.pm-who[data-i="' + s + '"]'); if (ps) { ps.value = w ? String(promoSel[s]) : ''; ps.style.setProperty('--tc', w ? tc : '#c9a55c'); [].forEach.call(ps.options, function (o) { o.disabled = o.value !== '' && +o.value === promoSel[1 - s]; }); }
-      var sel = el.querySelector('.pm-team:not(.pm-who)[data-i="' + s + '"]'); sel.value = String(promoTeams[s]); sel.style.setProperty('--tc', tc);
+      var ps = el.querySelector('.pm-who[data-i="' + s + '"]'); if (ps) { ps.value = w ? String(promoSel[s]) : ''; ps.style.setProperty('--tc', w ? tc : '#c9a55c'); [].forEach.call(ps.options, function (o) { o.disabled = o.value !== '' && +o.value === promoSel[1 - s] && !P.people[+o.value].mirror; }); }
+      var sel = el.querySelector('.pm-team:not(.pm-who)[data-i="' + s + '"]'); var nt = sel.querySelector('option[value="none"]');
+      if (w && w.solo) { if (!nt) { nt = document.createElement('option'); nt.value = 'none'; nt.textContent = 'No Team Available'; sel.appendChild(nt); } sel.value = 'none'; sel.disabled = true; tc = '#c9a55c'; }   // shown only while such a player is picked; never a choice
+      else { if (nt) sel.removeChild(nt); sel.disabled = false; sel.value = String(promoTeams[s]); }
+      sel.style.setProperty('--tc', tc);
     });
     $('pmAds').disabled = $('pmFree').disabled = !ready;
     el.querySelector('.pm-art').setAttribute('aria-label', ready ? P.people[promoSel[0]].name + ' versus ' + P.people[promoSel[1]].name : 'Pick two players');
@@ -4644,7 +4647,7 @@ window.Table = (function () {
     ctx.fillStyle = '#141418'; rr(ctx, -13 * u, -31 * u, 28 * u, 62 * u, 13 * u); ctx.fill();                                                                               // shoulders, black jersey with the team trim
     ctx.fillStyle = t.c1; ctx.fillRect(-13 * u, -31 * u, 28 * u, 7 * u); ctx.fillStyle = t.c2; ctx.fillRect(-13 * u, 24 * u, 28 * u, 7 * u);
     ctx.restore();
-    logoDisc(t.logo, 0, 0, 25 * u, me ? GOLD : '#f4f4f0');                                                                                                                  // the team mark on top of the helmet, always upright
+    logoDisc(t.face || t.logo, 0, 0, 25 * u, me ? GOLD : '#f4f4f0');                                                                                                                  // the team mark on top of the helmet, always upright
     ctx.restore();
   }
   function drawBall() {

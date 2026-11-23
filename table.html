@@ -454,7 +454,7 @@ var Core = (function () {
           // anything higher passes over his head and belongs to whoever is behind him
           var jmp = Math.abs(dx) < C.PASS_W * 0.8 && g.ball.y < top && g.ball.y >= top - C.JUMP_UP;
           // at body height or lower it never slips through a person's player, wherever he stands in its path
-          var passing = p.human && Math.abs(dx) < C.PASS_W && g.ball.y >= top && g.ball.y < C.FEET + 14;
+          var passing = Math.abs(dx) < C.PASS_W && g.ball.y >= top && g.ball.y < C.FEET + 14;   // the CPU too: a ball he is standing on can no longer slip through between frames
           if ((jmp || passing) && d >= rr) d = rr - 1 + Math.abs(dx) * 0.001;
           if (d < rr && d < bd) { bd = d; best = p; bestUp = jmp && g.ball.y < top - C.LEAP_UP; }   // only the highest of them is worth leaving the floor for
         }
@@ -679,7 +679,7 @@ window.Table = (function () {
     ctx.fillStyle = '#141418'; rr(ctx, -13 * u, -31 * u, 28 * u, 62 * u, 13 * u); ctx.fill();                                                                               // shoulders, black jersey with the team trim
     ctx.fillStyle = t.c1; ctx.fillRect(-13 * u, -31 * u, 28 * u, 7 * u); ctx.fillStyle = t.c2; ctx.fillRect(-13 * u, 24 * u, 28 * u, 7 * u);
     ctx.restore();
-    logoDisc(t.logo, 0, 0, 25 * u, me ? GOLD : '#f4f4f0');                                                                                                                  // the team mark on top of the helmet, always upright
+    logoDisc(t.face || t.logo, 0, 0, 25 * u, me ? GOLD : '#f4f4f0');                                                                                                                  // the team mark on top of the helmet, always upright
     ctx.restore();
   }
   function drawBall() {
