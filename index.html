@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261123021840";
+window.FL_BUILD = "20261123232117";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -868,7 +868,7 @@ var Core = (function () {
   }
   function sweep(t, serve) {
     if (serve) return C.SMIN + (C.SMAX - C.SMIN) * tri(t * 0.42);
-    return C.AMIN + (C.AMAX - C.AMIN) * tri(t * 0.8 + 0.2308);
+    return C.AMIN + (C.AMAX - C.AMIN) * tri(t * 0.42 + 0.2308);   // the shot guide sweeps at the same pace as the serve
   }
 
   function reachOf(p) { return p.human ? C.REACH_H : C.REACH_C; }
