@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261124205434";
+window.FL_BUILD = "20261124220719";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2711,7 +2711,7 @@ window.FLFeedback = (function () {
   /* ---------- matchup poster (preview build only): a still court, a Tap to Play button, then the poster while the match loads ---------- */
   var POSTER = !!window.FL_POSTER;
   if (POSTER) document.body.classList.add('poster-on');
-  var POSTERS = { '0m': 'poster-0-m.jpg?v=13', '1m': 'poster-1-m.jpg?v=13', '2m': 'poster-2-m.jpg?v=13', '3m': 'poster-3-m.jpg?v=13', '4m': 'poster-4-m.jpg?v=13', '5m': 'poster-5-m.jpg?v=13', '0w': 'poster-0-w.jpg?v=13', '1w': 'poster-1-w.jpg?v=13', '2w': 'poster-2-w.jpg?v=13', '3w': 'poster-3-w.jpg?v=13', '4w': 'poster-4-w.jpg?v=13', '5w': 'poster-5-w.jpg?v=13', '6m': 'poster-6-m.jpg?v=13', '6w': 'poster-6-w.jpg?v=13' };   // roster index + m/w. Each half faces right; missing ones fall back to the team badge
+  var POSTERS = { '7m': 'poster-7-m.jpg?v=13', '8m': 'poster-8-m.jpg?v=13', '9m': 'poster-9-m.jpg?v=13', '10m': 'poster-10-m.jpg?v=13', '11m': 'poster-11-m.jpg?v=13', '0m': 'poster-0-m.jpg?v=13', '1m': 'poster-1-m.jpg?v=13', '2m': 'poster-2-m.jpg?v=13', '3m': 'poster-3-m.jpg?v=13', '4m': 'poster-4-m.jpg?v=13', '5m': 'poster-5-m.jpg?v=13', '0w': 'poster-0-w.jpg?v=13', '1w': 'poster-1-w.jpg?v=13', '2w': 'poster-2-w.jpg?v=13', '3w': 'poster-3-w.jpg?v=13', '4w': 'poster-4-w.jpg?v=13', '5w': 'poster-5-w.jpg?v=13', '6m': 'poster-6-m.jpg?v=13', '6w': 'poster-6-w.jpg?v=13' };   // roster index + m/w. Each half faces right; missing ones fall back to the team badge
   function posterHalf(el, t, side) {                              // mixed: a man on the left, a woman on the right
     var r = ROSTER[t], wt = whoOf(side), g = wt === 'women' || (wt === 'mixed' && side) ? 'w' : 'm', src = POSTERS[t + g] || null;   // no picture for that side yet: its badge or flag
     el.innerHTML = ''; el.style.backgroundImage = '';
