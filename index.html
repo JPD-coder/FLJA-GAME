@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261124083443";
+window.FL_BUILD = "20261124130010";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -758,6 +758,11 @@ body.wiz.pv-setup #bar, body.wiz .app:has(#setup:not([hidden])) #bar { display: 
 #filmGo a#goArena { border-color: #1fe0d6; color: #1fe0d6; }
 #gate form { border-color: #1fe0d6; } #gate button[type="submit"] { background: #ff2d95; color: #fff; }
 #gate input:focus { outline-color: #ff2d95; }
+
+/* Pick Your Teams: the face-off fills the spare height so the players show down to the legs */
+#wiz #wz4 .wz-vs { aspect-ratio: auto; flex: 1 1 240px; min-height: 240px; max-height: calc((min(100vw, 460px) - 36px) * 1.025); }
+#wiz #wz4 .wz-half img { object-fit: contain; object-position: center bottom; }
+#wiz #wz4 .wz-half.flip img { object-position: center bottom; }
 </style>
 </head>
 <body>
@@ -1511,7 +1516,7 @@ window.FLFeedback = (function () {
   var PROMO = window.FL_PROMO || null;
   if (PROMO && !PROMO._v) {                                       // the pictures were redone without smoke: a new address so no phone shows a saved old one
     PROMO._v = 1;
-    var bump = function (o) { if (o) for (var k in o) { if (typeof o[k] === 'string') { if (/\.jpg$/.test(o[k])) o[k] += '?s=2'; } else if (o[k] && typeof o[k] === 'object') bump(o[k]); } };
+    var bump = function (o) { if (o) for (var k in o) { if (typeof o[k] === 'string') { if (/\.jpg$/.test(o[k])) o[k] += '?s=3'; } else if (o[k] && typeof o[k] === 'object') bump(o[k]); } };
     (PROMO.people || []).forEach(function (w) { bump(w.art); bump(w.solo); }); bump(PROMO.blank);
   }                           // a limited-edition match-up page: its own landing screen, no setup page
   function save() { if (PROMO) return; try { localStorage.setItem(STORE, JSON.stringify(cfg)); } catch (e) { /* ignore */ } }
@@ -2163,7 +2168,7 @@ window.FLFeedback = (function () {
         '<div class="wz-fine">*Images are never stored or shared.</div>' +
         '<div class="wz-card"><h3>Player 1</h3><div class="seg wz-seg" id="wzWho"></div></div>' +
         '<div class="wz-card"><h3>Player 2</h3><div class="seg wz-seg" id="wzP2"></div><div id="wzOnline" hidden></div></div>' +
-        '<div class="wz-card"><h3>Shot Buttons</h3><div class="seg wz-seg" id="wzLang"></div><div class="seg wz-seg wz-small" id="wzAim"></div></div>' +
+        '<div class="wz-card"><h3>Shot Buttons</h3><div class="seg wz-seg" id="wzLang"></div><div class="seg wz-seg" id="wzAim"></div></div>' +
         '<button type="button" class="wz-next" data-wz="next">Next</button></section>' +
       '<section class="wz-step" id="wz3" hidden>' + wzTop(3, 'Choose Where to Play') + '<div class="wz-tiles">' +
         '<button type="button" class="wz-tile" data-wz="league"><img src="brand.png" alt=""><span><b>League Play</b><i>Six Club Teams</i></span></button>' +
@@ -2231,7 +2236,7 @@ window.FLFeedback = (function () {
     $('wzP2').innerHTML = '<button type="button" data-wz="p2cpu" aria-pressed="' + (WZ.p2 === 'cpu') + '">CPU</button><button type="button" data-wz="p2online" aria-pressed="' + (WZ.p2 === 'online') + '">Online</button>';
     $('wzOnline').hidden = WZ.p2 !== 'online';
     $('wzLang').innerHTML = '<button type="button" data-wz="lang-en" aria-pressed="' + (cfg.lang === 'en') + '">English</button><button type="button" data-wz="lang-es" aria-pressed="' + (cfg.lang !== 'en') + '">Espa\u00f1ol</button>';
-    $('wzAim').innerHTML = '<button type="button" data-wz="aim-on" aria-pressed="' + (cfg.guide !== false) + '">Wall Aim Assist On</button><button type="button" data-wz="aim-off" aria-pressed="' + (cfg.guide === false) + '">Wall Aim Assist Off</button>';
+    $('wzAim').innerHTML = '<button type="button" data-wz="aim-on" aria-pressed="' + (cfg.guide !== false) + '">Wall Assist On</button><button type="button" data-wz="aim-off" aria-pressed="' + (cfg.guide === false) + '">Wall Assist Off</button>';
     var tx = $('wzSelfieTxt'); if (tx) tx.innerHTML = faceImg ? 'Change Your Picture' : 'Take a Selfie or Upload a Picture<br>to Star in Your Own Game';
     if (WZ.step === 4) {
       var curV = cfg.table ? 'table' : view;
@@ -2241,7 +2246,7 @@ window.FLFeedback = (function () {
         var sel = $('wzT' + t), h = '<option value=""' + (picked[t] ? '' : ' selected') + ' disabled>' + (cfg.comp === 'world' ? 'Pick a country' : 'Pick a team') + '</option>';
         list.forEach(function (k) { h += '<option value="' + k + '"' + (picked[t] && cfg.pick[t] === k ? ' selected' : '') + (picked[1 - t] && cfg.pick[1 - t] === k ? ' disabled' : '') + '>' + esc(ROSTER[k].name) + '</option>'; });
         sel.innerHTML = h;
-        var half = $('wzH' + t), k = cfg.pick[t], src = picked[t] ? POSTERS[k + (whoOf(t) === 'women' ? 'w' : 'm')] : (t ? 'kh-blank-r-14.jpg?s=2' : 'kh-blank-l-14.jpg?s=2');
+        var half = $('wzH' + t), k = cfg.pick[t], src = picked[t] ? POSTERS[k + (whoOf(t) === 'women' ? 'w' : 'm')] : (t ? 'kh-blank-r-14.jpg?s=3' : 'kh-blank-l-14.jpg?s=3');
         half.classList.toggle('flip', !!(picked[t] && t && src));
         half.innerHTML = src ? '<img src="' + src + '" alt="">' : '<span class="wz-badge">' + badge(ROSTER[k]) + '</span>';
       }
@@ -4104,27 +4109,30 @@ window.FLFeedback = (function () {
   }
   function promoBuild() {
     var P = PROMO, NAMES = { aerial: 'Professional', side: 'Amateur', table: 'Cocktail Table' }, st = document.createElement('style'), F = 'var(--body,system-ui,sans-serif)';
-    st.textContent = '#promo .pm-back{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:max(14px,env(safe-area-inset-top,0px));z-index:2;color:#c9a55c;font:600 13px/1 ' + F + ';letter-spacing:.12em;text-transform:uppercase;text-decoration:none;padding:6px 0;background:none;border:0;cursor:pointer}' +
+    st.textContent = '#promo .pm-back{color:#c9a55c;font:600 13px/1 ' + F + ';letter-spacing:.12em;text-transform:uppercase;text-decoration:none;padding:6px 0;background:none;border:0;cursor:pointer}' +
       '#promo{position:fixed;inset:0;z-index:10040;background:#07070a;color:#f2efe6;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;justify-content:center;font-family:' + F + '}' +
       '#promo[hidden]{display:none}body.promo-open{overflow:hidden}' +
-      '#promo .pm-in{width:100%;max-width:470px;min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:8px;padding:max(10px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}' +
-      '#promo .pm-tag{text-align:center;font:800 11px/1.2 ' + F + ';letter-spacing:.2em;text-transform:uppercase;color:#c9a55c}' +
-      '#promo .pm-art{align-self:center;display:flex;flex:0 0 auto;position:relative;width:min(100%, calc((100dvh - ' + (P.choose ? 424 : 372) + 'px) * 1.158), 440px);min-width:160px;aspect-ratio:1520/1312;border-radius:12px;overflow:hidden;background:#000}' +
-      '#promo .pm-vs{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:900 clamp(26px,9vw,46px)/1 var(--display,Impact,"Arial Narrow",sans-serif);color:#fff;text-shadow:0 3px 0 #000,0 0 14px rgba(0,0,0,.9);letter-spacing:.02em;pointer-events:none}' +
+      '#promo .pm-in{width:100%;max-width:470px;min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:8px;padding:max(10px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}' +
+      '#promo .pm-top{display:flex;align-items:center;justify-content:space-between;color:#9a9da6;font:600 13px/1 ' + F + ';letter-spacing:.12em;text-transform:uppercase;min-height:26px}' +
+      '#promo .pm-dots{display:flex;gap:6px}#promo .pm-dots i{width:8px;height:8px;border-radius:50%;background:#c9a55c}' +
+      '#promo .pm-tag{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 2px;text-align:center;font:700 clamp(10px,3.3vw,14px)/1.2 ' + F + ';letter-spacing:.1em;white-space:nowrap;text-transform:uppercase;color:#c9a55c}#promo .pm-tag img{width:30px;height:auto;flex:none}' +
+      '#promo .pm-art{align-self:center;display:flex;flex:0 0 auto;position:relative;width:min(100%, calc((100dvh - ' + (P.choose ? 402 : 350) + 'px) * 1.158), 440px);min-width:160px;aspect-ratio:1520/1312;box-sizing:content-box;padding-top:30px;border-radius:12px;overflow:hidden;background:#000}' +
+      '#promo .pm-vs{position:absolute;left:50%;top:calc(50% + 15px);transform:translate(-50%,-50%);font:900 clamp(26px,9vw,46px)/1 var(--display,Impact,"Arial Narrow",sans-serif);color:#fff;text-shadow:0 3px 0 #000,0 0 14px rgba(0,0,0,.9);letter-spacing:.02em;pointer-events:none}' +
       '#promo .pm-half{display:block;width:50%;height:100%;object-fit:contain}' +
       '#promo .pm-ctl{display:flex;flex-direction:column;gap:8px}' +
       '#promo .pm-lbl{font:700 10.5px/1 ' + F + ';letter-spacing:.16em;text-transform:uppercase;color:#9a9da6;text-align:center}' +
       '#promo .pm-row{display:flex;gap:8px;align-items:stretch}' +
-      '#promo .pm-name{flex:1 1 0;min-width:0;min-height:50px;padding:6px 6px;border-radius:10px;border:2px solid var(--tc,#c9a55c);background:#0b0c0f;color:var(--tc,#f2efe6);font:900 15px/1.1 ' + F + ';letter-spacing:.02em;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}' +
-      '#promo .pm-name em{font:800 10px/1 ' + F + ';font-style:normal;letter-spacing:.14em;opacity:.8}' +
-      '#promo .pm-name[aria-pressed="true"]{background:var(--tc,#c9a55c);color:#0b0c0f}' +
+      '#promo .pm-name{position:absolute;top:6px;z-index:2;transform:translateX(-50%);padding:5px 12px;border-radius:999px;border:1.5px solid #f2efe6;background:rgba(7,7,10,.72);color:#f2efe6;cursor:pointer}#promo .pm-name[data-i="0"]{left:25%}#promo .pm-name[data-i="1"]{left:75%}' +
+      '#promo .pm-name span{display:none}#promo .pm-name em{font:800 11px/1 ' + F + ';font-style:normal;letter-spacing:.16em;text-transform:uppercase}' +
+      '#promo .pm-name[aria-pressed="true"]{background:#f2efe6;color:#0b0c0f}#promo .pm-name:disabled{display:none}' +
+      '#promo.pm-allstar #pmAds{background:#1f56d8;color:#fff}#promo.pm-allstar #pmFree{border-color:#1f56d8}' +
       '#promo .pm-pick{flex:1 1 0;min-width:0;display:flex}#promo .pm-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}' +
       '#promo select.pm-team{flex:1 1 auto;min-width:0;min-height:42px;padding:0 30px 0 10px;border-radius:10px;border:1px solid var(--tc,#2a2d36);background:#0b0c0f url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%278%27%3E%3Cpath d=%27M1 1l5 5 5-5%27 fill=%27none%27 stroke=%27%23c9a55c%27 stroke-width=%272%27/%3E%3C/svg%3E") no-repeat right 11px center;color:#f2efe6;font:700 14px/1.2 ' + F + ';-webkit-appearance:none;appearance:none;cursor:pointer}' +
       '#promo select.pm-team option:disabled{color:#666}' +
       '#promo .pm-modes button{flex:1 1 0;min-width:0;min-height:44px;padding:6px 4px;border-radius:10px;border:1px solid #2a2d36;background:#12131a;color:#c8cad0;font:700 13px/1.15 ' + F + ';cursor:pointer}' +
       '#promo .pm-modes button[aria-pressed="true"]{background:#f2efe6;color:#0b0c0f;border-color:#f2efe6}' +
       '#promo .pm-go button{flex:1 1 0;min-width:0;min-height:56px;padding:8px 6px;border-radius:12px;border:0;font:900 16px/1.15 ' + F + ';letter-spacing:.02em;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}' +
-      '#promo .pm-go button:disabled,#promo .pm-name:disabled{opacity:.4;cursor:default}#promo .pm-name:disabled{border-style:dashed}' +
+      '#promo .pm-go button:disabled{opacity:.4;cursor:default}' +
       '#promo #pmAds{background:#c9a55c;color:#0b0c0f}#promo #pmFree{background:transparent;color:#f2efe6;border:2px solid #c9a55c}' +
       '#promo .pm-go small{font:700 11.5px/1 ' + F + ';letter-spacing:.04em;opacity:.85}' +
       '#promo .pm-note{margin:0;text-align:center;font:500 11px/1.3 ' + F + ';color:#8d909a}' +
@@ -4133,10 +4141,11 @@ window.FLFeedback = (function () {
     document.head.appendChild(st);
     var el = document.createElement('div'); el.id = 'promo'; el.hidden = true;
     var HOME = /github\.io$/.test(location.hostname) ? 'https://jpd-coder.github.io/FLJA-GAME/#setup' : 'https://claude.ai/artifact/R9qdfZutx585RNqNHore6o';   // back to the main game's menu
-    el.innerHTML = (window.FL_INGAME && window.FL_NAV ? '<button type="button" class="pm-back" id="pmBack">\u2039 Back</button>' : '<a class="pm-back" href="' + HOME + '">\u2039 Back</a>') + '<div class="pm-in"><div class="pm-tag">' + esc(P.tag) + '</div>' +
-      '<div class="pm-art" role="img" aria-label="">' + [0, 1].map(function (i) { return '<img class="pm-half" data-i="' + i + '" alt="">'; }).join('') + '<span class="pm-vs" aria-hidden="true">VS</span></div>' +
-      '<div class="pm-ctl"><div class="pm-lbl" id="pmAsL">Play as</div>' +
-      '<div class="pm-row" role="group" aria-labelledby="pmAsL">' + [0, 1].map(function (i) { return '<button type="button" class="pm-name" data-i="' + i + '"><span></span><em></em></button>'; }).join('') + '</div>' +
+    el.innerHTML = '<div class="pm-in"><div class="pm-top">' + (window.FL_INGAME && window.FL_NAV ? '<button type="button" class="pm-back" id="pmBack">\u2039 Back</button><span>Step 4 of 4</span><span class="pm-dots"><i></i><i></i><i></i><i></i></span>' : '<a class="pm-back" href="' + HOME + '">\u2039 Back</a>') + '</div>' +
+      '<h2 class="pm-tag"><img src="brand.png" alt="">' + esc(String(P.tag).replace(/^Limited Edition\s*\S\s*/, '')) + '</h2>' +
+      '<div class="pm-art" role="img" aria-label="">' + [0, 1].map(function (i) { return '<img class="pm-half" data-i="' + i + '" alt="">'; }).join('') + '<span class="pm-vs" aria-hidden="true">VS</span>' +
+      [0, 1].map(function (i) { return '<button type="button" class="pm-name" data-i="' + i + '" aria-label="Play as this player"><span></span><em></em></button>'; }).join('') + '</div>' +
+      '<div class="pm-ctl">' +
       (P.choose ? '<div class="pm-row pm-teams">' + [0, 1].map(function (i) { return '<label class="pm-pick"><span class="pm-sr">' + (i ? 'Right' : 'Left') + ' player</span><select class="pm-team pm-who" data-i="' + i + '"><option value="">Pick a player</option>' +
         P.people.map(function (w, k) { return '<option value="' + k + '">' + esc(w.name) + '</option>'; }).join('') + '</select></label>'; }).join('') + '</div>' : '') +
       '<div class="pm-row pm-teams">' + [0, 1].map(function (i) { return '<label class="pm-pick"><span class="pm-sr">' + (i ? 'Right' : 'Left') + ' player team</span><select class="pm-team" data-i="' + i + '">' +
@@ -4144,6 +4153,7 @@ window.FLFeedback = (function () {
       '<div class="pm-row pm-modes" role="group" aria-label="Mode">' + P.modes.map(function (m) { return '<button type="button" data-m="' + m + '" aria-pressed="' + (m === promoMode) + '">' + NAMES[m] + '</button>'; }).join('') + '</div>' +
       '<div class="pm-row pm-go"><button type="button" id="pmAds">Play with Ads</button><button type="button" id="pmFree">Play Ad Free<small>$0.99 per mo.</small></button></div>' +
       '<p class="pm-note">Preview: ad-free play is open at no charge during this test. Nothing is billed.</p></div></div>';
+    if (/all\s*star/i.test(P.tag)) el.classList.add('pm-allstar');
     document.body.appendChild(el); promoEl = el;
     if (el.querySelector('#pmBack')) el.querySelector('#pmBack').addEventListener('click', function () { window.FL_NAV('step3'); });
     el.addEventListener('click', function (e) {
