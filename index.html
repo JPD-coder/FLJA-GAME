@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261123234228";
+window.FL_BUILD = "20261124064500";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -623,22 +623,99 @@ body.poster-on #tapPlay { display: block; position: sticky; bottom: calc(26px + 
 #poster .spin { width: 26px; height: 26px; border-radius: 50%; border: 3px solid rgba(255,255,255,.15); border-top-color: var(--gold); animation: p-spin .8s linear infinite; }
 @keyframes p-spin { to { transform: rotate(360deg); } }
 @media (max-height: 520px) { #poster { flex-direction: row; gap: 28px; } #poster .pz { height: 86vh; flex: none; } #poster .side-txt { align-items: flex-start; gap: 18px; max-width: 42vw; } #poster .pn { flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; } }
+
+/* ---------- the step-by-step menu ---------- */
+body.wiz #setup > :not(#wiz) { display: none !important; }
+body.wiz #setup { padding-top: 0; }
+#wiz { width: 100%; max-width: 460px; margin: 0 auto; padding: 18px 2px 30px; box-sizing: border-box; color: #f2efe6; }
+#wiz .wz-step { display: flex; flex-direction: column; min-height: calc(100vh - 90px); min-height: calc(100dvh - 90px); }
+#wiz .wz-step[hidden] { display: none; }
+#wiz .wz-top { display: flex; align-items: center; justify-content: space-between; color: #9a9da6; font: 600 13px/1 var(--body); letter-spacing: .12em; text-transform: uppercase; }
+#wiz .wz-back { background: none; border: 0; color: #c9a55c; font: inherit; letter-spacing: inherit; text-transform: inherit; padding: 6px 0; cursor: pointer; }
+#wiz .wz-dots { display: flex; gap: 6px; } #wiz .wz-dots i { width: 8px; height: 8px; border-radius: 50%; background: #3a3d45; } #wiz .wz-dots i.on { background: #c9a55c; }
+#wiz .wz-mini { display: block; width: 44px; height: auto; margin: 14px auto 0; }
+#wiz .wz-h { font: 700 15px/1.2 var(--display); letter-spacing: .22em; text-transform: uppercase; color: #c9a55c; text-align: center; margin: 10px 0 16px; }
+#wiz .wz-col { display: flex; flex-direction: column; gap: 12px; }
+#wiz .wz-col .opts-toggle, #wiz .wz-big { text-decoration: none; display: block; width: 100%; border: 1.5px solid #c9a55c; border-radius: 14px; padding: 16px; background: #121318; color: #f2efe6; font: 600 16px/1.2 var(--display); letter-spacing: .1em; text-transform: uppercase; cursor: pointer; margin: 0; }
+#wiz .wz-big { margin-top: 12px; }
+#wiz .wz-col .opts, #wiz .wz-col .guide { margin: 0; }
+#wiz .wz-what { margin-top: 12px; border: 1.5px solid #2c2f37; border-radius: 14px; padding: 14px; background: #121318; font: 400 14px/1.55 var(--body); color: #d6d3cb; }
+#wiz .wz-what p { margin: 0 0 10px; } #wiz .wz-what p:last-child { margin: 0; } #wiz .wz-what b { color: #f2efe6; }
+#wiz .wz-next { margin-top: auto; margin-bottom: 8px; padding: 18px; border-radius: 14px; border: 0; background: #c9a55c; color: #111; font: 800 17px/1 var(--display); letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
+#wiz .wz-col + .wz-big + .wz-what + .wz-next, #wiz .wz-next { position: relative; }
+#wiz .wz-seg { display: flex; width: 100%; border: 1.5px solid #c9a55c; border-radius: 999px; overflow: hidden; padding: 0; gap: 0; background: transparent; }
+#wiz .wz-seg button { flex: 1; border: 0; border-radius: 0; margin: 0; padding: 13px 4px; background: transparent; color: #f2efe6; font: 600 14px/1.15 var(--display); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; min-height: 0; }
+#wiz .wz-seg button[aria-pressed="true"] { background: #c9a55c; color: #111; font-weight: 800; }
+#wiz .wz-seg.wz-small button { font-size: 12px; letter-spacing: .05em; }
+#wiz .wz-card .wz-seg + .wz-seg { margin-top: 9px; }
+#wiz .wz-selfie { display: block; margin-top: 12px; border: 1.5px solid #c9a55c; border-radius: 14px; padding: 12px; background: #121318; color: #f2efe6; font: 600 12.5px/1.4 var(--display); letter-spacing: .1em; text-transform: uppercase; text-align: center; cursor: pointer; position: relative; }
+#wiz .wz-selfie .face-prev { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 50%; background-size: cover; background-position: center; display: none; }
+#wiz .wz-selfie .face-prev.has { display: block; }
+#wiz .wz-clear { align-self: center; margin-top: 6px; background: none; border: 0; color: #9a9da6; text-decoration: underline; font: 500 12px/1 var(--body); cursor: pointer; }
+#wiz .wz-fine { font: 400 11px/1.3 var(--body); color: #9a9da6; text-align: center; margin-top: 5px; }
+#wiz .wz-card { border: 1.5px solid #2c2f37; border-radius: 14px; padding: 10px 14px 12px; background: #121318; margin-top: 12px; }
+#wiz .wz-card h3 { margin: 0 0 8px; font: 700 14px/1 var(--display); letter-spacing: .16em; color: #c9a55c; text-transform: uppercase; }
+#wiz #wzOnline { margin-top: 10px; } #wiz #wzOnline .online { margin: 0; padding: 0; border: 0; background: none; } #wiz #wzOnline .online > .opt-label { display: none; }
+#wiz .wz-tiles { display: flex; flex-direction: column; gap: 11px; }
+#wiz .wz-tile { display: flex; align-items: center; gap: 14px; width: 100%; box-sizing: border-box; border: 1.5px solid #3a3326; border-radius: 14px; padding: 12px 14px; background: #121318; color: #f2efe6; text-align: left; text-decoration: none; cursor: pointer; font: inherit; }
+#wiz .wz-tile:hover, #wiz .wz-tile:focus-visible { border-color: #c9a55c; }
+#wiz .wz-tile img, #wiz .wz-star { width: 46px; height: 46px; object-fit: contain; flex: none; }
+#wiz .wz-tile b { display: block; font: 700 16px/1.2 var(--display); letter-spacing: .08em; text-transform: uppercase; }
+#wiz .wz-tile i { display: block; font: 400 12.5px/1.3 var(--body); font-style: normal; color: #9a9da6; margin-top: 2px; }
+#wiz .wz-vs { position: relative; display: flex; border-radius: 14px; overflow: hidden; aspect-ratio: 760 / 650; max-width: 100%; background: #000; }
+#wiz .wz-half { width: 50%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+#wiz .wz-half img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+#wiz .wz-half.flip img { transform: scaleX(-1); }
+#wiz .wz-badge img, #wiz .wz-badge .flag { width: 70%; max-width: 120px; height: auto; font-size: 70px; }
+#wiz .wz-vs b { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font: 900 34px/1 var(--display); color: #fff; text-shadow: 0 2px 10px #000; }
+#wiz .wz-sels { display: flex; gap: 10px; margin-top: 16px; }
+#wiz .wz-sel { flex: 1; min-width: 0; appearance: none; -webkit-appearance: none; border: 1.5px solid #c9a55c; border-radius: 12px; padding: 12px 30px 12px 12px; background: #121318 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23c9a55c' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 12px center; color: #f2efe6; font: 600 14px/1.2 var(--body); }
+#wiz .wz-lab { margin: 24px 0 8px; font: 600 12px/1 var(--body); color: #9a9da6; letter-spacing: .14em; text-transform: uppercase; }
+#wiz #wzModes .opt { display: block; margin: 0; padding: 0; } #wiz #wzModes .opt-label { display: none; }
+#wiz #wzModes .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; border: 0; background: none; padding: 0; }
+#wiz #wzModes .seg button { border: 1px solid #3a3d45; border-radius: 12px; padding: 13px 2px; background: transparent; color: #f2efe6; font: 600 13.5px/1.15 var(--body); min-height: 0; margin: 0; }
+#wiz #wzModes .seg button[aria-pressed="true"] { background: #c9a55c; color: #111; border-color: #c9a55c; font-weight: 800; }
+#wiz #wzModes .vshort { display: none; } #wiz #wzModes .vlong { display: inline; }
+#wiz .wz-play { display: flex; gap: 10px; margin-top: 24px; }
+#wiz .wz-go { flex: 1; border: 1.5px solid #c9a55c; border-radius: 14px; padding: 14px 6px; background: #c9a55c; color: #111; font: 800 14px/1.25 var(--display); letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
+#wiz .wz-go small { display: block; font-size: 11.5px; letter-spacing: .08em; margin-top: 3px; }
+#wiz .wz-go.alt { background: #121318; color: #f2efe6; } #wiz .wz-go.alt small { color: #c9a55c; }
+#wiz .wz-msg { min-height: 1em; margin: 8px 0 0; text-align: center; font: 500 13px/1.3 var(--body); color: #e7c97e; }
+#wiz .wz-links { margin-top: auto; display: flex; justify-content: center; gap: 44px; padding: 14px 0 10px; }
+#wiz .wz-link { background: none; border: 0; padding: 0; margin: 0; color: #9a9da6; font: 600 13px/1 var(--body); letter-spacing: .12em; text-transform: uppercase; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; display: inline; width: auto; min-height: 0; }
+#wiz .wz-legal { margin: 0; padding-bottom: 6px; font: 400 9px/1.45 var(--body); color: #7d808a; text-align: center; }
+#wiz .wz-pop { position: fixed; inset: 0; z-index: 60; background: rgba(5,6,8,.8); display: flex; align-items: center; justify-content: center; padding: 24px; }
+#wiz .wz-pop[hidden] { display: none; }
+#wiz .wz-popcard { width: 100%; max-width: 400px; background: #121318; border: 1.5px solid #c9a55c; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+#wiz .wz-popcard h3 { margin: 0 0 4px; text-align: center; color: #c9a55c; font: 700 15px/1 var(--display); letter-spacing: .2em; text-transform: uppercase; }
+#wiz .wz-popcard input, #wiz .wz-popcard textarea { width: 100%; box-sizing: border-box; border: 1.5px solid #3a3d45; border-radius: 10px; background: #0b0c0f; color: #f2efe6; padding: 11px; font: 400 16px/1.3 var(--body); }
+#wiz .wz-popcard .wz-link { align-self: center; margin-top: 4px; }
+
+/* the landing: Enter Game and Enter Arena; the password opens as a card over it */
+#filmGo button#goGame { order: 1; flex: 0 1 394px; min-height: 54px; }
+#filmGo a#goArena { min-height: 54px; }
+#gate { background: rgba(5,6,8,.78) !important; padding: 24px; }
+#gate form { background: #121318; border: 1.5px solid var(--gold); border-radius: 16px; padding: 24px 20px; box-sizing: border-box; }
+#gate img { width: 64px; height: 64px; }
+#gate .g-name { font-size: 12px; }
+#gate .g-sub { font: 500 15px/1.3 var(--body); color: #d6d3cb; }
+#gate .g-back { background: none !important; color: #9a9da6 !important; min-height: 0 !important; text-decoration: underline; font: 500 13px/1 var(--body) !important; letter-spacing: 0 !important; }
 </style>
 </head>
 <body>
 
 
 <div id="gate" hidden><form id="gateForm" autocomplete="off"><img src="brand.png" alt="">
-<div class="g-name">Fantasy League</div><div class="g-big">Jai Alai</div>
+<div class="g-name">Beta Access</div><div class="g-sub">Enter the password to continue</div>
 <input id="gatePass" name="flja-word" type="text" inputmode="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" data-1p-ignore data-lpignore="true" enterkeyhint="go" aria-label="Password" placeholder="Password">
-<button type="submit">Enter</button><div class="g-no" id="gateNo" role="alert"></div></form></div>
+<button type="submit">Enter</button><button type="button" class="g-back" id="gateCancel">Cancel</button><div class="g-no" id="gateNo" role="alert"></div></form></div>
 <div id="hvpGate" hidden><form id="hvpForm" autocomplete="off"><img class="g-art" src="hvp-door.jpg?v=2" alt="A Hooters player and a Twin Peaks player face off, each with a cesta">
 <div class="g-name">Members only</div><div class="g-big"><span class="ho">Hoots</span> vs <span class="pk">Peaks</span></div>
 <input id="hvpPass" name="flja-word2" type="text" inputmode="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" data-1p-ignore data-lpignore="true" enterkeyhint="go" aria-label="Hoots vs Peaks password" placeholder="Password">
 <button type="submit">Enter</button><button type="button" class="g-back" id="hvpBack">Back</button><div class="g-no" id="hvpNo" role="alert"></div></form></div>
 <div id="moveTip" hidden role="dialog" aria-label="How to move"><div class="mt-card"><button type="button" class="mt-x" aria-label="Close">&times;</button><b>How to move</b><div class="mt-body"></div><button type="button" class="mt-go">Got it</button></div></div>
 <div id="poster" hidden><div class="pz"><div class="ph l"></div><div class="ph r"></div><div class="vs">VS</div></div><div class="side-txt"><div class="pn"></div><div class="pload"><span class="spin"></span>Loading match</div></div></div>
-<div id="film"><canvas id="filmCv"></canvas><div class="film-btns"><button id="filmSound" type="button">Sound on</button><button id="filmSkip" type="button">Skip</button></div><div id="filmGo" hidden><button id="goPC" type="button">Play PC</button><button id="goMob" type="button">Play Mobile</button><i class="brk"></i><a id="goArena" href="arena.html">Enter the Arena</a></div></div>
+<div id="film"><canvas id="filmCv"></canvas><div class="film-btns"><button id="filmSound" type="button">Sound on</button><button id="filmSkip" type="button">Skip</button></div><div id="filmGo" hidden><button id="goGame" type="button">Enter Game</button><i class="brk"></i><a id="goArena" href="arena.html">Enter Arena</a></div></div>
 <div class="app">
   <header class="bar" id="bar">
     <h1><img src="brand.png" alt=""><b>Fantasy League <span>Jai Alai</span></b></h1>
@@ -680,16 +757,16 @@ body.poster-on #tapPlay { display: block; position: sticky; bottom: calc(26px + 
     <div class="guide" id="guide" hidden>
       <h3>The basics</h3>
       <ul class="rules">
-      <li><b>Singles and doubles.</b> Pick the match type above the teams. Singles is one on one: you cover the whole court alone, and you can take a selfie or headshot pic so your face is on your player. Doubles is two on two, with a front-court and a back-court player on each team.</li>
-      <li><b>Who you play.</b> Under each team, Played by has a switch for the front-court player and one for the back-court player: set each to Player 1 or CPU. Set both to Player 1 and the game hands you whichever player can reach the ball. Set one to CPU and you stay on that position while the CPU plays your partner.</li>
-      <li><b>Game settings and modes.</b> Pick League Play, World Cup Play or Hoots vs Peaks, then your teams. A match is played to 9 points unless you choose 15 or 21. There are six modes: Professional (the camera is behind you and you move in every direction), Amateur (side view), Cocktail Table (phone flat, seen from above), 90s Throwback, 80s Retro and Vintage. Pick one before the match, or tap Mode during a match to move to the next one without losing the score.</li>
+      <li><b>Singles and doubles.</b> Pick Singles or Doubles on Who’s playing. Singles is one on one: you cover the whole court alone. Doubles is two on two, with a front-court and a back-court player on each team. Take a selfie or upload a picture and your face goes on your player (in Doubles, your front-court player). The picture is only used while the game is open: it is never stored or shared.</li>
+      <li><b>Who you play.</b> Player 1 is you: pick Men, Women or Both (Both is Doubles only, one man and one woman). Player 2 is the CPU, which plays the same pick as you, or Online, which opens Host a Game and Join with Code to play a friend on another phone. Shot Buttons sets the shot names in English or Español, and turns Wall Aim Assist (the aiming circles and lines) on or off.</li>
+      <li><b>Game settings and modes.</b> Choose where to play: League Play (six club teams) or World Cup Play (six national teams) go on to Pick your teams, where you choose both sides and a view or era. All Star Players and Celebrity Players open their own games, and Hoots vs Peaks goes straight into its match. A match is played to 9 points unless you choose 15 or 21 in Play Settings. There are six views and eras: Professional (the camera is behind you and you move in every direction), Amateur (side view), Cocktail Table (phone flat, seen from above), 90s Throwback, 80s Retro and Vintage. Tap Mode during a match to move to the next one without losing the score.</li>
       <li><b>Score.</b> Every throw must hit the front wall above the low red line, and the wall is good all the way up to the gold line at its top. A ball that goes over the top of the front or back wall is out. Miss, or let the ball bounce twice, and the other team scores.</li>
       <li><b>Run and catch.</b> Push the joystick under your right thumb to run: a nudge walks, a full push runs. In Amateur and the throwback modes, push right to run toward the front wall and left toward the back wall. In Pro the camera is behind you, so up runs toward the front wall, down toward the back wall, and left and right step across the court toward the side wall or the open side. You can also hold a finger on the court to run to that spot, or use the arrow keys on a keyboard. Any ball that passes one of your players is caught, from the floor up to a full stretch overhead, on the fly or after one bounce; only a ball well over his head goes by. In Pro you also have to be across the court to the ball to catch it. In doubles the front courter plays from the front wall back to line 10 and the back courter from line 7 to the back wall.</li>
       <li><b>Shots.</b> Saque (Serve) starts the point: it must bounce between the two red lines on the floor at lines 4 and 7, or it is a fault. In play, Pelotazo (Throw) is the normal throw, straight to the front wall. Rebote (Rebound) carries long, to come off the back wall. Cortada (Cut) goes low and hard into the front wall first, then comes back into the side wall around line 3 and kicks across the court. Dos Paredes (Two-Wall) takes the side wall first and then the front wall, and dies short at a sharp angle. Costado (Side Wall) is a backhand off the side wall up by line 2, then the front wall, and comes back deep and low. Amateur, 90s Throwback, 80s Retro and Vintage give you Pelotazo, Rebote and Dos Paredes; Professional and Cocktail Table add Cortada and Costado, and holding left or right on the joystick as you throw sends the ball to that side. When the pelota (ball) comes off the back wall and one of your players catches it, it must go back to the front wall in one motion: you have three seconds at Slow pace, two at Normal and one at Fast to press a shot button, or the ball drops and the other team scores. Each shot shows where it will go, with a marker on the wall and floor or a dotted path; red means a fault. Under the shot buttons, the first small button switches every name between Spanish and English, and Shot Guide On / Off under it shows or hides those markers and paths. Shot Guide starts On every match.</li>
       <li><b>Cocktail Table.</b> Lay your phone flat and play from its short side. The court runs up the phone, seen from straight above: the front wall and the score are at the far end, the back wall is at your end, and the line numbers run down the side wall on your left. Push the red stick in the middle to move (up is toward the front wall), or touch the court and your player runs to your finger. To serve, hold the ball and watch lines 4 and 7: tap Serve when they flash red and it lands between them; tap at any other moment and it is a fault. In play you have all five shots, three buttons on each side of the stick, and the game picks a safe line for each throw; push the stick left or right as you throw to send it to that side. A ring on the floor shows where your opponent's throw will land. Only the Rebound is called out: it is going to the back wall, so do not chase it, get behind it. Menu and Mode are at the top left, Music and Pause at the top right. Cocktail Table is one player against the CPU and uses the same teams, points, CPU level and pace as every other mode.</li>
       <li><b>Music.</b> On the hosted game, tap ♪ Music in the Menu / Mode / Music / Pause row to play that mode's playlist, and tap it again to pause. On some phones the first tap only wakes the player: tap once more. The button lights and its record spins while a song plays. Changing modes switches to that mode's playlist. While it plays the ball and crowd sounds stand down so the music is clear. Spotify only plays full songs when you are signed in to Spotify in that browser: sign in once at spotify.com, otherwise you hear 30-second previews.</li>
       <li><b>Fight.</b> The red Fight button under Serve (E on a keyboard) sends your player running at the other side: at the one about to field the ball, or else the one nearest you. He swings his cesta at him for 3 seconds, and the button pulses while the fight is on: keep tapping it to keep fighting. A player being hit can barely move and cannot catch, so landing a hit before the ball reaches him wins you the point. On the Cocktail Table there are two red Fight buttons on the bottom row, one beside Rebound and one beside Side Wall.</li>
-      <li><b>Feedback.</b> Once you have tried all six modes, a short survey opens: your name and ten quick questions. If you are in the middle of a match it pauses the match first, and Resume carries on afterwards. Tap Give Feedback above Tap to Play to open it at any time.</li>
+      <li><b>Feedback.</b> Once you have tried all six modes, a short survey opens: your name and ten quick questions. If you are in the middle of a match it pauses the match first, and Resume carries on afterwards. Tap Give Feedback at the bottom of Pick your teams to open it any time.</li>
       </ul>
       <h3>Your buttons</h3>
       <dl>
@@ -1348,7 +1425,7 @@ window.FLFeedback = (function () {
   var GOLD = '#c9a55c', CHALK = '#f2efe6', MUTED = '#9b9ca6', RED = '#ff5a4d';
   var DISPLAY = "'Big Shoulders Display','Arial Narrow',Impact,sans-serif", BODY = "'Barlow','Helvetica Neue',Arial,sans-serif";
   var KEYS = [['KeyA', 'KeyD', 'KeyW', 'KeyS'], ['KeyF', 'KeyH', 'KeyT', 'KeyG'], ['KeyJ', 'KeyL', 'KeyI', 'KeyK'], ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']];   // run back, run forward, throw, power throw
-  var KEYTXT = ['A / D to run, W to throw', 'F / H to run, T to throw', 'J / L to run, I to throw', '← / → to run, ↑ to throw'];
+  var KEYTXT = ['A / D to run, W to throw', 'F / H to run, T to throw', 'J / L to run, I to throw', '\u2190 / \u2192 to run, \u2191 to throw'];
   var ROLE = ['Front court', 'Back court', 'Front court', 'Back court'];
   var PACE = { relaxed: 0.72, standard: 0.88, pro: 1 };
   var HOLD_S = { relaxed: 3, standard: 2, pro: 1 };              // real seconds to release a ball taken off the back wall, by pace
@@ -1658,14 +1735,14 @@ window.FLFeedback = (function () {
       box.innerHTML = '<div class="mus-top"><span id="musLab"></span>' +
         '<a id="musOpen" target="_blank" rel="noopener" aria-label="Open the playlist in Spotify" title="Open in Spotify"><img src="spotify.png" alt="Spotify"></a>' +
         '<button type="button" id="musPlay" aria-label="Play">\u25b6</button>' +
-        '<button type="button" id="musMin" aria-label="Show or hide the track list">▼</button>' +
-        '<button type="button" id="musX" aria-label="Stop and close the player">×</button></div>' +
+        '<button type="button" id="musMin" aria-label="Show or hide the track list">\u25bc</button>' +
+        '<button type="button" id="musX" aria-label="Stop and close the player">\u00d7</button></div>' +
         '<span class="mus-lab"><span class="rec" aria-hidden="true"></span><span id="musBarLab"></span></span>' +
         '<div class="mus-wrap"><div id="musEmbed"></div></div>';
       document.body.appendChild(box);                              // on the page itself, so no hidden section can hide the bar
       box.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
       $('musX').addEventListener('click', function () { thinShow(false); });
-      $('musMin').addEventListener('click', function () { $('musMin').textContent = box.classList.toggle('open') ? '▲' : '▼'; });
+      $('musMin').addEventListener('click', function () { $('musMin').textContent = box.classList.toggle('open') ? '\u25b2' : '\u25bc'; });
       $('musPlay').addEventListener('click', function () {        // the green button: play, or pause when a song is playing
         if (spLive) { musPause(); return; }
         musicOn = true; musDuck = true; startPlay();
@@ -1757,7 +1834,7 @@ window.FLFeedback = (function () {
     var box = $('musicBox');
     if (box) {
       box.hidden = true; box.classList.remove('open');
-      if ($('musMin')) $('musMin').textContent = '▼';
+      if ($('musMin')) $('musMin').textContent = '\u25bc';
       if (spCtl) { try { spCtl.pause(); } catch (e) { /* the player is gone */ } }
       else if ($('musEmbed')) { $('musEmbed').innerHTML = ''; box.removeAttribute('data-id'); }
       if ($('musPlay')) { $('musPlay').textContent = '\u25b6'; $('musPlay').setAttribute('aria-label', 'Play'); }
@@ -1813,7 +1890,7 @@ window.FLFeedback = (function () {
   function humans() { var h = []; (seatsNow || cfg.seats).forEach(function (s, i) { if (s) h.push(i); }); return h; }
   function keyText(seat) {
     if (!cfg.seats[seat]) return '';
-    return humans().length === 1 ? 'A / D or ← / → to run, W or Space to throw' : KEYTXT[seat];
+    return humans().length === 1 ? 'A / D or \u2190 / \u2192 to run, W or Space to throw' : KEYTXT[seat];
   }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   // League Play is the six clubs (roster 0-5); World Cup Play is the six national sides (roster 6-11)
@@ -1843,7 +1920,7 @@ window.FLFeedback = (function () {
     if (!url) { faceImg = null; return; }
     var im = new Image(); im.onload = function () { faceImg = im; faceUI(); }; im.src = url;
   }
-  try { setFace(localStorage.getItem(FACE_KEY)); } catch (e) { /* no storage: no saved face */ }
+  try { localStorage.removeItem(FACE_KEY); } catch (e) { /* the picture is never kept: it lasts only while the page is open */ }
   function faceUI() {
     var pv = $('facePrev'); if (!pv) return;
     pv.style.backgroundImage = faceImg ? 'url(' + faceImg.src + ')' : '';
@@ -1860,7 +1937,6 @@ window.FLFeedback = (function () {
         var x = c.getContext('2d'); x.beginPath(); x.arc(80, 80, 80, 0, 6.3); x.clip();
         x.drawImage(im, (im.width - s) / 2, (im.height - s) * 0.4, s, s, 0, 0, 160, 160);
         var url = c.toDataURL('image/png');
-        try { localStorage.setItem(FACE_KEY, url); } catch (e) { /* still used for this visit */ }
         setFace(url);
       };
       im.src = rd.result;
@@ -1885,7 +1961,7 @@ window.FLFeedback = (function () {
       if (!game.cfg.singles || mode !== 'match' || p.i % 2 || !pf || !pf.complete || !pf.naturalWidth) return false;
       faceNow = pf; faceLook = promoWhoT(p.team).look || 0; return true;
     }
-    if (!faceImg || !game.cfg.singles || mode !== 'match' || p.i % 2) return false;
+    if (!faceImg || mode !== 'match' || p.i % 2) return false;   // singles or doubles: your picture rides on your front-court player
     if (solo >= 0 ? p.team === solo : p.human) { faceNow = faceImg; return true; }
     return false;
   }
@@ -1948,6 +2024,7 @@ window.FLFeedback = (function () {
     if (!ft.onclick) ft.onclick = function () { window.FL_FACEOPEN = !window.FL_FACEOPEN; buildSetup(); };
     $('faceBox').hidden = !cfg.singles || !window.FL_FACEOPEN; faceUI();
     renderOnline();
+    wzPaint();
   }
   function hvpAsk() {
     var g = $('hvpGate'); if (!g) { setComp('hvp'); return; }
@@ -1996,17 +2073,150 @@ window.FLFeedback = (function () {
       e.preventDefault();
       var g = $('hvpGate');
       if (HVP_PASS.indexOf(hvpClean($('hvpPass').value)) >= 0) {
-        g.hidden = true; $('hvpPass').blur(); setComp('hvp');
+        g.hidden = true; $('hvpPass').blur(); setComp('hvp'); wzHvpGo();
       } else {
         $('hvpNo').textContent = 'Wrong password'; g.classList.remove('wrong'); void g.offsetWidth; g.classList.add('wrong'); $('hvpPass').select();
       }
     });
-    $('hvpPass').addEventListener('input', function () { if (!$('hvpGate').hidden && HVP_PASS.indexOf(hvpClean($('hvpPass').value)) >= 0) { $('hvpGate').hidden = true; $('hvpPass').blur(); setComp('hvp'); } });   // opens the moment the word is right
+    $('hvpPass').addEventListener('input', function () { if (!$('hvpGate').hidden && HVP_PASS.indexOf(hvpClean($('hvpPass').value)) >= 0) { $('hvpGate').hidden = true; $('hvpPass').blur(); setComp('hvp'); wzHvpGo(); } });   // opens the moment the word is right
     $('hvpBack').addEventListener('click', function () { $('hvpGate').hidden = true; });
     if (hvpWant) setTimeout(hvpAsk, 0);                           // a link straight to Hoots vs Peaks asks first
   }
+  /* ---------- the step-by-step menu (main game only): Before you play, Who's playing, Choose where to play, Pick your teams ----------
+     It reuses the setup's own controls (Play Settings, How to Play, the online box, the modes, Give Feedback): they are moved into the steps,
+     so every button keeps working exactly as before. */
+  var WZ = (!PROMO && window.FL_POSTER) ? { step: 1, p2: 'cpu', hvp: false } : null;
+  var CELEB_URL = /github\.io$/.test(location.hostname) ? 'https://jpd-coder.github.io/Celebrity-Jai-Alai/' : 'https://claude.ai/artifact/WTbXSWmpN3JEuKwKbpixxW';
+  var ALLSTAR_URL = /github\.io$/.test(location.hostname) ? 'https://jpd-coder.github.io/Celebrity-Jai-Alai/johan-vs-gorka.html' : 'https://claude.ai/artifact/7FyFh2Rnu3Ppo43fEKB1QT';
+  function wzStar(fill, edge, img) {
+    return '<svg class="wz-star" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,3 62,37 98,37 69,59 80,95 50,73 20,95 31,59 2,37 38,37" fill="' + fill + '" stroke="' + edge + '" stroke-width="2"/><image href="' + img + '" x="25" y="27" width="50" height="50"/></svg>';
+  }
+  function wzTop(n, title) {
+    return '<div class="wz-top"><button type="button" class="wz-back" data-wz="back">\u2039 Back</button><span>Step ' + n + ' of 4</span><span class="wz-dots">' +
+      [1, 2, 3, 4].map(function (i) { return '<i' + (i <= n ? ' class="on"' : '') + '></i>'; }).join('') + '</span></div>' +
+      '<img class="wz-mini" src="brand.png" alt=""><h2 class="wz-h">' + title + '</h2>';
+  }
+  function wzInit() {
+    if (!WZ) return;
+    document.body.classList.add('wiz');
+    var w = document.createElement('div'); w.id = 'wiz';
+    w.innerHTML =
+      '<section class="wz-step" id="wz1">' + wzTop(1, 'Before you play') + '<div class="wz-col" id="wz1c"></div>' +
+        '<button type="button" class="wz-big" id="whatToggle" aria-expanded="false">What is Jai Alai +</button>' +
+        '<div class="wz-what" id="whatBox" hidden><p>Jai alai comes from the Basque region of Spain. It\u2019s a fast-paced game played with a hand-held wicker <b>cesta</b> and a hard ball called a <b>pelota</b>, on a court (<b>cancha</b>) inside an arena called a <b>fronton</b>. It\u2019s like squash and racquetball, and it\u2019s played one on one or in doubles like tennis.</p>' +
+        '<p>The game has stayed true to its roots for 400 years. It came to the US at the 1904 World\u2019s Fair, and the first fronton in Florida opened in 1924.</p>' +
+        '<p>Jai alai was hugely popular in the US from the 1930s to the 1990s, mostly in Florida and Connecticut, and it\u2019s still loved in South Florida. Remember the guy jumping off the wall in the <i>Miami Vice</i> opening? That\u2019s jai alai.</p></div>' +
+        '<button type="button" class="wz-next" data-wz="next">Next</button></section>' +
+      '<section class="wz-step" id="wz2" hidden>' + wzTop(2, 'Who\u2019s playing') +
+        '<div class="seg wz-seg" id="wzType"></div>' +
+        '<label class="wz-selfie" id="wzSelfie"><span id="wzSelfieTxt">Take a Selfie or Upload a Picture<br>to Star in Your Own Game</span></label>' +
+        '<div class="wz-fine">*Images are never stored or shared.</div>' +
+        '<div class="wz-card"><h3>Player 1</h3><div class="seg wz-seg" id="wzWho"></div></div>' +
+        '<div class="wz-card"><h3>Player 2</h3><div class="seg wz-seg" id="wzP2"></div><div id="wzOnline" hidden></div></div>' +
+        '<div class="wz-card"><h3>Shot Buttons</h3><div class="seg wz-seg" id="wzLang"></div><div class="seg wz-seg wz-small" id="wzAim"></div></div>' +
+        '<button type="button" class="wz-next" data-wz="next">Next</button></section>' +
+      '<section class="wz-step" id="wz3" hidden>' + wzTop(3, 'Choose where to play') + '<div class="wz-tiles">' +
+        '<button type="button" class="wz-tile" data-wz="league"><img src="brand.png" alt=""><span><b>League Play</b><i>Six Club Teams</i></span></button>' +
+        '<button type="button" class="wz-tile" data-wz="world"><img src="usa-crest.png" alt=""><span><b>World Cup Play</b><i>Six National Teams</i></span></button>' +
+        '<a class="wz-tile" href="' + ALLSTAR_URL + '" target="_blank" rel="noopener">' + wzStar('#ffffff', '#ffffff', 'usa-crest.png') + '<span><b>All Star Players</b><i>Past &amp; Present All Star Roster</i></span></a>' +
+        '<a class="wz-tile" href="' + CELEB_URL + '" target="_blank" rel="noopener">' + wzStar('#c9a55c', '#e7c97e', 'brand.png') + '<span><b>Celebrity Players</b><i>Special Guests &amp; Limited Edition Collabs</i></span></a>' +
+        (MULTI && !window.FL_VIEW3 ? '<button type="button" class="wz-tile" data-wz="hvp"><img src="hoots-crest.png" alt=""><span><b>Hoots vs Peaks</b><i>The Rivalry Match</i></span></button>' : '') +
+        '</div></section>' +
+      '<section class="wz-step" id="wz4" hidden>' + wzTop(4, 'Pick your teams') +
+        '<div class="wz-vs"><div class="wz-half" id="wzH0"></div><div class="wz-half r" id="wzH1"></div><b>VS</b></div>' +
+        '<div class="wz-sels"><select class="wz-sel" id="wzT0" aria-label="Team 1"></select><select class="wz-sel" id="wzT1" aria-label="Team 2"></select></div>' +
+        '<div class="wz-lab">Select View or Era</div><div id="wzModes"></div>' +
+        '<div class="wz-play"><button type="button" class="wz-go" data-wz="play">Play Free<small>With Ads</small></button><button type="button" class="wz-go alt" data-wz="play">Play Ad Free<small>$0.99 per month</small></button></div>' +
+        '<p class="wz-msg" id="wzMsg" role="status"></p>' +
+        '<div class="wz-links" id="wzLinks"><button type="button" class="wz-link" data-wz="contact">Contact Us</button></div>' +
+        '<p class="wz-legal">\u00a9 2026 Fantasy League Jai Alai Game, LLC. All rights reserved.<br>The Fantasy League Jai Alai\u2122 name, logo, team names, team logos, and associated brand identities are claimed as trademarks of Fantasy League Jai Alai Game, LLC. Unauthorized reproduction, commercial use, or use suggesting affiliation, sponsorship, or endorsement is prohibited to the extent permitted by applicable law.</p>' +
+      '</section>' +
+      '<div class="wz-pop" id="wzContact" hidden><form class="wz-popcard" id="wzContactForm" autocomplete="off"><h3>Contact Us</h3>' +
+        '<input id="wzCName" type="text" placeholder="Your name" aria-label="Your name" maxlength="80">' +
+        '<input id="wzCMail" type="text" inputmode="email" placeholder="Email or phone (optional)" aria-label="Email or phone" maxlength="120">' +
+        '<textarea id="wzCMsg" rows="4" placeholder="Your message" aria-label="Your message" maxlength="1400"></textarea>' +
+        '<p class="wz-msg" id="wzCNote" role="status"></p><button type="submit" class="wz-go">Send</button><button type="button" class="wz-link" data-wz="contact-close">Close</button></form></div>';
+    elSetup.insertBefore(w, elSetup.firstChild);
+    var c1 = $('wz1c');                                            // the existing panels move into the steps (their buttons keep their own code)
+    ['optsToggle', 'opts', 'guideToggle', 'guide'].forEach(function (id) { if ($(id)) c1.appendChild($(id)); });
+    $('guideToggle').textContent = 'How To Play Jai Alai +';
+    var lbl = $('wzSelfie'); lbl.appendChild($('faceFile')); lbl.appendChild($('facePrev'));
+    var fc = $('faceClear'); fc.classList.add('wz-clear'); $('wzSelfie').parentNode.insertBefore(fc, $('wzSelfie').nextSibling);
+    if ($('online')) $('wzOnline').appendChild($('online'));
+    if ($('optViewRow')) $('wzModes').appendChild($('optViewRow'));
+    if ($('fbLink')) { $('fbLink').className = 'wz-link'; $('wzLinks').insertBefore($('fbLink'), $('wzLinks').firstChild); }
+    $('whatToggle').addEventListener('click', function () { var o = $('whatBox').hidden; $('whatBox').hidden = !o; this.textContent = 'What is Jai Alai ' + (o ? '\u2212' : '+'); this.setAttribute('aria-expanded', String(o)); });
+    ['wzT0', 'wzT1'].forEach(function (id, t) {
+      $(id).addEventListener('change', function () {
+        var v = +this.value; if (isNaN(v) || this.value === '') return;
+        if (cfg.pick[1 - t] === v) { var pl = groupList(cfg.comp).filter(function (x) { return x !== v; }); cfg.pick[1 - t] = pl[0]; }
+        cfg.pick[t] = v; picked[t] = true; applyTeams(); save(); buildSetup();
+      });
+    });
+    $('wzContactForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var nm = $('wzCName').value.trim(), msg = $('wzCMsg').value.trim(), note = $('wzCNote');
+      if (!nm || !msg) { note.textContent = 'Please add your name and a message.'; return; }
+      var url = window.FL_FEEDBACK;
+      if (!url || (window.claude && window.claude.use)) { note.textContent = 'This preview copy cannot send messages. Contact Us works on the live game.'; return; }
+      note.textContent = 'Sending...';
+      var mail = $('wzCMail').value.trim();
+      fetch(url, { method: 'POST', headers: { 'content-type': 'text/plain' }, body: JSON.stringify({ name: nm, device: 'Contact Us', more: (mail ? 'Reply to: ' + mail + '\n' : '') + msg }) })
+        .then(function (r) { note.textContent = r.ok ? 'Thanks! Your message was sent.' : 'That did not go through. Please try again.'; if (r.ok) { $('wzCMsg').value = ''; } }, function () { note.textContent = 'That did not go through. Check your connection and try again.'; });
+    });
+    cfg.seats = [1, 1, 0, 0];
+  }
+  function wzShow(n) {
+    if (!WZ) return;
+    WZ.step = n;
+    for (var i = 1; i <= 4; i++) $('wz' + i).hidden = i !== n;
+    if (n === 4 && !picked[0] && !picked[1]) { $('wzMsg').textContent = ''; }
+    elSetup.scrollTop = 0; try { window.scrollTo(0, 0); } catch (e) { /* ignore */ }
+    wzPaint();
+  }
+  function wzPaint() {
+    if (!WZ || !$('wiz')) return;
+    seg($('wzType'), [['singles', 'Singles'], ['doubles', 'Doubles']], cfg.singles ? 'singles' : 'doubles', 'type');
+    var WHO = cfg.singles ? [['men', 'Men'], ['women', 'Women']] : [['men', 'Men'], ['women', 'Women'], ['mixed', 'Both']];
+    $('wzWho').innerHTML = WHO.map(function (o) { return '<button type="button" data-who="0" data-v="' + o[0] + '" aria-pressed="' + (whoOf(0) === o[0]) + '">' + o[1] + '</button>'; }).join('');
+    if (WZ.p2 === 'cpu' && cfg.whoT[1] !== cfg.whoT[0]) { cfg.whoT[1] = cfg.whoT[0]; applyTeams(); }   // the CPU plays the same as you
+    $('wzP2').innerHTML = '<button type="button" data-wz="p2cpu" aria-pressed="' + (WZ.p2 === 'cpu') + '">CPU</button><button type="button" data-wz="p2online" aria-pressed="' + (WZ.p2 === 'online') + '">Online</button>';
+    $('wzOnline').hidden = WZ.p2 !== 'online';
+    $('wzLang').innerHTML = '<button type="button" data-wz="lang-en" aria-pressed="' + (cfg.lang === 'en') + '">English</button><button type="button" data-wz="lang-es" aria-pressed="' + (cfg.lang !== 'en') + '">Espa\u00f1ol</button>';
+    $('wzAim').innerHTML = '<button type="button" data-wz="aim-on" aria-pressed="' + (cfg.guide !== false) + '">Wall Aim Assist On</button><button type="button" data-wz="aim-off" aria-pressed="' + (cfg.guide === false) + '">Wall Aim Assist Off</button>';
+    var tx = $('wzSelfieTxt'); if (tx) tx.innerHTML = faceImg ? 'Change Your Picture' : 'Take a Selfie or Upload a Picture<br>to Star in Your Own Game';
+    if (WZ.step === 4) {
+      var list = groupList(cfg.comp);
+      for (var t = 0; t < 2; t++) {
+        var sel = $('wzT' + t), h = '<option value=""' + (picked[t] ? '' : ' selected') + ' disabled>' + (cfg.comp === 'world' ? 'Pick a country' : 'Pick a team') + '</option>';
+        list.forEach(function (k) { h += '<option value="' + k + '"' + (picked[t] && cfg.pick[t] === k ? ' selected' : '') + (picked[1 - t] && cfg.pick[1 - t] === k ? ' disabled' : '') + '>' + esc(ROSTER[k].name) + '</option>'; });
+        sel.innerHTML = h;
+        var half = $('wzH' + t), k = cfg.pick[t], src = picked[t] ? POSTERS[k + (whoOf(t) === 'women' ? 'w' : 'm')] : (t ? 'kh-blank-r-14.jpg' : 'kh-blank-l-14.jpg');
+        half.classList.toggle('flip', !!(picked[t] && t && src));
+        half.innerHTML = src ? '<img src="' + src + '" alt="">' : '<span class="wz-badge">' + badge(ROSTER[k]) + '</span>';
+      }
+    }
+  }
+  function wzClick(b) {
+    var a = b.dataset.wz;
+    if (a === 'next') { wzShow(WZ.step + 1); return true; }
+    if (a === 'back') { if (WZ.step === 1) { try { location.reload(); } catch (e) { /* ignore */ } } else wzShow(WZ.step - 1); return true; }
+    if (a === 'p2cpu') { WZ.p2 = 'cpu'; if (net.role) netLeave(); wzPaint(); return true; }
+    if (a === 'p2online') { WZ.p2 = 'online'; renderOnline(); wzPaint(); return true; }
+    if (a === 'lang-en' || a === 'lang-es') { cfg.lang = a === 'lang-en' ? 'en' : 'es'; save(); wzPaint(); return true; }
+    if (a === 'aim-on' || a === 'aim-off') { cfg.guide = a === 'aim-on'; save(); wzPaint(); return true; }
+    if (a === 'league' || a === 'world') { setComp(a); picked = [false, false]; wzShow(4); return true; }
+    if (a === 'hvp') { WZ.hvp = true; hvpAsk(); return true; }
+    if (a === 'play') { if (net.role === 'guest') { $('wzMsg').textContent = 'Your friend is hosting: the match starts on their phone.'; return true; } if (net.role === 'host' && !net.peer) { $('wzMsg').textContent = 'Waiting for your friend to join with your code.'; return true; } if (!bothPicked()) { $('wzMsg').textContent = picked[0] || picked[1] ? 'Pick the other team.' : 'Pick both teams.'; return true; } $('wzMsg').textContent = ''; posterGo(); return true; }
+    if (a === 'contact') { $('wzContact').hidden = false; $('wzCNote').textContent = ''; return true; }
+    if (a === 'contact-close') { $('wzContact').hidden = true; return true; }
+    return false;
+  }
+  function wzHvpGo() { if (WZ && WZ.hvp) { WZ.hvp = false; setTimeout(posterGo, 50); } }   // Hoots vs Peaks from the step menu: straight into the match
+  wzInit();
   elSetup.addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
+    if (WZ && b.dataset.wz && wzClick(b)) return;
     if (b.dataset.comp) { if (b.dataset.comp === 'hvp' && !hvpOpen()) hvpAsk(); else setComp(b.dataset.comp); }
     else if (b.dataset.pick != null) {
       var pt = +b.dataset.pick, pv = +b.dataset.v;
@@ -2108,7 +2318,7 @@ window.FLFeedback = (function () {
           '<div class="righthand">' + moveR + serveBall(-1) + '</div></div>';
         return;
       }
-      html += '<div class="pad t' + (s >> 1) + '"><div class="pad-label"><i>' + (hs.length === 1 ? 'You · ' + esc(cfg.names[s >> 1]) : 'P' + n + ' · ' + esc(cfg.names[s >> 1])) + '</i></div>' +
+      html += '<div class="pad t' + (s >> 1) + '"><div class="pad-label"><i>' + (hs.length === 1 ? 'You \u00b7 ' + esc(cfg.names[s >> 1]) : 'P' + n + ' \u00b7 ' + esc(cfg.names[s >> 1])) + '</i></div>' +
         '<div class="boxes">' + (hs.length === 1 && !cfg.singles ? box((s >> 1) * 2) + box((s >> 1) * 2 + 1) : box(s)) + '</div>' +
         '<div class="move-row"><div class="righthand">' + moveR + serveBall(hs.length === 1 && !cfg.singles ? -1 : s) + '</div></div></div>';
     });
@@ -2338,7 +2548,7 @@ window.FLFeedback = (function () {
   function moveTipClose() { var el = $('moveTip'); if (el) el.hidden = true; tipOpen = false; }
   if ($('moveTip')) { $('moveTip').addEventListener('click', function (e) { if (e.target.closest('.mt-x, .mt-go') || e.target.id === 'moveTip') moveTipClose(); }); }
   function startMatch(score) {
-    cfg.guide = true;
+    if (!WZ) cfg.guide = true;                                    // the step menu lets them turn Wall Aim Assist off for the match
     if (window.FLFeedback && !net.role) window.FLFeedback.played(view);
     mode = 'match'; paused = false; trail = []; fxReset(); moveTip(); held = [{}, {}, {}, {}]; throwQ = [0, 0, 0, 0]; hardQ = [0, 0, 0, 0]; chg = [0, 0, 0, 0];
     if (net.role !== 'guest') track('start', (cfg.singles ? 'singles' : 'doubles') + '.' + cfg.comp + '.' + (net.role ? 'online' : cfg.seats[0] && cfg.seats[2] ? 'local' : 'cpu'));
@@ -2391,7 +2601,7 @@ window.FLFeedback = (function () {
   });
   if ($('btnMusic')) $('btnMusic').addEventListener('click', musToggle);   // the header button is gone: music sits in the Pause / Menu / View row
   $('btnRematch').addEventListener('click', function () { if (net.role === 'guest') return; unlock(); startMatch(); });
-  $('btnChange').addEventListener('click', function () { startDemo(); });
+  $('btnChange').addEventListener('click', function () { startDemo(); if (WZ) wzShow(cfg.comp === 'hvp' ? 3 : 4); });
   $('btnSetup').addEventListener('click', function () { startDemo(); });
   $('btnPause').addEventListener('click', togglePause);
   $('btnView').addEventListener('click', function () { changeView(); });
@@ -2594,7 +2804,7 @@ window.FLFeedback = (function () {
     var showRally = game.rally > 1 && game.phase === 'rally';              // the rally count takes the place of "play to" while a rally is on
     ctx.font = '700 25px ' + DISPLAY; ctx.fillStyle = MUTED; ctx.textAlign = 'left';
     var w0 = whoOf(0), w1 = whoOf(1), whoTag = HVP ? '' : w0 !== w1 ? (w0 === 'men' ? 'MEN' : w0 === 'women' ? 'WOMEN' : 'MIXED') + ' V ' + (w1 === 'men' ? 'MEN' : w1 === 'women' ? 'WOMEN' : 'MIXED') + '  ' : w0 === 'women' ? "WOMEN'S  " : w0 === 'mixed' ? 'MIXED  ' : '';
-    ctx.fillText((cfg.comp === 'hvp' ? 'HOOTS VS PEAKS  ·  ' : cfg.comp === 'world' ? 'WORLD CUP  ·  ' : cfg.comp === 'league' ? 'LEAGUE PLAY  ·  ' : '') + whoTag + (game.cfg.singles ? 'SINGLES' : 'DOUBLES') + (showRally ? '' : '  \u00b7  PLAY TO ' + cfg.target), x + 22, y + 231);
+    ctx.fillText((cfg.comp === 'hvp' ? 'HOOTS VS PEAKS  \u00b7  ' : cfg.comp === 'world' ? 'WORLD CUP  \u00b7  ' : cfg.comp === 'league' ? 'LEAGUE PLAY  \u00b7  ' : '') + whoTag + (game.cfg.singles ? 'SINGLES' : 'DOUBLES') + (showRally ? '' : '  \u00b7  PLAY TO ' + cfg.target), x + 22, y + 231);
     ctx.textAlign = 'right';
     if (showRally) ctx.fillText('RALLY ' + game.rally, x + w - 22, y + 231);
   }
@@ -3045,8 +3255,8 @@ window.FLFeedback = (function () {
     'DANIA BEACH CASINO  -  COME PLAY OUR SLOTS',
     'SHOP OFFICIAL MERCH AT USJAIALAI.COM',
     'SILVER PALM CAPITAL  -  YOUR TRUSTED M&A ADVISOR',
-    'OPEN BOOK  ·  FAIR HVAC PRICING FOR HOMEOWNERS.',
-    'REWYLD  ·  ADOPT A BUNNY, SAVE THE EVERGLADES.',
+    'OPEN BOOK  \u00b7  FAIR HVAC PRICING FOR HOMEOWNERS.',
+    'REWYLD  \u00b7  ADOPT A BUNNY, SAVE THE EVERGLADES.',
     'YOUR AD HERE'
   ];
   var AD_COLORS = ['#ff2e97', '#1fd5d9', '#ffffff'], adT = 0;   // pink, aqua, white: one colour per company, in rotation
@@ -3202,7 +3412,7 @@ window.FLFeedback = (function () {
     rText((cfg.comp === 'world' ? 'WORLD CUP' : 'LEAGUE') + ' ' + (game.cfg.singles ? 'SINGLES' : 'DOUBLES') + ' TO ' + cfg.target, 200, 62, '#8a8ab0', 1, true);
     // scrolling ad line
     rc.fillStyle = '#000'; rc.fillRect(0, 0, RW, 9); var ax = RW - ((rT * 30) % 2600), ai;
-    for (ai = 0; ai < ADS.length * 2; ai++) { var s = ADS[ai % ADS.length].replace(/\s+/g, ' ').replace(/[·•]/g, '-'); if (ax < RW && ax + s.length * 4 > 0) rText(s, Math.round(ax), 2, AD_COLORS[ai % AD_COLORS.length]); ax += s.length * 4 + 24; }
+    for (ai = 0; ai < ADS.length * 2; ai++) { var s = ADS[ai % ADS.length].replace(/\s+/g, ' ').replace(/[\u00b7\u2022]/g, '-'); if (ax < RW && ax + s.length * 4 > 0) rText(s, Math.round(ax), 2, AD_COLORS[ai % AD_COLORS.length]); ax += s.length * 4 + 24; }
     rc.fillStyle = '#ffd21f'; rc.fillRect(0, 9, RW, 1);
     // aim: one dotted path per shot, in the button colors
     var holder = game.holder >= 0 ? P[game.holder] : null;
@@ -3264,7 +3474,7 @@ window.FLFeedback = (function () {
     var sp = [[30, 'SILVER PALM', 'CAPITAL'], [86, 'DANIA BEACH', 'CASINO'], [262, 'OPEN BOOK', 'FAIR HVAC'], [320, 'REWYLD', 'REWYLD.AI']];
     for (i = 0; i < 4; i++) { rc.fillRect(sp[i][0], 40, 53, 1); rc.fillRect(sp[i][0], 67, 53, 1); rText(sp[i][1], sp[i][0] + 26, 46, W, 1, true); rText(sp[i][2], sp[i][0] + 26, 56, W, 1, true); }
     var ax = RW - ((rT * 26) % 2600), ai;                                                         // crawling ad line
-    for (ai = 0; ai < ADS.length * 2; ai++) { var s = ADS[ai % ADS.length].replace(/\s+/g, ' ').replace(/[·•]/g, '-'); if (ax < RW && ax + s.length * 4 > 0) rText(s, Math.round(ax), 2, W); ax += s.length * 4 + 24; }
+    for (ai = 0; ai < ADS.length * 2; ai++) { var s = ADS[ai % ADS.length].replace(/\s+/g, ' ').replace(/[\u00b7\u2022]/g, '-'); if (ax < RW && ax + s.length * 4 > 0) rText(s, Math.round(ax), 2, W); ax += s.length * 4 + 24; }
     // the stands: heads, glowing tips and smoke climbing off them in single specks
     for (n = 2; n < RW; n += 6) { k = (n * 7) % 5; rc.fillRect(n, FL + 14 + k % 3, 3, 3); rc.fillRect(n - 1, FL + 17 + k % 3, 5, 6); }
     for (n = 0; n < 18; n++) { var a = (t * (0.11 + (n % 5) * 0.02) + n * 0.173) % 1, sx2 = (n * 53 + 11) % RW + Math.round(Math.sin(a * 9 + n) * 3); if (a < 0.86 || blink) rc.fillRect(sx2, FL + 12 - Math.round(a * 30), a > 0.5 ? 2 : 1, 1); }
@@ -4339,15 +4549,14 @@ window.FLFeedback = (function () {
     title('FANTASY LEAGUE', cx, y0 + box * 0.13, box * 0.1, '800', 0.24, GOLD, 1, box * 0.95);
     title('JAI ALAI', cx, y0 + box * 0.38, box * 0.28, '900', 0.05, CHALK, 1, box * 1.05);
     ctx.fillStyle = GOLD; ctx.fillRect(cx - box * 0.36, y0 + box * 0.44, box * 0.72, Math.max(2, u() * 0.45));
-    title('PLAY FREE', W / 2, g.base, u() * 5, '700', 0.3, CHALK, 1, W * 0.8);
     ctx.fillStyle = 'rgba(255,255,255,.015)'; for (i = 0; i < 16; i++) ctx.fillRect(Math.random() * W, Math.random() * H, 2, 2);
     return g;
   }
   function holdFrame() {                                            // the title screen: name ring + PLAY FREE + the buttons
     var base;
     if (RING) base = drawRing(ringT0 ? (performance.now() - ringT0) / 1000 : 0).base;
-    else { draw(9.3); base = cardGeo().base; title('PLAY FREE', W / 2, base, u() * 5, '700', 0.3, CHALK, 1, W * 0.8); }
-    goBox.style.top = Math.round(base + u() * 3.2) + 'px';          // the buttons sit right under that line
+    else { draw(9.3); base = cardGeo().base; }
+    goBox.style.top = Math.round(base - u() * 3) + 'px';          // the buttons sit right under that line
     goBox.style.bottom = 'auto';
   }
   function endCard() {
@@ -4357,8 +4566,9 @@ window.FLFeedback = (function () {
     goBox.hidden = false;
   }
   function go(how) { window.FL_PLAY = how; document.body.classList.add('play-' + how); stopAudio(); finish(); }
-  document.getElementById('goPC').addEventListener('click', function (e) { e.stopPropagation(); go('pc'); });
-  document.getElementById('goMob').addEventListener('click', function (e) { e.stopPropagation(); go('mobile'); });
+  function device() { return (('ontouchstart' in window) || navigator.maxTouchPoints > 0) ? 'mobile' : 'pc'; }   // the game picks phone or computer controls itself
+  document.getElementById('goGame').addEventListener('click', function (e) { e.stopPropagation(); askThen(function () { go(device()); }); });
+  document.getElementById('goArena').addEventListener('click', function (e) { if (passOK()) return; e.preventDefault(); e.stopPropagation(); var href = this.href; askThen(function () { location.href = href; }); });
 
   function frame(ts) {
     raf = requestAnimationFrame(frame);
@@ -4398,7 +4608,7 @@ window.FLFeedback = (function () {
   window.addEventListener('orientationchange', function () { setTimeout(relayout, 120); });
   function roll() {                                                 // the film starts once the door is open
     if (RING) root.classList.add('ring');
-    if (NOFILM) { document.body.classList.remove('filming'); if (root.parentNode) root.remove(); return; }
+    if (NOFILM && passOK()) { document.body.classList.remove('filming'); if (root.parentNode) root.remove(); return; }
     document.body.classList.add('filming');
     size();
     raf = requestAnimationFrame(frame);
@@ -4406,35 +4616,27 @@ window.FLFeedback = (function () {
     setTimeout(syncSnd, 250); setTimeout(syncSnd, 900);
   }
 
-  /* ---------- the door: a password, asked once and remembered in this browser ---------- */
+  /* ---------- the door: a password, asked once (when Enter Game or Enter Arena is tapped) and remembered in this browser ---------- */
   var PASS = 'mljbetagame', KEY = 'flja-pass';                         // capital letters do not matter
-  var gate = document.getElementById('gate');
-  function letIn() {
-    try { localStorage.setItem(KEY, PASS); } catch (e) { /* no storage: it asks again next visit */ }
-    document.body.classList.remove('locked');
-    if (gate) gate.hidden = true;
-    roll();
-  }
+  var gate = document.getElementById('gate'), after = null;
   var known = '';
   try { known = localStorage.getItem(KEY) || ''; } catch (e) { known = ''; }
-  /* coming back from the arena tour: skip the title screen and land on the team selection page, the way they left it */
-  function backIn() {
-    var how = '';
-    try { how = sessionStorage.getItem('flja-back') || ''; sessionStorage.removeItem('flja-back'); } catch (e) { how = ''; }
-    if (!how && location.hash === '#setup') how = (('ontouchstart' in window) || navigator.maxTouchPoints > 0) ? 'mobile' : 'pc';
-    if (!how) return;
-    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ }
-    setTimeout(function () { go(how === 'pc' ? 'pc' : 'mobile'); }, 0);
+  function passOK() { return !gate || (known && known.toLowerCase() === PASS); }
+  function clean(v) { return String(v || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+  function letIn() {
+    try { localStorage.setItem(KEY, PASS); } catch (e) { /* no storage: it asks again next visit */ }
+    known = PASS; if (gate) gate.hidden = true;
+    var f = after; after = null; if (f) f();
   }
-  if (!gate || (known && known.toLowerCase() === PASS)) { roll(); backIn(); }   // devices that already said Bueno22 stay in
-  else {
-    document.body.classList.add('locked');
-    gate.hidden = false;
-    var inp = document.getElementById('gatePass'), no = document.getElementById('gateNo');
+  function askThen(f) {
+    if (passOK()) { f(); return; }
+    after = f; gate.hidden = false;
+    var inp = document.getElementById('gatePass'); inp.value = ''; document.getElementById('gateNo').textContent = '';
     setTimeout(function () { try { inp.focus(); } catch (e) { /* ignore */ } }, 60);
-    /* The word is shown as it is typed (a phone's keyboard hides mistakes behind dots, and its password manager offers an old saved word to a
-       password box), spaces, capitals and stray marks do not count, and the door opens the moment the word is right: no need to find Enter. */
-    function clean(v) { return String(v || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+  }
+  if (gate) {
+    var inp = document.getElementById('gatePass'), no = document.getElementById('gateNo');
+    /* The word is shown as it is typed, spaces, capitals and stray marks do not count, and the door opens the moment the word is right. */
     inp.addEventListener('input', function () { if (clean(inp.value) === PASS) letIn(); });
     document.getElementById('gateForm').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -4443,7 +4645,19 @@ window.FLFeedback = (function () {
       gate.classList.remove('wrong'); void gate.offsetWidth; gate.classList.add('wrong');
       inp.value = ''; try { inp.focus(); } catch (x) { /* ignore */ }
     });
+    document.getElementById('gateCancel').addEventListener('click', function () { after = null; gate.hidden = true; });
+    gate.addEventListener('click', function (e) { if (e.target === gate) { after = null; gate.hidden = true; } });
   }
+  /* coming back from the arena tour: skip the title screen and land on the team selection page, the way they left it */
+  function backIn() {
+    var how = '';
+    try { how = sessionStorage.getItem('flja-back') || ''; sessionStorage.removeItem('flja-back'); } catch (e) { how = ''; }
+    if (!how && location.hash === '#setup') how = device();
+    if (!how || !passOK()) return;
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ }
+    setTimeout(function () { go(how === 'pc' ? 'pc' : 'mobile'); }, 0);
+  }
+  roll(); backIn();
 })();
 
 /* ---------- Cocktail Table ---------- */
