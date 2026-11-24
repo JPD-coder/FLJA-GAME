@@ -416,7 +416,7 @@ var Core = (function () {
       var serve = g.flags.serve, hp = hand(p);
       g.ball.x = hp.x; g.ball.y = hp.y; g.ball.z = p.z; g.ball.vz = 0;
       if (p.human) {
-        p.aim = sweep(p.holdT, serve);
+        p.aim = sweep(p.holdT * (g.cfg.aimK || 1), serve);
         var inp = inputs[p.i];
         if (g.reb && !(inp && inp.throw) && p.holdT > (g.cfg.rebHold || C.REBOTE_HOLD)) {   // held a rebote too long: the ball drops and the other team scores
           g.holder = -1; g.reb = false; g.lastTeam = p.team; g.ball.vx = 60; g.ball.vy = 0; point(g, 'held'); return;

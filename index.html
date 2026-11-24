@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261124193048";
+window.FL_BUILD = "20261124193522";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -888,7 +888,7 @@ body.wiz.pv-setup #bar, body.wiz .app:has(#setup:not([hidden])) #bar { display: 
         <div><dt><i class="sw s4"></i>Costado &middot; Side Wall <small>(Pro, Cocktail)</small></dt><dd>A stylish, difficult backhand. The ball hits the side wall first, high up the court by line 2, then the front wall. It kicks off the front wall and carries deep and low, first bouncing around lines 8 to 14 and often reaching the back wall, skidding along the floor down the side-wall half of the court. Where the Dos Paredes dies short, the Costado carries deep.</dd></div>
         <div><dt><i class="sw" style="background:#d6322b"></i>Fight</dt><dd>The red button under Serve (E on a keyboard). Your player runs at the opponent about to field the ball and swings his cesta for 3 seconds: keep tapping to keep fighting. A player being hit can barely move or catch, so landing a hit first can win you the point.</dd></div>
       </dl>
-      <p class="guide-note">Each shot shows where it will go on the wall and floor; red means a fault. Turn this on or off with Wall Aim Assist on Who&#8217;s Playing, or the Shot Guide button during a match.</p>
+      <p class="guide-note">Each shot shows where it will go on the wall and floor; red means a fault. The aim moves slower on Easy pace and faster on Hard.</p>
       <h3>3. Run and Catch</h3>
       <p class="guide-p">Push the joystick under your right thumb to run: a nudge walks, a full push runs. You can also hold a finger on the court to run to that spot, or use the arrow keys on a keyboard. Any ball that passes one of your players is caught, from the floor up to a full stretch overhead, on the fly or after one bounce; only a ball well over his head goes by.</p>
       <h3>4. Score</h3>
@@ -1331,7 +1331,7 @@ var Core = (function () {
       var serve = g.flags.serve, hp = hand(p);
       g.ball.x = hp.x; g.ball.y = hp.y; g.ball.z = p.z; g.ball.vz = 0;
       if (p.human) {
-        p.aim = sweep(p.holdT, serve);
+        p.aim = sweep(p.holdT * (g.cfg.aimK || 1), serve);
         var inp = inputs[p.i];
         if (g.reb && !(inp && inp.throw) && p.holdT > (g.cfg.rebHold || C.REBOTE_HOLD)) {   // held a rebote too long: the ball drops and the other team scores
           g.holder = -1; g.reb = false; g.lastTeam = p.team; g.ball.vx = 60; g.ball.vy = 0; point(g, 'held'); return;
@@ -1538,6 +1538,7 @@ window.FLFeedback = (function () {
   var ROLE = ['Front court', 'Back court', 'Front court', 'Back court'];
   var PACE = { relaxed: 0.72, standard: 0.88, pro: 1 };
   var HOLD_S = { relaxed: 3, standard: 2, pro: 1 };              // real seconds to release a ball taken off the back wall, by pace
+  function aimK() { return cfg.pace === 'relaxed' ? 0.75 * PACE.standard / PACE.relaxed : cfg.pace === 'pro' ? 1.25 * PACE.standard / PACE.pro : 1; }   // the aim sweep: Easy 25% slower than Normal, Hard 25% faster (the game clock already runs at the pace)
   function rebHold() { return (HOLD_S[cfg.pace] || 2) * (PACE[cfg.pace] || 0.88); }   // the game clock runs at the pace, so convert
   var MSG = {
     ceiling: 'Hit the ceiling', over: 'Over the top of the wall', under: 'Under the low line',
@@ -2230,7 +2231,7 @@ window.FLFeedback = (function () {
         '<div class="wz-fine">*Images are never stored or shared.</div>' +
         '<div class="wz-card"><h3>Player 1</h3><div class="seg wz-seg" id="wzWho"></div><div class="wz-court" id="wzCourt" hidden></div></div>' +
         '<div class="wz-card"><h3>Player 2</h3><div class="seg wz-seg" id="wzP2"></div><div id="wzOnline" hidden></div></div>' +
-        '<div class="wz-card"><h3>Shot Buttons</h3><div class="seg wz-seg" id="wzLang"></div><div class="seg wz-seg" id="wzAim"></div></div>' +
+        '<div class="wz-card"><h3>Shot Buttons</h3><div class="seg wz-seg" id="wzLang"></div></div>' +
         '<button type="button" class="wz-next" data-wz="next">Next</button></section>' +
       '<section class="wz-step" id="wz3" hidden>' + wzTop(3, 'Choose Where to Play') + '<div class="wz-tiles">' +
         '<button type="button" class="wz-tile" data-wz="league"><img src="brand.png" alt=""><span><b>League Play</b><i>Six Club Teams</i></span></button>' +
@@ -2366,7 +2367,6 @@ window.FLFeedback = (function () {
     $('wzP2').innerHTML = '<button type="button" data-wz="p2cpu" aria-pressed="' + (WZ.p2 === 'cpu') + '">CPU</button><button type="button" data-wz="p2online" aria-pressed="' + (WZ.p2 === 'online') + '">Play a Friend or Foe</button>';
     $('wzOnline').hidden = WZ.p2 !== 'online';
     $('wzLang').innerHTML = '<button type="button" data-wz="lang-en" aria-pressed="' + (cfg.lang === 'en') + '">English</button><button type="button" data-wz="lang-es" aria-pressed="' + (cfg.lang !== 'en') + '">Espa\u00f1ol</button>';
-    $('wzAim').innerHTML = '<button type="button" data-wz="aim-on" aria-pressed="' + (cfg.guide !== false) + '">Wall Assist On</button><button type="button" data-wz="aim-off" aria-pressed="' + (cfg.guide === false) + '">Wall Assist Off</button>';
     var tx = $('wzSelfieTxt'); if (tx) tx.innerHTML = faceImg ? 'Change Your Picture' : 'Take a Selfie or Upload a Picture<br>to Star in Your Own Game';
     if (WZ.step === 5) {
       var hv = cfg.table ? 'table' : view;
@@ -2410,7 +2410,6 @@ window.FLFeedback = (function () {
     if (a === 'p2cpu') { WZ.p2 = 'cpu'; if (net.role) netLeave(); wzPaint(); return true; }
     if (a === 'p2online') { WZ.p2 = 'online'; renderOnline(); wzPaint(); return true; }
     if (a === 'lang-en' || a === 'lang-es') { cfg.lang = a === 'lang-en' ? 'en' : 'es'; save(); wzPaint(); return true; }
-    if (a === 'aim-on' || a === 'aim-off') { cfg.guide = a === 'aim-on'; save(); wzPaint(); return true; }
     if (a === 'league' || a === 'world') { setComp(a); picked = [false, false]; wzShow(4); return true; }
     if (a === 'hvp') { WZ.hvp = true; hvpAsk(); return true; }
     if (a === 'celeb' || a === 'allstar') { if (window.FL_NAV) window.FL_NAV(a); else window.open(a === 'celeb' ? CELEB_URL : ALLSTAR_URL, '_blank'); return true; }
@@ -2509,7 +2508,7 @@ window.FLFeedback = (function () {
       var four = function (only) {                                 // Amateur plays the two plain shots; Pro adds the two that take the side wall
         var set = shotSet().map(function (k) { return k + 1; }), out = '';   // button index = core shot + 1
         for (var q = 0; q < set.length; q++) out += sb(only, set[q]);
-        return out + langBtn() + guideBtn();
+        return out + langBtn();
       };
       var serveBall = function (only) { return sb(only, 0, ' ball') + '<button type="button" class="fightb" data-seat="' + s + '" data-fo="' + only + '" data-act="F" title="Fight \u2014 run at the other side and swing your cesta at him; keep tapping to keep fighting">Fight</button>'; };   // Fight sits under Serve
       // four shot buttons sit above a box naming the player they belong to
@@ -2758,13 +2757,13 @@ window.FLFeedback = (function () {
   function moveTipClose() { var el = $('moveTip'); if (el) el.hidden = true; tipOpen = false; }
   if ($('moveTip')) { $('moveTip').addEventListener('click', function (e) { if (e.target.closest('.mt-x, .mt-go') || e.target.id === 'moveTip') moveTipClose(); }); }
   function startMatch(score) {
-    if (!WZ) cfg.guide = true;                                    // the step menu lets them turn Wall Aim Assist off for the match
+    cfg.guide = true;                                    // the step menu lets them turn Wall Aim Assist off for the match
     if (window.FLFeedback && !net.role) window.FLFeedback.played(view);
     mode = 'match'; paused = false; trail = []; fxReset(); moveTip(); held = [{}, {}, {}, {}]; throwQ = [0, 0, 0, 0]; hardQ = [0, 0, 0, 0]; chg = [0, 0, 0, 0];
     if (net.role !== 'guest') track('start', (cfg.singles ? 'singles' : 'doubles') + '.' + cfg.comp + '.' + (net.role ? 'online' : cfg.seats[0] && cfg.seats[2] ? 'local' : 'cpu'));
     if (net.role) {                                               // online: each person runs a whole team; the host is team 1
       seatsNow = net.role === 'host' ? [1, 0, 0, 0] : [0, 0, 1, 0]; solo = net.role === 'host' ? 0 : 1; soloBoth = [true, true];
-      game = Core.newGame({ seats: [1, 1, 1, 1], solo: [true, true], level: cfg.level, target: cfg.target, rebHold: rebHold(), singles: !!cfg.singles, firstServe: 0 });   // the host is Player 1 and serves first
+      game = Core.newGame({ seats: [1, 1, 1, 1], solo: [true, true], level: cfg.level, target: cfg.target, rebHold: rebHold(), aimK: aimK(), singles: !!cfg.singles, firstServe: 0 });   // the host is Player 1 and serves first
       if (net.role === 'host') { net.started = true; net.gid++; net.lost = false; var pf = net.peer && net.peer.presence.fl; net.gt = pf && pf.t ? pf.t.slice(0, 2) : [0, 0]; net.pend = [null, null]; }
     } else {
       seatsNow = cfg.seats.slice();
@@ -2775,7 +2774,7 @@ window.FLFeedback = (function () {
       var hs0 = humans();
       solo = hs0.length && (hs0[0] >> 1) === (hs0[hs0.length - 1] >> 1) ? hs0[0] >> 1 : -1;   // every human player on one team: that team is mine
       var p1 = seatsNow.indexOf(1);                                   // Player 1 serves the opening point, and the ball waits in his hand until he presses serve
-      game = Core.newGame({ seats: seatsNow.slice(), solo: soloBoth.slice(), level: cfg.level, target: cfg.target, rebHold: rebHold(), singles: !!cfg.singles, firstServe: p1 >= 0 ? p1 >> 1 : 0,
+      game = Core.newGame({ seats: seatsNow.slice(), solo: soloBoth.slice(), level: cfg.level, target: cfg.target, rebHold: rebHold(), aimK: aimK(), singles: !!cfg.singles, firstServe: p1 >= 0 ? p1 >> 1 : 0,
         latK: cfg.singles ? 0.82 * 1.18 : 0, latZ: cfg.singles ? 0.75 * 1.18 : 0 });   // Professional singles: alone on the court, a person's player runs 18% faster, up the court and across it (these only apply in Professional)
     }
     if (score) game.score = score;
@@ -2799,7 +2798,7 @@ window.FLFeedback = (function () {
     var tm = [0, 1].map(function (t) { var r = ROSTER[cfg.pick[t]] || ROSTER[t], k = r.kit || {}, nk = k.nk || {};
       return { n: cfg.names[t] || r.name, face: PROMO ? promoWhoT(t).face : null, skin: PROMO ? promoWhoT(t).skin || null : null, one: !!PROMO, logo: r.crest || r.logo, c1: PROMO && promoWhoT(t).solo ? '#c8102e' : nk.helm || r.ui || k.jersey || '#f2efe6', c2: PROMO && promoWhoT(t).solo ? '#f4f4f0' : nk.belt || k.sash || '#c9a55c' }; });   // USA wears its crest, the other countries their flag, Hooters and Twin Peaks their own marks
     track('start', (cfg.singles ? 'singles' : 'doubles') + '.' + cfg.comp + '.table');
-    window.Table.open({ teams: tm, singles: !!cfg.singles, target: cfg.target, level: cfg.level, pace: PACE[cfg.pace] || 0.88, rebHold: rebHold(), sound: !!cfg.sound, names: shotNames(), score: score || null, intro: false, ads: window.FL_ADS ? adEvery() : 0, hooks: {
+    window.Table.open({ teams: tm, singles: !!cfg.singles, target: cfg.target, level: cfg.level, pace: PACE[cfg.pace] || 0.88, rebHold: rebHold(), aimK: aimK(), sound: !!cfg.sound, names: shotNames(), score: score || null, intro: false, ads: window.FL_ADS ? adEvery() : 0, hooks: {
       menu: function () { window.Table.close(); startDemo(); wzHome(); },
       mode: function (sc) { window.Table.close(); cfg.table = false; var nx = PROMO ? 'side' : viewOK('vintage') ? 'vintage' : 'aerial'; setView(nx); cfg.view = view; save(); startMatch(sc || undefined); },   // on to the next mode, same match
       music: window.FL_MUSIC ? function () { musToggle(); } : null, musicOn: function () { return !!spLive; } } });
@@ -2917,7 +2916,7 @@ window.FLFeedback = (function () {
     [].forEach.call(document.querySelectorAll('button.fightb'), function (fb) {
       if (!fb.offsetParent) return;
       var pad = fb.closest('.pad'), pick = function (q) { return (pad && pad.querySelector(q)) || [].filter.call(document.querySelectorAll(q), function (b) { return b.offsetParent; })[0]; };
-      var cut = pick('.throw.s2'), lang = pick('.langbtn:not(.guidebtn)'), gd = pick('.guidebtn');
+      var cut = pick('.throw.s2'), lang = pick('.langbtn:not(.guidebtn)'), gd = pick('.guidebtn') || lang;
       if (cut && cut.offsetParent) return;                           // Professional: Fight stays under Serve
       if (!lang || !gd || !lang.offsetParent || !gd.offsetParent) return;
       var cur = parseFloat(fb.style.top) || 0, r = fb.getBoundingClientRect(), want = (lang.getBoundingClientRect().top + gd.getBoundingClientRect().bottom) / 2;
