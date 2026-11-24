@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261124142152";
+window.FL_BUILD = "20261124142641";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -790,6 +790,27 @@ body.wiz.pv-setup #bar, body.wiz .app:has(#setup:not([hidden])) #bar { display: 
 #wiz #wz5 { background: radial-gradient(ellipse at 50% 0%, rgba(255,106,0,.12), rgba(225,29,46,.05) 45%, transparent 75%); }
 #wiz #wz5 .wz-seg { border: 0; border-radius: 0; overflow: visible; gap: 8px; }
 #wiz #wz5 .wz-seg button { border: 1px solid #ff6a00; border-radius: 10px; padding: 13px 2px; font: 700 13px/1.15 var(--body); letter-spacing: 0; text-transform: none; white-space: nowrap; }
+
+/* Limited Edition Skins: the tile, the five-skin page and the subscription terms */
+#wiz .wz-dollar { width: 46px; height: 46px; flex: none; border-radius: 50%; border: 2px solid #ff2d95; color: #ff2d95; display: flex; align-items: center; justify-content: center; font: 900 26px/1 var(--display); }
+#wiz .wz-tiles { gap: 7px; } #wiz .wz-tile { padding: 8px 14px; }
+#wiz .wz-sub { margin: 0 0 8px; text-align: center; color: #9a9da6; font: 500 13px/1.3 var(--body); }
+#wiz .wz-skins { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: 1fr 1fr; gap: 8px; }
+#wiz .wz-skin { grid-column: span 2; min-height: 0; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 6px 4px 8px; border: 1.5px solid #14504d; border-radius: 12px; background: #000; color: #f2efe6; cursor: pointer; }
+#wiz .wz-skin:nth-child(4) { grid-column: 2 / span 2; } #wiz .wz-skin:nth-child(5) { grid-column: 4 / span 2; }
+#wiz .wz-skin:hover, #wiz .wz-skin:focus-visible { border-color: #ff2d95; }
+#wiz .wz-skin img { flex: 1 1 0; min-height: 0; width: 100%; object-fit: contain; }
+#wiz .wz-skin b { font: 700 12.5px/1.1 var(--display); letter-spacing: .06em; text-transform: uppercase; text-align: center; }
+#wiz #wz6 { height: calc(100vh - 66px); height: calc(100dvh - 66px); }
+#wiz .wz-terms { max-height: 88vh; max-height: 88dvh; }
+#wiz .wz-tfor { margin: 0; text-align: center; color: #ff2d95; font: 700 13px/1.2 var(--body); letter-spacing: .06em; text-transform: uppercase; }
+#wiz .wz-tbody { flex: 1 1 auto; min-height: 120px; overflow-y: auto; -webkit-overflow-scrolling: touch; border: 1px solid #14504d; border-radius: 10px; padding: 10px 12px; background: #0b0c0f; color: #d6d3cb; font: 400 13px/1.5 var(--body); }
+#wiz .wz-tbody h4 { margin: 12px 0 3px; color: #1fe0d6; font: 700 13px/1.3 var(--body); } #wiz .wz-tbody p { margin: 0 0 6px; } #wiz .wz-tco { margin-top: 12px !important; color: #9a9da6; }
+#wiz .wz-terms .wz-go { flex: none; white-space: normal; }
+#wiz .wz-skin:nth-child(4), #wiz .wz-skin:nth-child(5) { grid-column: span 2; }
+#wiz .wz-youart { position: relative; flex: 1 1 0; min-height: 0; display: flex; } #wiz .wz-youart img { opacity: .55; }
+#wiz .wz-youart i { position: absolute; left: 50%; top: 14%; transform: translateX(-50%); font: 900 44px/1 var(--display); font-style: normal; color: #ff2d95; }
+#wiz .wz-atxt { margin: 0; text-align: center; color: #d6d3cb; font: 400 14px/1.45 var(--body); } #wiz .wz-asm { font-size: 12.5px; color: #9a9da6; }
 </style>
 </head>
 <body>
@@ -2204,6 +2225,7 @@ window.FLFeedback = (function () {
         '<button type="button" class="wz-tile" data-wz="allstar">' + wzStar('#e11d2e', '#ff5a66', 'usa-crest.png') + '<span><b>All Star Players</b><i>Past &amp; Present All Star Roster</i></span></button>' +
         '<button type="button" class="wz-tile" data-wz="celeb">' + wzStar('#c9a55c', '#e7c97e', 'brand.png') + '<span><b>Celebrity Players</b><i>Special Guests &amp; Limited Collabs</i></span></button>' +
         (MULTI && !window.FL_VIEW3 ? '<button type="button" class="wz-tile" data-wz="hvp"><img src="hoots-crest.png" alt=""><span><b>Hoots vs Peaks</b><i>The Rivalry Match</i></span></button>' : '') +
+        '<button type="button" class="wz-tile" data-wz="skins"><span class="wz-dollar" aria-hidden="true">$</span><span><b>Limited Edition Skins</b><i>Purchase &amp; Download Skins Here</i></span></button>' +
         '</div></section>' +
       '<section class="wz-step" id="wz4" hidden>' + wzTop(4, 'Pick Your Teams') +
         '<div class="wz-vs"><div class="wz-half" id="wzH0"></div><div class="wz-half r" id="wzH1"></div><b>VS</b></div>' +
@@ -2217,6 +2239,21 @@ window.FLFeedback = (function () {
         '<div class="wz-lab">Pick Your Mode</div><div class="seg wz-seg" id="wzHvMode"></div>' +
         '<div class="wz-play"><button type="button" class="wz-go" data-wz="play">Play Free Now<small>With Ads</small></button><button type="button" class="wz-go alt" data-wz="play">Play Ad Free Now<small>$0.99 per month</small></button></div>' +
       '</section>' +
+      '<section class="wz-step" id="wz6" hidden>' + wzTop(4, 'Limited Edition Skins') +
+        '<p class="wz-sub">Tap a skin to purchase.</p><div class="wz-skins">' +
+        [['1928 Mickey', 'kv-m-l-14.jpg'], ['1926 Pooh', 'bh-b-l-14.jpg'], ['1929 Popeye', 'pp-b-l-14.jpg'], ['Santa', 'sx-s-l.jpg'], ['The Grinch', 'sx-g-l.jpg']].map(function (k) { return '<button type="button" class="wz-skin" data-wz="skin" data-skin="' + k[0] + '"><img src="' + k[1] + '?s=4" alt=""><b>' + k[0] + '</b></button>'; }).join('') +
+        '<button type="button" class="wz-skin wz-you" data-wz="avatar"><span class="wz-youart"><img src="kh-blank-l-14.jpg?s=4" alt=""><i>?</i></span><b>Your Avatar</b></button>' +
+        '</div></section>' +
+      '<div class="wz-pop" id="wzAvatar" hidden><form class="wz-popcard" id="wzAvatarForm" autocomplete="off"><h3>Your Avatar</h3>' +
+        '<p class="wz-atxt">Send us two head shots, a front view and a side view, and we custom build an avatar of you to play in the game.</p>' +
+        '<input id="wzAName" type="text" placeholder="Your name" aria-label="Your name" maxlength="80">' +
+        '<input id="wzAMail" type="text" inputmode="email" placeholder="Email or phone" aria-label="Email or phone" maxlength="120">' +
+        '<p class="wz-atxt wz-asm">Send your request and we will contact you to collect your two photos.</p>' +
+        '<p class="wz-msg" id="wzANote" role="status"></p><button type="submit" class="wz-go">Request My Avatar</button><button type="button" class="wz-link" data-wz="avatar-close">Close</button></form></div>' +
+      '<div class="wz-pop" id="wzTerms" hidden><div class="wz-popcard wz-terms"><h3>Subscription Terms</h3><p class="wz-tfor" id="wzTFor"></p>' +
+        '<div class="wz-tbody"><p><b>Please read before you continue. This is a recurring monthly subscription that is billed until you cancel, and charges are not refunded.</b></p><h4>1. What you are buying</h4><p>A Limited Edition Skin is a digital character look for use inside Fantasy League Jai Alai. Your purchase is a subscription that gives you access to the skin you select for as long as the subscription is active.</p><h4>2. Recurring billing until you cancel</h4><p>By tapping Agree and completing checkout, you authorize Fantasy League Jai Alai Game, LLC to charge your payment method the price shown at checkout, plus any applicable taxes, today and then automatically every month on or about the same date, until you cancel. Your subscription renews automatically. No further notice is given before each monthly charge unless the law requires it.</p><h4>3. How to cancel</h4><p>You may cancel at any time through the Contact Us link in the game or through the subscription management link in your payment receipt. Cancel at least 24 hours before your next billing date to avoid the next charge. After you cancel, you keep access until the end of the month you have already paid for, and you are not charged again.</p><h4>4. No refunds</h4><p>All charges are final. Once a monthly charge has been made, it is not refunded or credited, in whole or in part, including for a partly used month, for skins you did not use, or if you cancel before the month ends, except where a refund is required by law.</p><h4>5. Price changes</h4><p>We may change the subscription price. We will give you notice before a new price takes effect, and you may cancel before it applies. Continuing your subscription after the effective date means you accept the new price.</p><h4>6. License, not ownership</h4><p>Skins are licensed to you, not sold. You receive a limited, personal, non-exclusive, non-transferable, revocable license to use the skin within the game for your own entertainment. You may not resell, share, copy, extract, modify or commercially use any skin or its artwork. All artwork, names, logos and other content remain the property of Fantasy League Jai Alai Game, LLC or its licensors.</p><h4>7. Limited editions and availability</h4><p>Skins are limited editions. We may add, change, retire or remove any skin, and we may suspend or discontinue the game or any feature, at any time. If a skin you subscribe to is retired, your subscription to that skin ends and you are not charged for it again.</p><h4>8. Eligibility</h4><p>You must be at least 18 years old, or the age of majority where you live, and authorized to use the payment method. If you are under that age, a parent or guardian must make the purchase and agree to these terms.</p><h4>9. Payment processing</h4><p>Payments are processed by Stripe, a third-party payment processor. We do not store your full card details. Your use of Stripe is also subject to Stripe\u2019s own terms and privacy policy. If a payment fails, we may retry the charge and may suspend access until payment is made.</p><h4>10. Disclaimers and limits</h4><p>The game and all skins are provided \u201cas is\u201d and \u201cas available,\u201d without warranties of any kind, to the fullest extent permitted by law. To the fullest extent permitted by law, our total liability for any claim relating to a skin or subscription is limited to the amount you paid us for it in the three months before the claim arose.</p><h4>11. Changes to these terms</h4><p>We may update these terms. Material changes will be posted in the game before they take effect. Continuing your subscription after that means you accept the updated terms.</p><h4>12. Contact</h4><p>Questions about billing or these terms can be sent through the Contact Us link in the game.</p>' +
+        '<p class="wz-tco">Fantasy League Jai Alai Game, LLC</p></div>' +
+        '<p class="wz-msg" id="wzTNote" role="status"></p><button type="button" class="wz-go" data-wz="skin-agree">I Agree \u2013 Continue to Checkout</button><button type="button" class="wz-link" data-wz="skin-cancel">Cancel</button></div></div>' +
       '<div class="wz-pop" id="wzContact" hidden><form class="wz-popcard" id="wzContactForm" autocomplete="off"><h3>Contact Us</h3>' +
         '<input id="wzCName" type="text" placeholder="Your name" aria-label="Your name" maxlength="80">' +
         '<input id="wzCMail" type="text" inputmode="email" placeholder="Email or phone (optional)" aria-label="Email or phone" maxlength="120">' +
@@ -2250,12 +2287,22 @@ window.FLFeedback = (function () {
       fetch(url, { method: 'POST', headers: { 'content-type': 'text/plain' }, body: JSON.stringify({ name: nm, device: 'Contact Us', more: (mail ? 'Reply to: ' + mail + '\n' : '') + msg }) })
         .then(function (r) { note.textContent = r.ok ? 'Thanks! Your message was sent.' : 'That did not go through. Please try again.'; if (r.ok) { $('wzCMsg').value = ''; } }, function () { note.textContent = 'That did not go through. Check your connection and try again.'; });
     });
+    $('wzAvatarForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var nm = $('wzAName').value.trim(), ct = $('wzAMail').value.trim(), note = $('wzANote');
+      if (!nm || !ct) { note.textContent = 'Please add your name and how to reach you.'; return; }
+      var url = window.FL_FEEDBACK;
+      if (!url || (window.claude && window.claude.use)) { note.textContent = 'This preview copy cannot send requests. Your Avatar works on the live game.'; return; }
+      note.textContent = 'Sending...';
+      fetch(url, { method: 'POST', headers: { 'content-type': 'text/plain' }, body: JSON.stringify({ name: nm, device: 'Avatar request', more: 'Custom avatar request. Reply to: ' + ct }) })
+        .then(function (r) { note.textContent = r.ok ? 'Thanks! We will be in touch for your photos.' : 'That did not go through. Please try again.'; }, function () { note.textContent = 'That did not go through. Check your connection and try again.'; });
+    });
     cfg.seats = [1, 1, 0, 0];
   }
   function wzShow(n) {
     if (!WZ) return;
     WZ.step = n;
-    for (var i = 1; i <= 5; i++) $('wz' + i).hidden = i !== n;
+    for (var i = 1; i <= 6; i++) $('wz' + i).hidden = i !== n;
     if (n === 4 && !picked[0] && !picked[1]) { $('wzMsg').textContent = ''; }
     elSetup.scrollTop = 0; try { window.scrollTo(0, 0); } catch (e) { /* ignore */ }
     wzPaint();
@@ -2293,7 +2340,17 @@ window.FLFeedback = (function () {
     var a = b.dataset.wz;
     if (a === 'next') { wzShow(WZ.step + 1); return true; }
     if (a.indexOf('hvmode-') === 0) { changeView(a.slice(7)); return true; }
-    if (a === 'back') { if (WZ.step === 5) { wzShow(3); return true; } if (WZ.step === 1) { try { location.reload(); } catch (e) { /* ignore */ } } else wzShow(WZ.step - 1); return true; }
+    if (a === 'skins') { wzShow(6); return true; }
+    if (a === 'skin') { WZ.skin = b.dataset.skin; $('wzTFor').textContent = 'Skin: ' + WZ.skin; $('wzTNote').textContent = ''; $('wzTerms').hidden = false; var tb = $('wzTerms').querySelector('.wz-tbody'); if (tb) tb.scrollTop = 0; return true; }
+    if (a === 'skin-cancel') { $('wzTerms').hidden = true; return true; }
+    if (a === 'avatar') { $('wzANote').textContent = ''; $('wzAvatar').hidden = false; return true; }
+    if (a === 'avatar-close') { $('wzAvatar').hidden = true; return true; }
+    if (a === 'skin-agree') {                                      // agreement accepted: on to the Stripe checkout page (set window.FL_STRIPE to its address)
+      var su = window.FL_STRIPE; if (!su) { $('wzTNote').textContent = 'Checkout is not open yet. Please check back soon.'; return true; }
+      try { window.open(su + (su.indexOf('?') < 0 ? '?' : '&') + 'client_reference_id=' + encodeURIComponent(String(WZ.skin).replace(/[^A-Za-z0-9]/g, '_')), '_blank', 'noopener'); } catch (e) { location.href = su; }
+      $('wzTerms').hidden = true; return true;
+    }
+    if (a === 'back') { if (WZ.step === 5 || WZ.step === 6) { wzShow(3); return true; } if (WZ.step === 1) { try { location.reload(); } catch (e) { /* ignore */ } } else wzShow(WZ.step - 1); return true; }
     if (a === 'p2cpu') { WZ.p2 = 'cpu'; if (net.role) netLeave(); wzPaint(); return true; }
     if (a === 'p2online') { WZ.p2 = 'online'; renderOnline(); wzPaint(); return true; }
     if (a === 'lang-en' || a === 'lang-es') { cfg.lang = a === 'lang-en' ? 'en' : 'es'; save(); wzPaint(); return true; }
