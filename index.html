@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261124132430";
+window.FL_BUILD = "20261124132752";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -4108,7 +4108,7 @@ window.FLFeedback = (function () {
     var P = PROMO, el = promoEl, askT = el.classList.contains('pm-allstar'), ready = promoSel[0] != null && promoSel[1] != null && (!askT || (promoTP[0] && promoTP[1]));
     [0, 1].forEach(function (s) {
       var w = promoSel[s] == null ? null : P.people[promoSel[s]], side = s ? 'R' : 'L', r = ROSTER[promoTeams[s]], tc = r.ui === '#f2efe6' ? '#c9a55c' : r.ui;
-      el.querySelector('.pm-half[data-i="' + s + '"]').src = w ? (w.solo ? w.solo[side] : w.art[side][promoTeams[s]]) : P.blank[side][promoTeams[s]];   // solo: a player with no team uniform, one picture
+      el.querySelector('.pm-half[data-i="' + s + '"]').src = w && !(askT && !promoTP[s]) ? (w.solo ? w.solo[side] : w.art[side][promoTeams[s]]) : P.blank[side][promoTeams[s]];   // solo: a player with no team uniform, one picture
       var nb = el.querySelector('.pm-name[data-i="' + s + '"]'); nb.style.setProperty('--tc', tc); nb.setAttribute('aria-pressed', String(!!w && s === promoMe)); nb.disabled = !w;
       nb.querySelector('span').textContent = w ? w.name : (s ? 'Player 2' : 'Player 1'); nb.querySelector('em').textContent = !w ? 'Pick below' : s === promoMe ? 'You' : 'CPU';
       var ps = el.querySelector('.pm-who[data-i="' + s + '"]'); if (ps) { ps.value = w ? String(promoSel[s]) : ''; ps.style.setProperty('--tc', w ? tc : '#c9a55c'); [].forEach.call(ps.options, function (o) { o.disabled = o.value !== '' && +o.value === promoSel[1 - s] && !P.people[+o.value].mirror; }); }
@@ -4135,8 +4135,8 @@ window.FLFeedback = (function () {
       '#promo .pm-ctl{display:flex;flex-direction:column;gap:8px}' +
       '#promo .pm-lbl{font:700 10.5px/1 ' + F + ';letter-spacing:.16em;text-transform:uppercase;color:#9a9da6;text-align:center}' +
       '#promo .pm-row{display:flex;gap:8px;align-items:stretch}' +
-      '#promo .pm-name{position:absolute;top:6px;z-index:2;transform:translateX(-50%);padding:5px 12px;border-radius:999px;border:1.5px solid #f2efe6;background:rgba(7,7,10,.72);color:#f2efe6;cursor:pointer}#promo .pm-name[data-i="0"]{left:25%}#promo .pm-name[data-i="1"]{left:75%}' +
-      '#promo .pm-name span{display:none}#promo .pm-name em{font:800 11px/1 ' + F + ';font-style:normal;letter-spacing:.16em;text-transform:uppercase}' +
+      '#promo .pm-name{position:absolute;top:4px;z-index:2;transform:translateX(-50%);padding:3px 9px;line-height:1;border-radius:999px;border:1.5px solid #f2efe6;background:rgba(7,7,10,.72);color:#f2efe6;cursor:pointer}#promo .pm-name[data-i="0"]{left:25%}#promo .pm-name[data-i="1"]{left:75%}' +
+      '#promo .pm-name span{display:none}#promo .pm-name em{font:800 9px/1 ' + F + ';font-style:normal;letter-spacing:.14em;text-transform:uppercase}' +
       '#promo .pm-name[aria-pressed="true"]{background:#f2efe6;color:#0b0c0f}#promo .pm-name:disabled{display:none}' +
       '#promo.pm-allstar .pm-tag,#promo.pm-allstar .pm-back{color:#fff}#promo.pm-allstar .pm-dots i{background:#fff}' +
       '#promo.pm-allstar select.pm-who{border:2px solid #e11d2e !important}#promo.pm-allstar select.pm-team:not(.pm-who){border:2px solid #fff !important}' +
