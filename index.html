@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261124193522";
+window.FL_BUILD = "20261124193625";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -727,6 +727,7 @@ body.wiz { min-height: calc(100vh - 16px); min-height: calc(100dvh - 16px); }
 #wiz .wz-tight .wz-card { margin-top: 5px; padding: 6px 12px 7px; } #wiz .wz-tight .wz-card h3 { margin-bottom: 5px; }
 #wiz .online-row { flex-wrap: nowrap; gap: 6px; } #wiz .online-row .ghost { flex: 1 1 0; padding: 8px 4px; font-size: 13px; white-space: nowrap; } #wiz .online-row input { flex: 0 0 74px; width: 74px; padding: 6px 6px; font-size: 16px; text-align: center; }
 #wiz [data-wz="p2cpu"] { flex: 0 0 30%; } #wiz [data-wz="p2online"] { flex: 1 1 auto; white-space: nowrap; letter-spacing: .06em; }
+html.inplay, html.inplay body { overscroll-behavior: none; touch-action: none; }
 #wiz .wz-court { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 7px; }
 #wiz .wz-court span { display: block; margin-bottom: 4px; text-align: center; color: #9a9da6; font: 700 10.5px/1 var(--display); letter-spacing: .14em; text-transform: uppercase; }
 #wiz .wz-court .wz-seg button { min-height: 34px; padding: 4px 2px; }
@@ -2679,6 +2680,7 @@ window.FLFeedback = (function () {
 
   /* ---------- modes ---------- */
   function show() {
+    document.documentElement.classList.toggle('inplay', mode === 'match' && !paused);
     var m = mode === 'match', over = m && game.phase === 'over';
     if (wantSides() !== sidesOn) buildPads();
     elSetup.hidden = m; elPads.hidden = !m || over || !humans().length; elAfter.hidden = !over || net.role === 'guest';
@@ -2786,7 +2788,23 @@ window.FLFeedback = (function () {
   function hasKeys() {                                            // a mouse and a hover: there is a keyboard to press P on
     try { return window.matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) { return true; }
   }
-  function togglePause() { if (net.role === 'guest') return; paused = !paused; show(); }
+  // While a match is being played the page itself must not move: a thumb that slips off the joystick would otherwise drag, bounce or zoom the screen.
+  function lockPage(e) {
+    if (mode !== 'match' || paused) return;
+    var t = e.target, el = t && t.closest ? t.closest('.guide, .wz-pop, #fb, #wiz, input, select, textarea') : null;
+    if (el && el.offsetParent !== null) return;                    // open menus, popups and form fields still scroll
+    if (e.cancelable) e.preventDefault();
+  }
+  document.addEventListener('touchmove', lockPage, { passive: false });
+  document.addEventListener('gesturestart', lockPage, { passive: false });
+  var lastTap = 0;
+  document.addEventListener('touchend', function (e) {             // no double-tap zoom in the middle of a rally
+    if (mode !== 'match' || paused) return;
+    var now = Date.now(), t = e.target;
+    if (now - lastTap < 320 && !(t && t.closest && t.closest('button, a, input, select'))) { if (e.cancelable) e.preventDefault(); }
+    lastTap = now;
+  }, { passive: false });
+  function togglePause() { if (net.role === 'guest') return; paused = !paused; document.documentElement.classList.toggle('inplay', mode === 'match' && !paused); show(); }
   function tryStart() {
     if (net.role === 'guest') return;                             // only the host starts an online match
     if (net.role === 'host' && !net.peer) return;
