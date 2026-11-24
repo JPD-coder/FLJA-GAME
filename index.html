@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261124073550";
+window.FL_BUILD = "20261124075316";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -705,6 +705,37 @@ body.wiz #setup { padding-top: 0; }
 #wiz .wz-what dl { margin: 0; } #wiz .wz-what dt { color: #f2efe6; font-weight: 700; margin-top: 8px; } #wiz .wz-what dd { margin: 2px 0 0; }
 .guide .guide-p { margin: 0 0 14px; }
 #wiz .guide dt { flex-wrap: nowrap; } #wiz .guide dt small { font-size: 10px; letter-spacing: .03em; white-space: nowrap; margin-left: 6px; }
+
+/* round 2: tighter steps so each fits a phone screen without scrolling */
+#filmGo .brk.b2 { order: 4; } #filmGo a#goMerch { order: 5; flex: 0 1 394px; box-sizing: border-box; min-height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; border: 2px solid rgba(242,239,230,.6); color: #f2efe6; background: rgba(11,12,15,.55); font: 800 15px/1 var(--display); letter-spacing: .16em; text-transform: uppercase; text-decoration: none; }
+@media (max-width: 430px) { #filmGo a#goMerch { flex-basis: 310px; font-size: 14px; } }
+#filmGo { gap: 11px; }
+#setup:not([hidden]) ~ .hint.rotate { display: none !important; }
+#wiz { padding: 8px 2px 10px; }
+#wiz .wz-step { min-height: calc(100vh - 104px); min-height: calc(100dvh - 104px); }
+#wiz .wz-h { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 6px 0 10px; }
+#wiz .wz-mini { display: inline-block; width: 30px; margin: 0; }
+#wiz .wz-next { position: sticky; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); margin-top: auto; margin-bottom: 0; padding: 15px; box-shadow: 0 -10px 18px 6px #0b0c0f; z-index: 2; }
+#wiz .wz-links + .wz-legal { margin-bottom: 10px; }
+#wiz .wz-links { padding: 12px 0 8px; }
+#wiz .wz-seg button { padding: 11px 4px; }
+#wiz .wz-selfie { margin-top: 9px; padding: 9px 12px; }
+#wiz .wz-fine { margin-top: 4px; }
+#wiz .wz-card { margin-top: 9px; padding: 8px 12px 10px; }
+#wiz .wz-card h3 { margin-bottom: 6px; font-size: 13px; }
+#wiz .wz-card .wz-seg + .wz-seg { margin-top: 7px; }
+#wiz #wz2 .wz-next { margin-top: 10px; } #wiz #wz2 .wz-card:last-of-type { margin-bottom: auto; }
+#wiz .wz-tiles { gap: 9px; } #wiz .wz-tile { padding: 10px 14px; }
+#wiz .wz-vs { aspect-ratio: 760 / 600; }
+#wiz .wz-sels { margin-top: 12px; }
+#wiz .wz-lab { margin: 14px 0 6px; }
+#wiz .wz-sel.wz-wide { display: block; width: 100%; box-sizing: border-box; }
+#wiz .wz-play { margin-top: 14px; }
+#wiz #wz1 .wz-next { margin-top: 0; }
+#wiz .wz-vs { aspect-ratio: 760 / 540; }
+#wiz .wz-sel { height: 44px !important; min-height: 0 !important; flex: 1 1 0; padding-top: 0; padding-bottom: 0; }
+#wiz .wz-sel.wz-wide { flex: none; }
+@media (max-width: 430px) { #filmGo button#goGame { flex-basis: 310px; min-width: 0; } }
 </style>
 </head>
 <body>
@@ -720,7 +751,7 @@ body.wiz #setup { padding-top: 0; }
 <button type="submit">Enter</button><button type="button" class="g-back" id="hvpBack">Back</button><div class="g-no" id="hvpNo" role="alert"></div></form></div>
 <div id="moveTip" hidden role="dialog" aria-label="How to move"><div class="mt-card"><button type="button" class="mt-x" aria-label="Close">&times;</button><b>How to move</b><div class="mt-body"></div><button type="button" class="mt-go">Got it</button></div></div>
 <div id="poster" hidden><div class="pz"><div class="ph l"></div><div class="ph r"></div><div class="vs">VS</div></div><div class="side-txt"><div class="pn"></div><div class="pload"><span class="spin"></span>Loading match</div></div></div>
-<div id="film"><canvas id="filmCv"></canvas><div class="film-btns"><button id="filmSound" type="button">Sound on</button><button id="filmSkip" type="button">Skip</button></div><div id="filmGo" hidden><button id="goGame" type="button">Enter Game</button><i class="brk"></i><a id="goArena" href="arena.html">Enter Arena</a></div></div>
+<div id="film"><canvas id="filmCv"></canvas><div class="film-btns"><button id="filmSound" type="button">Sound on</button><button id="filmSkip" type="button">Skip</button></div><div id="filmGo" hidden><button id="goGame" type="button">Enter Game</button><i class="brk"></i><a id="goArena" href="arena.html">Enter Arena</a><i class="brk b2"></i><a id="goMerch" href="https://usjaialai.com" target="_blank" rel="noopener">Merch Store</a></div></div>
 <div class="app">
   <header class="bar" id="bar">
     <h1><img src="brand.png" alt=""><b>Fantasy League <span>Jai Alai</span></b></h1>
@@ -770,17 +801,15 @@ body.wiz #setup { padding-top: 0; }
         <div><dt><i class="sw s4"></i>Costado &middot; Side Wall <small>(Pro, Cocktail)</small></dt><dd>A stylish, difficult backhand. The ball hits the side wall first, high up the court by line 2, then the front wall. It kicks off the front wall and carries deep and low, first bouncing around lines 8 to 14 and often reaching the back wall, skidding along the floor down the side-wall half of the court. Where the Dos Paredes dies short, the Costado carries deep.</dd></div>
         <div><dt><i class="sw" style="background:#d6322b"></i>Fight</dt><dd>The red button under Serve (E on a keyboard). Your player runs at the opponent about to field the ball and swings his cesta for 3 seconds: keep tapping to keep fighting. A player being hit can barely move or catch, so landing a hit first can win you the point.</dd></div>
       </dl>
-      <p class="guide-note">Each shot shows where it will go on the wall and floor; red means a fault. Turn this on or off with Wall Aim Assist on Who&#8217;s playing, or the Shot Guide button during a match.</p>
+      <p class="guide-note">Each shot shows where it will go on the wall and floor; red means a fault. Turn this on or off with Wall Aim Assist on Who&#8217;s Playing, or the Shot Guide button during a match.</p>
       <h3>2. Run and Catch</h3>
       <p class="guide-p">Push the joystick under your right thumb to run: a nudge walks, a full push runs. You can also hold a finger on the court to run to that spot, or use the arrow keys on a keyboard. Any ball that passes one of your players is caught, from the floor up to a full stretch overhead, on the fly or after one bounce; only a ball well over his head goes by.</p>
       <h3>3. Score</h3>
       <p class="guide-p">A match is played to 9 points unless you choose 15 or 21 in Play Settings. Every throw must hit the front wall above the low red line, and the wall is good all the way up to the gold line at its top. A ball that goes over the top of the front or back wall is out. Miss, or let the ball bounce twice, and the other team scores. Catch a ball off the back wall and it must go straight back in one motion: you have three seconds at Easy pace, two at Normal and one at Hard, or the point goes to the other team.</p>
-      <h3>4. Game Settings and Modes</h3>
-      <p class="guide-p">Choose where to play: League Play (six club teams) or World Cup Play (six national teams) go on to Pick your teams, where you choose both sides and a view or era. All Star Players and Celebrity Players open their own games, and Hoots vs Peaks goes straight into its match. There are six views and eras: Professional (the camera is behind you and you move in every direction), Amateur (side view), Cocktail Table (phone flat, seen from above), 90s Throwback, 80s Retro and Vintage. Tap Mode during a match to move to the next one without losing the score.</p>
-      <h3>5. Music</h3>
+      <h3>4. Music</h3>
       <p class="guide-p">On the hosted game, tap &#9834; Music in the Menu / Mode / Music / Pause row to play that mode's playlist, and tap it again to pause. On some phones the first tap only wakes the player: tap once more. The button lights and its record spins while a song plays. Changing modes switches to that mode's playlist. While it plays the ball and crowd sounds stand down so the music is clear. Spotify only plays full songs when you are signed in to Spotify in that browser: sign in once at spotify.com, otherwise you hear 30-second previews.</p>
-      <h3>6. Feedback</h3>
-      <p class="guide-p">Once you have tried all six modes, a short survey opens: your name and ten quick questions. If you are in the middle of a match it pauses the match first, and Resume carries on afterwards. Tap Give Feedback at the bottom of Pick your teams to open it any time.</p>
+      <h3>5. Feedback</h3>
+      <p class="guide-p">Once you have tried all six modes, a short survey opens: your name and ten quick questions. If you are in the middle of a match it pauses the match first, and Resume carries on afterwards. Tap Give Feedback on Before You Play to open it any time.</p>
     </div>
     <div class="online" id="online" aria-label="Play a friend online">
       <div class="opt-label">Play a friend online</div>
@@ -2003,8 +2032,8 @@ window.FLFeedback = (function () {
     }
     $('teams').innerHTML = html;
     seg($('optTarget'), [[9, '9'], [15, '15'], [21, '21']], cfg.target, 'target');
-    seg($('optLevel'), [['easy', 'Easy'], ['normal', 'Normal'], ['hard', 'Hard']], cfg.level, 'level');
-    seg($('optPace'), [['relaxed', 'Easy'], ['standard', 'Normal'], ['pro', 'Hard']], cfg.pace, 'pace');
+    seg($('optLevel'), [['normal', 'Normal'], ['easy', 'Easy'], ['hard', 'Hard']], cfg.level, 'level');
+    seg($('optPace'), [['standard', 'Normal'], ['relaxed', 'Easy'], ['pro', 'Hard']], cfg.pace, 'pace');
     seg($('optSound'), [['on', 'On'], ['off', 'Off']], cfg.sound ? 'on' : 'off', 'sound');
     $('optViewRow').hidden = !MULTI || !!window.FL_VIEW3; if (MULTI) seg($('optView'), [['aerial', 'Professional'], ['side', 'Amateur'], ['table', 'Cocktail Table'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', 'Vintage']].filter(function (m) { return m[0] === 'table' || viewOK(m[0]); }), cfg.table ? 'table' : view, 'view');
     if (MULTI) { var SHORT = { aerial: 'Professional', side: 'Amateur', table: 'Cocktail Table', vintage: '90s Throwback', retro: '80s Retro', sixties: 'Vintage' }; [].forEach.call($('optView').querySelectorAll('button'), function (vb) { vb.innerHTML = '<span class="vlong">' + esc(vb.textContent) + '</span><span class="vshort">' + SHORT[vb.dataset.v] + '</span>'; }); }
@@ -2083,20 +2112,22 @@ window.FLFeedback = (function () {
   function wzTop(n, title) {
     return '<div class="wz-top"><button type="button" class="wz-back" data-wz="back">\u2039 Back</button><span>Step ' + n + ' of 4</span><span class="wz-dots">' +
       [1, 2, 3, 4].map(function (i) { return '<i' + (i <= n ? ' class="on"' : '') + '></i>'; }).join('') + '</span></div>' +
-      '<img class="wz-mini" src="brand.png" alt=""><h2 class="wz-h">' + title + '</h2>';
+      '<h2 class="wz-h"><img class="wz-mini" src="brand.png" alt="">' + title + '</h2>';
   }
   function wzInit() {
     if (!WZ) return;
     document.body.classList.add('wiz');
     var w = document.createElement('div'); w.id = 'wiz';
     w.innerHTML =
-      '<section class="wz-step" id="wz1">' + wzTop(1, 'Before you play') + '<div class="wz-col" id="wz1c"></div>' +
+      '<section class="wz-step" id="wz1">' + wzTop(1, 'Before You Play') + '<div class="wz-col" id="wz1c"></div>' +
         '<button type="button" class="wz-big" id="whatToggle" aria-expanded="false">What is Jai Alai +</button>' +
         '<div class="wz-what" id="whatBox" hidden><p>Jai alai comes from the Basque region of Spain. It\u2019s a fast-paced game played with a hand-held wicker <b>cesta</b> and a hard ball called a <b>pelota</b>, on a court (<b>cancha</b>) inside an arena called a <b>fronton</b>. It\u2019s like squash and racquetball, and it\u2019s played one on one or in doubles like tennis.</p>' +
         '<p>The game has stayed true to its roots for 400 years. It came to the US at the 1904 World\u2019s Fair, and the first fronton in Florida opened in 1924.</p>' +
         '<p>Jai alai was hugely popular in the US from the 1930s to the 1990s, mostly in Florida and Connecticut, and it\u2019s still loved in South Florida. Remember the guy jumping off the wall in the <i>Miami Vice</i> opening? That\u2019s jai alai.</p><h4>Fronton Talk</h4><dl><dt>Frontis</dt><dd>The front wall. Every throw must hit it between the lines.</dd><dt>Pelota</dt><dd>The ball: hard, wrapped in goatskin, and it travels at up to 180 mph.</dd><dt>Cesta</dt><dd>The curved basket used to catch and throw the ball.</dd><dt>Lanzar / Lanzamiento</dt><dd>To throw, and a throw.</dd><dt>Remate</dt><dd>An attacking throw meant to win the point, such as a Cortada or a Costado.</dd><dt>Rebote</dt><dd>Taking the carom off the back wall and firing it straight back to the front wall in one motion.</dd><dt>Rabo</dt><dd>A ball taken directly off the back wall on the fly: a lightning catch and release.</dd><dt>Chic-Chac</dt><dd>The ball hits the floor just before the back wall, a quick double bounce that comes off fast and low.</dd><dt>Chula</dt><dd>The perfect shot: the ball lands in the seam where the floor meets the back wall and rolls out. No return is possible.</dd></dl></div>' +
+        '<div class="wz-links" id="wzLinks"><button type="button" class="wz-link" data-wz="contact">Contact Us</button></div>' +
+        '<p class="wz-legal">\u00a9 2026 Fantasy League Jai Alai Game, LLC. All rights reserved.<br>The Fantasy League Jai Alai\u2122 name, logo, team names, team logos, and associated brand identities are claimed as trademarks of Fantasy League Jai Alai Game, LLC. Unauthorized reproduction, commercial use, or use suggesting affiliation, sponsorship, or endorsement is prohibited to the extent permitted by applicable law.</p>' +
         '<button type="button" class="wz-next" data-wz="next">Next</button></section>' +
-      '<section class="wz-step" id="wz2" hidden>' + wzTop(2, 'Who\u2019s playing') +
+      '<section class="wz-step" id="wz2" hidden>' + wzTop(2, 'Who\u2019s Playing') +
         '<div class="seg wz-seg" id="wzType"></div>' +
         '<label class="wz-selfie" id="wzSelfie"><span id="wzSelfieTxt">Take a Selfie or Upload a Picture<br>to Star in Your Own Game</span></label>' +
         '<div class="wz-fine">*Images are never stored or shared.</div>' +
@@ -2104,21 +2135,19 @@ window.FLFeedback = (function () {
         '<div class="wz-card"><h3>Player 2</h3><div class="seg wz-seg" id="wzP2"></div><div id="wzOnline" hidden></div></div>' +
         '<div class="wz-card"><h3>Shot Buttons</h3><div class="seg wz-seg" id="wzLang"></div><div class="seg wz-seg wz-small" id="wzAim"></div></div>' +
         '<button type="button" class="wz-next" data-wz="next">Next</button></section>' +
-      '<section class="wz-step" id="wz3" hidden>' + wzTop(3, 'Choose where to play') + '<div class="wz-tiles">' +
+      '<section class="wz-step" id="wz3" hidden>' + wzTop(3, 'Choose Where to Play') + '<div class="wz-tiles">' +
         '<button type="button" class="wz-tile" data-wz="league"><img src="brand.png" alt=""><span><b>League Play</b><i>Six Club Teams</i></span></button>' +
         '<button type="button" class="wz-tile" data-wz="world"><img src="usa-crest.png" alt=""><span><b>World Cup Play</b><i>Six National Teams</i></span></button>' +
         '<a class="wz-tile" href="' + ALLSTAR_URL + '" target="_blank" rel="noopener">' + wzStar('#ffffff', '#ffffff', 'usa-crest.png') + '<span><b>All Star Players</b><i>Past &amp; Present All Star Roster</i></span></a>' +
         '<a class="wz-tile" href="' + CELEB_URL + '" target="_blank" rel="noopener">' + wzStar('#c9a55c', '#e7c97e', 'brand.png') + '<span><b>Celebrity Players</b><i>Special Guests &amp; Limited Edition Collabs</i></span></a>' +
         (MULTI && !window.FL_VIEW3 ? '<button type="button" class="wz-tile" data-wz="hvp"><img src="hoots-crest.png" alt=""><span><b>Hoots vs Peaks</b><i>The Rivalry Match</i></span></button>' : '') +
         '</div></section>' +
-      '<section class="wz-step" id="wz4" hidden>' + wzTop(4, 'Pick your teams') +
+      '<section class="wz-step" id="wz4" hidden>' + wzTop(4, 'Pick Your Teams') +
         '<div class="wz-vs"><div class="wz-half" id="wzH0"></div><div class="wz-half r" id="wzH1"></div><b>VS</b></div>' +
         '<div class="wz-sels"><select class="wz-sel" id="wzT0" aria-label="Team 1"></select><select class="wz-sel" id="wzT1" aria-label="Team 2"></select></div>' +
-        '<div class="wz-lab">Select View or Era</div><div id="wzModes"></div>' +
+        '<div class="wz-lab">Select View or Era</div><select class="wz-sel wz-wide" id="wzView" aria-label="Select view or era"></select>' +
         '<div class="wz-play"><button type="button" class="wz-go" data-wz="play">Play Free<small>With Ads</small></button><button type="button" class="wz-go alt" data-wz="play">Play Ad Free<small>$0.99 per month</small></button></div>' +
         '<p class="wz-msg" id="wzMsg" role="status"></p>' +
-        '<div class="wz-links" id="wzLinks"><button type="button" class="wz-link" data-wz="contact">Contact Us</button></div>' +
-        '<p class="wz-legal">\u00a9 2026 Fantasy League Jai Alai Game, LLC. All rights reserved.<br>The Fantasy League Jai Alai\u2122 name, logo, team names, team logos, and associated brand identities are claimed as trademarks of Fantasy League Jai Alai Game, LLC. Unauthorized reproduction, commercial use, or use suggesting affiliation, sponsorship, or endorsement is prohibited to the extent permitted by applicable law.</p>' +
       '</section>' +
       '<div class="wz-pop" id="wzContact" hidden><form class="wz-popcard" id="wzContactForm" autocomplete="off"><h3>Contact Us</h3>' +
         '<input id="wzCName" type="text" placeholder="Your name" aria-label="Your name" maxlength="80">' +
@@ -2132,7 +2161,7 @@ window.FLFeedback = (function () {
     var lbl = $('wzSelfie'); lbl.appendChild($('faceFile')); lbl.appendChild($('facePrev'));
     var fc = $('faceClear'); fc.classList.add('wz-clear'); $('wzSelfie').parentNode.insertBefore(fc, $('wzSelfie').nextSibling);
     if ($('online')) $('wzOnline').appendChild($('online'));
-    if ($('optViewRow')) $('wzModes').appendChild($('optViewRow'));
+    $('wzView').addEventListener('change', function () { changeView(this.value); });
     if ($('fbLink')) { $('fbLink').className = 'wz-link'; $('wzLinks').insertBefore($('fbLink'), $('wzLinks').firstChild); }
     $('whatToggle').addEventListener('click', function () { var o = $('whatBox').hidden; $('whatBox').hidden = !o; this.textContent = 'What is Jai Alai ' + (o ? '\u2212' : '+'); this.setAttribute('aria-expanded', String(o)); });
     ['wzT0', 'wzT1'].forEach(function (id, t) {
@@ -2175,6 +2204,8 @@ window.FLFeedback = (function () {
     $('wzAim').innerHTML = '<button type="button" data-wz="aim-on" aria-pressed="' + (cfg.guide !== false) + '">Wall Aim Assist On</button><button type="button" data-wz="aim-off" aria-pressed="' + (cfg.guide === false) + '">Wall Aim Assist Off</button>';
     var tx = $('wzSelfieTxt'); if (tx) tx.innerHTML = faceImg ? 'Change Your Picture' : 'Take a Selfie or Upload a Picture<br>to Star in Your Own Game';
     if (WZ.step === 4) {
+      var curV = cfg.table ? 'table' : view;
+      $('wzView').innerHTML = [['aerial', 'Professional'], ['side', 'Amateur'], ['table', 'Cocktail Table'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', 'Vintage']].filter(function (m) { return m[0] === 'table' || viewOK(m[0]); }).map(function (m) { return '<option value="' + m[0] + '"' + (m[0] === curV ? ' selected' : '') + '>' + m[1] + '</option>'; }).join('');
       var list = groupList(cfg.comp);
       for (var t = 0; t < 2; t++) {
         var sel = $('wzT' + t), h = '<option value=""' + (picked[t] ? '' : ' selected') + ' disabled>' + (cfg.comp === 'world' ? 'Pick a country' : 'Pick a team') + '</option>';
