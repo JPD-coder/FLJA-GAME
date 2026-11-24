@@ -4403,7 +4403,7 @@ window.FLFeedback = (function () {
   }
 
   /* ---------- the door: a password, asked once and remembered in this browser ---------- */
-  var PASS = 'mljbetagame', KEY = 'flja-pass';                         // capital letters do not matter
+  var PASS = 'mljbeta', KEY = 'flja-pass';                         // capital letters do not matter
   var gate = document.getElementById('gate');
   function letIn() {
     try { localStorage.setItem(KEY, PASS); } catch (e) { /* no storage: it asks again next visit */ }

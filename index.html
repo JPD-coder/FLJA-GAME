@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261124133445";
+window.FL_BUILD = "20261124134725";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -778,6 +778,18 @@ body.wiz.pv-setup #bar, body.wiz .app:has(#setup:not([hidden])) #bar { display: 
 /* VS sits at shoulder height */
 #wiz .wz-vs b { top: 30%; }
 #poster .vs { top: 30%; }
+
+/* Hoots vs Peaks page: orange, red and white */
+#wiz #wz5 .wz-back, #wiz #wz5 .wz-lab { color: #ff6a00; } #wiz #wz5 .wz-dots i.on { background: #ff6a00; }
+#wiz #wz5 .wz-h { color: #fff; } #wiz #wz5 .wz-h .ho { color: #ff6a00; } #wiz #wz5 .wz-h .pk { color: #e11d2e; }
+#wiz #wz5 .wz-door { flex: 1 1 220px; min-height: 200px; max-height: 52vh; border-radius: 14px; overflow: hidden; background: #000; display: flex; }
+#wiz #wz5 .wz-door img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+#wiz #wz5 .wz-seg { border-color: #ff6a00; } #wiz #wz5 .wz-seg button[aria-pressed="true"] { background: #ff6a00; color: #fff; }
+#wiz #wz5 .wz-go:not(.alt) { background: #e11d2e; border-color: #e11d2e; color: #fff; }
+#wiz #wz5 .wz-go.alt { border-color: #ff6a00; color: #fff; } #wiz #wz5 .wz-go.alt small { color: #ff6a00; }
+#wiz #wz5 { background: radial-gradient(ellipse at 50% 0%, rgba(255,106,0,.12), rgba(225,29,46,.05) 45%, transparent 75%); }
+#wiz #wz5 .wz-seg { border: 0; border-radius: 0; overflow: visible; gap: 8px; }
+#wiz #wz5 .wz-seg button { border: 1px solid #ff6a00; border-radius: 10px; padding: 13px 2px; font: 700 13px/1.15 var(--body); letter-spacing: 0; text-transform: none; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -2200,6 +2212,11 @@ window.FLFeedback = (function () {
         '<div class="wz-play"><button type="button" class="wz-go" data-wz="play">Play Free Now<small>With Ads</small></button><button type="button" class="wz-go alt" data-wz="play">Play Ad Free Now<small>$0.99 per month</small></button></div>' +
         '<p class="wz-msg" id="wzMsg" role="status"></p>' +
       '</section>' +
+      '<section class="wz-step" id="wz5" hidden>' + wzTop(4, '<span class="ho">Hoots</span> vs <span class="pk">Peaks</span>') +
+        '<div class="wz-door"><img src="hvp-door.jpg?v=2" alt="A Hoots player and a Peaks player face off, each with a cesta"></div>' +
+        '<div class="wz-lab">Pick Your Mode</div><div class="seg wz-seg" id="wzHvMode"></div>' +
+        '<div class="wz-play"><button type="button" class="wz-go" data-wz="play">Play Free Now<small>With Ads</small></button><button type="button" class="wz-go alt" data-wz="play">Play Ad Free Now<small>$0.99 per month</small></button></div>' +
+      '</section>' +
       '<div class="wz-pop" id="wzContact" hidden><form class="wz-popcard" id="wzContactForm" autocomplete="off"><h3>Contact Us</h3>' +
         '<input id="wzCName" type="text" placeholder="Your name" aria-label="Your name" maxlength="80">' +
         '<input id="wzCMail" type="text" inputmode="email" placeholder="Email or phone (optional)" aria-label="Email or phone" maxlength="120">' +
@@ -2238,7 +2255,7 @@ window.FLFeedback = (function () {
   function wzShow(n) {
     if (!WZ) return;
     WZ.step = n;
-    for (var i = 1; i <= 4; i++) $('wz' + i).hidden = i !== n;
+    for (var i = 1; i <= 5; i++) $('wz' + i).hidden = i !== n;
     if (n === 4 && !picked[0] && !picked[1]) { $('wzMsg').textContent = ''; }
     elSetup.scrollTop = 0; try { window.scrollTo(0, 0); } catch (e) { /* ignore */ }
     wzPaint();
@@ -2254,6 +2271,10 @@ window.FLFeedback = (function () {
     $('wzLang').innerHTML = '<button type="button" data-wz="lang-en" aria-pressed="' + (cfg.lang === 'en') + '">English</button><button type="button" data-wz="lang-es" aria-pressed="' + (cfg.lang !== 'en') + '">Espa\u00f1ol</button>';
     $('wzAim').innerHTML = '<button type="button" data-wz="aim-on" aria-pressed="' + (cfg.guide !== false) + '">Wall Assist On</button><button type="button" data-wz="aim-off" aria-pressed="' + (cfg.guide === false) + '">Wall Assist Off</button>';
     var tx = $('wzSelfieTxt'); if (tx) tx.innerHTML = faceImg ? 'Change Your Picture' : 'Take a Selfie or Upload a Picture<br>to Star in Your Own Game';
+    if (WZ.step === 5) {
+      var hv = cfg.table ? 'table' : view;
+      $('wzHvMode').innerHTML = [['aerial', 'Professional'], ['side', 'Amateur'], ['table', 'Cocktail Table']].filter(function (m) { return m[0] === 'table' || viewOK(m[0]); }).map(function (m) { return '<button type="button" data-wz="hvmode-' + m[0] + '" aria-pressed="' + (m[0] === hv) + '">' + m[1] + '</button>'; }).join('');
+    }
     if (WZ.step === 4) {
       var curV = cfg.table ? 'table' : view;
       $('wzView').innerHTML = [['aerial', 'Professional'], ['side', 'Amateur'], ['table', 'Cocktail Table'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', 'Vintage']].filter(function (m) { return m[0] === 'table' || viewOK(m[0]); }).map(function (m) { return '<option value="' + m[0] + '"' + (m[0] === curV ? ' selected' : '') + '>' + m[1] + '</option>'; }).join('');
@@ -2271,7 +2292,8 @@ window.FLFeedback = (function () {
   function wzClick(b) {
     var a = b.dataset.wz;
     if (a === 'next') { wzShow(WZ.step + 1); return true; }
-    if (a === 'back') { if (WZ.step === 1) { try { location.reload(); } catch (e) { /* ignore */ } } else wzShow(WZ.step - 1); return true; }
+    if (a.indexOf('hvmode-') === 0) { changeView(a.slice(7)); return true; }
+    if (a === 'back') { if (WZ.step === 5) { wzShow(3); return true; } if (WZ.step === 1) { try { location.reload(); } catch (e) { /* ignore */ } } else wzShow(WZ.step - 1); return true; }
     if (a === 'p2cpu') { WZ.p2 = 'cpu'; if (net.role) netLeave(); wzPaint(); return true; }
     if (a === 'p2online') { WZ.p2 = 'online'; renderOnline(); wzPaint(); return true; }
     if (a === 'lang-en' || a === 'lang-es') { cfg.lang = a === 'lang-en' ? 'en' : 'es'; save(); wzPaint(); return true; }
@@ -2284,7 +2306,8 @@ window.FLFeedback = (function () {
     if (a === 'contact-close') { $('wzContact').hidden = true; return true; }
     return false;
   }
-  function wzHvpGo() { if (WZ && WZ.hvp) { WZ.hvp = false; setTimeout(posterGo, 50); } }   // Hoots vs Peaks from the step menu: straight into the match
+  function wzHvpGo() { if (WZ) { WZ.hvp = false; wzShow(5); } }   // Hoots vs Peaks from the step menu: straight into the match
+  function wzHome() { if (WZ) wzShow(cfg.comp === 'hvp' ? 5 : 4); }   // back from a match (Menu, New match, Change setup): the page they started it from
   wzInit();
   if (WZ && window.FL_GOSTEP) setTimeout(function () { wzShow(3); }, 0);   // back from Celebrity or All Star: land on Choose Where to Play
   elSetup.addEventListener('click', function (e) {
@@ -2663,7 +2686,7 @@ window.FLFeedback = (function () {
       return { n: cfg.names[t] || r.name, face: PROMO ? promoWhoT(t).face : null, skin: PROMO ? promoWhoT(t).skin || null : null, one: !!PROMO, logo: r.crest || r.logo, c1: PROMO && promoWhoT(t).solo ? '#c8102e' : nk.helm || r.ui || k.jersey || '#f2efe6', c2: PROMO && promoWhoT(t).solo ? '#f4f4f0' : nk.belt || k.sash || '#c9a55c' }; });   // USA wears its crest, the other countries their flag, Hooters and Twin Peaks their own marks
     track('start', (cfg.singles ? 'singles' : 'doubles') + '.' + cfg.comp + '.table');
     window.Table.open({ teams: tm, singles: !!cfg.singles, target: cfg.target, level: cfg.level, pace: PACE[cfg.pace] || 0.88, rebHold: rebHold(), sound: !!cfg.sound, names: shotNames(), score: score || null, intro: false, ads: window.FL_ADS ? adEvery() : 0, hooks: {
-      menu: function () { window.Table.close(); startDemo(); },
+      menu: function () { window.Table.close(); startDemo(); wzHome(); },
       mode: function (sc) { window.Table.close(); cfg.table = false; var nx = PROMO ? 'side' : viewOK('vintage') ? 'vintage' : 'aerial'; setView(nx); cfg.view = view; save(); startMatch(sc || undefined); },   // on to the next mode, same match
       music: window.FL_MUSIC ? function () { musToggle(); } : null, musicOn: function () { return !!spLive; } } });
     try { musicUI(); } catch (e) { /* no player on this page */ }   // if music is already on, it moves to the 80s list
@@ -2674,8 +2697,8 @@ window.FLFeedback = (function () {
   });
   if ($('btnMusic')) $('btnMusic').addEventListener('click', musToggle);   // the header button is gone: music sits in the Pause / Menu / View row
   $('btnRematch').addEventListener('click', function () { if (net.role === 'guest') return; unlock(); startMatch(); });
-  $('btnChange').addEventListener('click', function () { startDemo(); if (WZ) wzShow(cfg.comp === 'hvp' ? 3 : 4); });
-  $('btnSetup').addEventListener('click', function () { startDemo(); });
+  $('btnChange').addEventListener('click', function () { startDemo(); wzHome(); });
+  $('btnSetup').addEventListener('click', function () { startDemo(); wzHome(); });
   $('btnPause').addEventListener('click', togglePause);
   $('btnView').addEventListener('click', function () { changeView(); });
   elApp.addEventListener('click', function (e) {
@@ -4620,8 +4643,6 @@ window.FLFeedback = (function () {
     vignette();
     var gl = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 1.25);   // a warm pool of light behind the name
     gl.addColorStop(0, 'rgba(255,45,149,.20)'); gl.addColorStop(1, 'rgba(31,224,214,0)'); ctx.fillStyle = gl; ctx.fillRect(0, 0, W, H);
-    ctx.strokeStyle = 'rgba(31,224,214,.45)'; ctx.lineWidth = Math.max(1, u() * 0.25);
-    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
     title('MAJOR LEAGUE JAI ALAI MEDIA PRESENTS', W / 2, Math.max(u() * 4 + 12, g.cy - g.R - g.L / 2 - u() * 5), Math.max(10, u() * 2.1), '700', 0.32, AQUA, 0.9, W * 0.9);
     for (i = 0; i < 6; i++) {                                       // the league over the top, the countries underneath: they meet level with the middle of the name
       a = Math.PI + (i + 0.5) * Math.PI / 6 + spin;
@@ -4704,7 +4725,7 @@ window.FLFeedback = (function () {
   }
 
   /* ---------- the door: a password, asked once (when Enter Game or Enter Arena is tapped) and remembered in this browser ---------- */
-  var PASS = 'mljbetagame', KEY = 'flja-pass';                         // capital letters do not matter
+  var PASS = 'mljbeta', KEY = 'flja-pass';                         // capital letters do not matter
   var gate = document.getElementById('gate'), after = null;
   var known = '';
   try { known = localStorage.getItem(KEY) || ''; } catch (e) { known = ''; }
