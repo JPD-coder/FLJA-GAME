@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261124132752";
+window.FL_BUILD = "20261124133027";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -4105,10 +4105,10 @@ window.FLFeedback = (function () {
     unlock(); tryStart();
   }
   function promoPaint() {                                          // the art, the names and the team marks follow who is picked, in which uniform, and who you play
-    var P = PROMO, el = promoEl, askT = el.classList.contains('pm-allstar'), ready = promoSel[0] != null && promoSel[1] != null && (!askT || (promoTP[0] && promoTP[1]));
+    var P = PROMO, el = promoEl, askT = true, tOK = function (k) { var pw = promoSel[k] == null ? null : P.people[promoSel[k]]; return !!pw && (!!pw.solo || promoTP[k]); }, ready = tOK(0) && tOK(1);   // a team has to be picked for each player (a solo character has none)
     [0, 1].forEach(function (s) {
       var w = promoSel[s] == null ? null : P.people[promoSel[s]], side = s ? 'R' : 'L', r = ROSTER[promoTeams[s]], tc = r.ui === '#f2efe6' ? '#c9a55c' : r.ui;
-      el.querySelector('.pm-half[data-i="' + s + '"]').src = w && !(askT && !promoTP[s]) ? (w.solo ? w.solo[side] : w.art[side][promoTeams[s]]) : P.blank[side][promoTeams[s]];   // solo: a player with no team uniform, one picture
+      el.querySelector('.pm-half[data-i="' + s + '"]').src = w && (w.solo || promoTP[s]) ? (w.solo ? w.solo[side] : w.art[side][promoTeams[s]]) : P.blank[side][promoTeams[s]];   // solo: a player with no team uniform, one picture
       var nb = el.querySelector('.pm-name[data-i="' + s + '"]'); nb.style.setProperty('--tc', tc); nb.setAttribute('aria-pressed', String(!!w && s === promoMe)); nb.disabled = !w;
       nb.querySelector('span').textContent = w ? w.name : (s ? 'Player 2' : 'Player 1'); nb.querySelector('em').textContent = !w ? 'Pick below' : s === promoMe ? 'You' : 'CPU';
       var ps = el.querySelector('.pm-who[data-i="' + s + '"]'); if (ps) { ps.value = w ? String(promoSel[s]) : ''; ps.style.setProperty('--tc', w ? tc : '#c9a55c'); [].forEach.call(ps.options, function (o) { o.disabled = o.value !== '' && +o.value === promoSel[1 - s] && !P.people[+o.value].mirror; }); }
@@ -4167,8 +4167,8 @@ window.FLFeedback = (function () {
       '<div class="pm-ctl">' +
       (P.choose ? '<div class="pm-row pm-teams">' + [0, 1].map(function (i) { return '<label class="pm-pick"><span class="pm-sr">' + (i ? 'Right' : 'Left') + ' player</span><select class="pm-team pm-who" data-i="' + i + '"><option value="">Pick a player</option>' +
         P.people.map(function (w, k) { return '<option value="' + k + '">' + esc(w.name) + '</option>'; }).join('') + '</select></label>'; }).join('') + '</div>' : '') +
-      '<div class="pm-row pm-teams">' + [0, 1].map(function (i) { return '<label class="pm-pick"><span class="pm-sr">' + (i ? 'Right' : 'Left') + ' player team</span><select class="pm-team" data-i="' + i + '">' + (ASTAR ? '<option value="">Pick a Team</option>' : '') +
-        P.teams.map(function (t) { return '<option value="' + t + '">' + esc(promoTeamName(t)) + '</option>'; }).join('') + '</select></label>'; }).join('') + '</div>' +
+      '<div class="pm-row pm-teams">' + [0, 1].map(function (i) { return '<label class="pm-pick"><span class="pm-sr">' + (i ? 'Right' : 'Left') + ' player team</span><select class="pm-team" data-i="' + i + '">' + '<option value="">Pick a Team</option>' +
+        P.teams.filter(function (t) { return t !== 14; }).map(function (t) { return '<option value="' + t + '">' + esc(promoTeamName(t)) + '</option>'; }).join('') + '</select></label>'; }).join('') + '</div>' +
       '<div class="pm-row pm-modes" role="group" aria-label="Mode">' + P.modes.map(function (m) { return '<button type="button" data-m="' + m + '" aria-pressed="' + (m === promoMode) + '">' + NAMES[m] + '</button>'; }).join('') + '</div>' +
       '<div class="pm-row pm-go"><button type="button" id="pmAds">Play Free Now<small>With Ads</small></button><button type="button" id="pmFree">Play Ad Free Now<small>$0.99 per month</small></button></div>' +
       '<p class="pm-note">Preview: ad-free play is open at no charge during this test. Nothing is billed.</p></div></div>';
