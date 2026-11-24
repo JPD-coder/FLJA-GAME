@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261124144733";
+window.FL_BUILD = "20261124161525";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -1573,7 +1573,7 @@ window.FLFeedback = (function () {
   var PROMO = window.FL_PROMO || null;
   if (PROMO && !PROMO._v) {                                       // the pictures were redone without smoke: a new address so no phone shows a saved old one
     PROMO._v = 1;
-    var bump = function (o) { if (o) for (var k in o) { if (typeof o[k] === 'string') { if (/\.jpg$/.test(o[k])) o[k] += '?s=4'; } else if (o[k] && typeof o[k] === 'object') bump(o[k]); } };
+    var bump = function (o) { if (o) for (var k in o) { if (typeof o[k] === 'string') { if (/\.jpg$/.test(o[k])) o[k] += '?s=5'; } else if (o[k] && typeof o[k] === 'object') bump(o[k]); } };
     (PROMO.people || []).forEach(function (w) { bump(w.art); bump(w.solo); }); bump(PROMO.blank);
   }                           // a limited-edition match-up page: its own landing screen, no setup page
   function save() { if (PROMO) return; try { localStorage.setItem(STORE, JSON.stringify(cfg)); } catch (e) { /* ignore */ } }
@@ -2250,8 +2250,8 @@ window.FLFeedback = (function () {
       '</section>' +
       '<section class="wz-step" id="wz6" hidden>' + wzTop(4, 'Limited Edition Skins') +
         '<p class="wz-sub">Tap a skin to purchase. $0.99 per month each.</p><div class="wz-skins">' +
-        [['1928 Mickey', 'kv-m-l-14.jpg'], ['1926 Pooh', 'bh-b-l-14.jpg'], ['1929 Popeye', 'pp-b-l-14.jpg'], ['Santa', 'sx-s-l.jpg'], ['The Grinch', 'sx-g-l.jpg']].map(function (k) { return '<button type="button" class="wz-skin" data-wz="skin" data-skin="' + k[0] + '"><img src="' + k[1] + '?s=4" alt=""><b>' + k[0] + '</b></button>'; }).join('') +
-        '<button type="button" class="wz-skin wz-you" data-wz="avatar"><span class="wz-youart"><img src="kh-blank-l-14.jpg?s=4" alt=""><i>?</i></span><b>Your Avatar</b></button>' +
+        [['1928 Mickey', 'kv-m-l-14.jpg'], ['1926 Pooh', 'bh-b-l-14.jpg'], ['1929 Popeye', 'pp-b-l-14.jpg'], ['Santa', 'sx-s-l.jpg'], ['The Grinch', 'sx-g-l.jpg']].map(function (k) { return '<button type="button" class="wz-skin" data-wz="skin" data-skin="' + k[0] + '"><img src="' + k[1] + '?s=5" alt=""><b>' + k[0] + '</b></button>'; }).join('') +
+        '<button type="button" class="wz-skin wz-you" data-wz="avatar"><span class="wz-youart"><img src="kh-blank-l-14.jpg?s=5" alt=""><i>?</i></span><b>Your Avatar</b></button>' +
         '</div></section>' +
       '<div class="wz-pop" id="wzAvatar" hidden><form class="wz-popcard" id="wzAvatarForm" autocomplete="off"><h3>Your Avatar</h3>' +
         '<p class="wz-atxt">Send us two head shots, a front view and a side view, and we custom build an avatar of you to play in the game.</p>' +
@@ -2689,7 +2689,7 @@ window.FLFeedback = (function () {
   /* ---------- matchup poster (preview build only): a still court, a Tap to Play button, then the poster while the match loads ---------- */
   var POSTER = !!window.FL_POSTER;
   if (POSTER) document.body.classList.add('poster-on');
-  var POSTERS = { '0m': 'poster-0-m.jpg?v=10', '1m': 'poster-1-m.jpg?v=10', '2m': 'poster-2-m.jpg?v=10', '3m': 'poster-3-m.jpg?v=10', '4m': 'poster-4-m.jpg?v=10', '5m': 'poster-5-m.jpg?v=10', '0w': 'poster-0-w.jpg?v=10', '1w': 'poster-1-w.jpg?v=10', '2w': 'poster-2-w.jpg?v=10', '3w': 'poster-3-w.jpg?v=10', '4w': 'poster-4-w.jpg?v=10', '5w': 'poster-5-w.jpg?v=10', '6m': 'poster-6-m.jpg?v=10', '6w': 'poster-6-w.jpg?v=10' };   // roster index + m/w. Each half faces right; missing ones fall back to the team badge
+  var POSTERS = { '0m': 'poster-0-m.jpg?v=11', '1m': 'poster-1-m.jpg?v=11', '2m': 'poster-2-m.jpg?v=11', '3m': 'poster-3-m.jpg?v=11', '4m': 'poster-4-m.jpg?v=11', '5m': 'poster-5-m.jpg?v=11', '0w': 'poster-0-w.jpg?v=11', '1w': 'poster-1-w.jpg?v=11', '2w': 'poster-2-w.jpg?v=11', '3w': 'poster-3-w.jpg?v=11', '4w': 'poster-4-w.jpg?v=11', '5w': 'poster-5-w.jpg?v=11', '6m': 'poster-6-m.jpg?v=11', '6w': 'poster-6-w.jpg?v=11' };   // roster index + m/w. Each half faces right; missing ones fall back to the team badge
   function posterHalf(el, t, side) {                              // mixed: a man on the left, a woman on the right
     var r = ROSTER[t], wt = whoOf(side), g = wt === 'women' || (wt === 'mixed' && side) ? 'w' : 'm', src = POSTERS[t + g] || null;   // no picture for that side yet: its badge or flag
     el.innerHTML = ''; el.style.backgroundImage = '';
