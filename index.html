@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261124193625";
+window.FL_BUILD = "20261124195008";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -725,7 +725,7 @@ body.wiz { min-height: calc(100vh - 16px); min-height: calc(100dvh - 16px); }
 #wiz .wz-card { margin-top: 9px; padding: 8px 12px 10px; }
 #wiz .wz-card h3 { margin-bottom: 6px; font-size: 13px; }
 #wiz .wz-tight .wz-card { margin-top: 5px; padding: 6px 12px 7px; } #wiz .wz-tight .wz-card h3 { margin-bottom: 5px; }
-#wiz .online-row { flex-wrap: nowrap; gap: 6px; } #wiz .online-row .ghost { flex: 1 1 0; padding: 8px 4px; font-size: 13px; white-space: nowrap; } #wiz .online-row input { flex: 0 0 74px; width: 74px; padding: 6px 6px; font-size: 16px; text-align: center; }
+#wiz .online-row { flex-wrap: nowrap; gap: 6px; } #wiz .online-row .ghost { flex: 1 1 0; padding: 8px 4px; font-size: 13px; white-space: nowrap; } #wiz .online-row input { flex: 0 0 84px; width: 84px; padding: 7px 4px; font-size: 16px; text-align: center; border: 1.5px solid #1fe0d6; border-radius: 6px; color: #fff; } #wiz .online-row input::placeholder { color: #8fb9b6; opacity: 1; }
 #wiz [data-wz="p2cpu"] { flex: 0 0 30%; } #wiz [data-wz="p2online"] { flex: 1 1 auto; white-space: nowrap; letter-spacing: .06em; }
 html.inplay, html.inplay body { overscroll-behavior: none; touch-action: none; }
 #wiz .wz-court { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 7px; }
@@ -4151,7 +4151,10 @@ window.FLFeedback = (function () {
         (net.peer ? 'Connected. You play ' + esc(nm[1]) + '. Waiting for the host to start.' : 'Looking for that game. Check the code with the host.') +
         '</p><div class="online-row"><button type="button" class="ghost" id="onLeave" data-on="leave">Leave</button></div>';
     }
-    el.innerHTML = h;
+    if (el.dataset.h === h && el.firstChild) return;            // nothing changed: leave it alone. A phone's keyboard opening resizes the page, and redrawing the box here closed the keyboard.
+    var oc = $('onCode'), keep = oc ? oc.value : '', foc = oc && document.activeElement === oc;
+    el.dataset.h = h; el.innerHTML = h;
+    oc = $('onCode'); if (oc && keep) oc.value = keep; if (oc && foc) { try { oc.focus(); } catch (e) { /* not focusable right now */ } }
   }
   $('online').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-on]'); if (!b) return;
