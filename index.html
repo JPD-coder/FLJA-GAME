@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261124080000";
+window.FL_BUILD = "20261124080647";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -742,6 +742,7 @@ body.wiz { min-height: calc(100vh - 16px); min-height: calc(100dvh - 16px); }
 body.wiz.pv-setup #bar, body.wiz .app:has(#setup:not([hidden])) #bar { display: none !important; }
 #wiz .wz-step { min-height: calc(100vh - 66px); min-height: calc(100dvh - 66px); }
 #hvpGate .g-back { position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); top: max(14px, env(safe-area-inset-top, 0px)); width: auto !important; min-height: 0 !important; padding: 6px 0; border: 0 !important; background: none !important; color: #c9a55c !important; font: 600 13px/1 var(--body) !important; letter-spacing: .12em !important; text-transform: uppercase; }
+#wiz .wz-legal { font-size: 10.5px; line-height: 1.45; } #wiz .wz-links + .wz-legal { margin-bottom: 20px; }
 </style>
 </head>
 <body>
@@ -843,7 +844,10 @@ body.wiz.pv-setup #bar, body.wiz .app:has(#setup:not([hidden])) #bar { display: 
 </div>
 
 <script>
+var __pm = ''; try { __pm = sessionStorage.getItem('flja-nav') || ''; sessionStorage.removeItem('flja-nav'); } catch (e) { __pm = ''; } if (!__pm && /^flja-nav:/.test(window.name || '')) __pm = window.name.slice(9); if (/^flja-nav:/.test(window.name || '')) window.name = ''; window.FL_GOSTEP = __pm === 'step3' ? 3 : 0; window.FL_NAV = function (v) { try { sessionStorage.setItem('flja-nav', v); } catch (e) { /* the window name carries it */ } try { window.name = 'flja-nav:' + v; } catch (e) { /* ignore */ } location.reload(); };
+if (__pm === 'celeb') { window.FL_INGAME = 1; window.FL_LOOK2 = 1; window.FL_PROMO = { tag: "Limited Edition \u00b7 Celebrity Match Up", target: 15, adEvery: 5, modes: ["side", "aerial", "table"], teams: [14, 0, 1, 2, 3, 4, 5, 6], extra: [{ name: "Fantasy League", logo: "brand.png", ui: "#c4c5cb", kit: { jersey: "#141418", sash: "#2a2a30", helm: "#9a9ba2", num: "#ffffff", nk: { helm: "#9a9ba2", belt: "#3a3a42" } } }], kits: { 6: { jersey: "#1e2c58", sash: "#d8232f", belt: "#d8232f", helm: "#1e2c58", num: "#ffffff" } }, choose: true, slotTeams: [14, 14], blank: { L: { 0: "kh-blank-l-14.jpg", 1: "kh-blank-l-14.jpg", 2: "kh-blank-l-14.jpg", 3: "kh-blank-l-14.jpg", 4: "kh-blank-l-14.jpg", 5: "kh-blank-l-14.jpg", 6: "kh-blank-l-14.jpg", 14: "kh-blank-l-14.jpg" }, R: { 0: "kh-blank-r-14.jpg", 1: "kh-blank-r-14.jpg", 2: "kh-blank-r-14.jpg", 3: "kh-blank-r-14.jpg", 4: "kh-blank-r-14.jpg", 5: "kh-blank-r-14.jpg", 6: "kh-blank-r-14.jpg", 14: "kh-blank-r-14.jpg" } }, people: [{ name: "Suga Rashad Evans", team: 6, look: 1, skin: "#5b3a27", face: "hd-e.jpg", art: { L: { 0: "km-e-l-0.jpg", 1: "km-e-l-1.jpg", 2: "km-e-l-2.jpg", 3: "km-e-l-3.jpg", 4: "km-e-l-4.jpg", 5: "km-e-l-5.jpg", 6: "km-e-l-6.jpg", 14: "km-e-l-14.jpg" }, R: { 0: "km-e-r-0.jpg", 1: "km-e-r-1.jpg", 2: "km-e-r-2.jpg", 3: "km-e-r-3.jpg", 4: "km-e-r-4.jpg", 5: "km-e-r-5.jpg", 6: "km-e-r-6.jpg", 14: "km-e-r-14.jpg" } } }, { name: "Ken Shamrock", team: 6, look: -1, face: "hd-k.jpg", art: { L: { 0: "km-k-l-0.jpg", 1: "km-k-l-1.jpg", 2: "km-k-l-2.jpg", 3: "km-k-l-3.jpg", 4: "km-k-l-4.jpg", 5: "km-k-l-5.jpg", 6: "km-k-l-6.jpg", 14: "km-k-l-14.jpg" }, R: { 0: "km-k-r-0.jpg", 1: "km-k-r-1.jpg", 2: "km-k-r-2.jpg", 3: "km-k-r-3.jpg", 4: "km-k-r-4.jpg", 5: "km-k-r-5.jpg", 6: "km-k-r-6.jpg", 14: "km-k-r-14.jpg" } } }, { name: "Britain Hart", mirror: 1, team: 6, look: 1, skin: "#c98c62", face: "hd-bt.jpg", art: { L: { 0: "bw-b-l-0.jpg", 1: "bw-b-l-1.jpg", 2: "bw-b-l-2.jpg", 3: "bw-b-l-3.jpg", 4: "bw-b-l-4.jpg", 5: "bw-b-l-5.jpg", 6: "bw-b-l-6.jpg", 14: "bw-b-l-14.jpg" }, R: { 0: "bw-b-r-0.jpg", 1: "bw-b-r-1.jpg", 2: "bw-b-r-2.jpg", 3: "bw-b-r-3.jpg", 4: "bw-b-r-4.jpg", 5: "bw-b-r-5.jpg", 6: "bw-b-r-6.jpg", 14: "bw-b-r-14.jpg" } }}, { name: "KO King Bailey", team: 6, look: 1, skin: "#7a5236", face: "hd-b.jpg", art: { L: { 0: "km-b-l-0.jpg", 1: "km-b-l-1.jpg", 2: "km-b-l-2.jpg", 3: "km-b-l-3.jpg", 4: "km-b-l-4.jpg", 5: "km-b-l-5.jpg", 6: "km-b-l-6.jpg", 14: "km-b-l-14.jpg" }, R: { 0: "km-b-r-0.jpg", 1: "km-b-r-1.jpg", 2: "km-b-r-2.jpg", 3: "km-b-r-3.jpg", 4: "km-b-r-4.jpg", 5: "km-b-r-5.jpg", 6: "km-b-r-6.jpg", 14: "km-b-r-14.jpg" } } }, { name: "Usher", team: 6, look: 1, skin: "#62331f", face: "hd-u.jpg", art: { L: { 0: "kn-u-l-0.jpg", 1: "kn-u-l-1.jpg", 2: "kn-u-l-2.jpg", 3: "kn-u-l-3.jpg", 4: "kn-u-l-4.jpg", 5: "kn-u-l-5.jpg", 6: "kn-u-l-6.jpg", 14: "kn-u-l-14.jpg" }, R: { 0: "kn-u-r-0.jpg", 1: "kn-u-r-1.jpg", 2: "kn-u-r-2.jpg", 3: "kn-u-r-3.jpg", 4: "kn-u-r-4.jpg", 5: "kn-u-r-5.jpg", 6: "kn-u-r-6.jpg", 14: "kn-u-r-14.jpg" } } }, { name: "Chris Brown", team: 6, look: -1, skin: "#783f26", face: "hd-c.jpg", art: { L: { 0: "kn-c-l-0.jpg", 1: "kn-c-l-1.jpg", 2: "kn-c-l-2.jpg", 3: "kn-c-l-3.jpg", 4: "kn-c-l-4.jpg", 5: "kn-c-l-5.jpg", 6: "kn-c-l-6.jpg", 14: "kn-c-l-14.jpg" }, R: { 0: "kn-c-r-0.jpg", 1: "kn-c-r-1.jpg", 2: "kn-c-r-2.jpg", 3: "kn-c-r-3.jpg", 4: "kn-c-r-4.jpg", 5: "kn-c-r-5.jpg", 6: "kn-c-r-6.jpg", 14: "kn-c-r-14.jpg" } } }, { name: "1928 Mickey", mirror: 1, team: 6, look: 1, skin: "#1e1e20", face: "hd-m.jpg", art: { L: { 0: "kv-m-l-0.jpg", 1: "kv-m-l-1.jpg", 2: "kv-m-l-2.jpg", 3: "kv-m-l-3.jpg", 4: "kv-m-l-4.jpg", 5: "kv-m-l-5.jpg", 6: "kv-m-l-6.jpg", 14: "kv-m-l-14.jpg" }, R: { 0: "kv-m-r-0.jpg", 1: "kv-m-r-1.jpg", 2: "kv-m-r-2.jpg", 3: "kv-m-r-3.jpg", 4: "kv-m-r-4.jpg", 5: "kv-m-r-5.jpg", 6: "kv-m-r-6.jpg", 14: "kv-m-r-14.jpg" } }  }, { name: "1926 Pooh", mirror: 1, team: 6, look: 1, skin: "#d9a23a", face: "hd-h.jpg", art: { L: { 0: "bh-b-l-0.jpg", 1: "bh-b-l-1.jpg", 2: "bh-b-l-2.jpg", 3: "bh-b-l-3.jpg", 4: "bh-b-l-4.jpg", 5: "bh-b-l-5.jpg", 6: "bh-b-l-6.jpg", 14: "bh-b-l-14.jpg" }, R: { 0: "bh-b-r-0.jpg", 1: "bh-b-r-1.jpg", 2: "bh-b-r-2.jpg", 3: "bh-b-r-3.jpg", 4: "bh-b-r-4.jpg", 5: "bh-b-r-5.jpg", 6: "bh-b-r-6.jpg", 14: "bh-b-r-14.jpg" } }}, { name: "1929 Popeye", mirror: 1, team: 6, look: 1, skin: "#e3a07c", face: "hd-p.jpg", art: { L: { 0: "pp-b-l-0.jpg", 1: "pp-b-l-1.jpg", 2: "pp-b-l-2.jpg", 3: "pp-b-l-3.jpg", 4: "pp-b-l-4.jpg", 5: "pp-b-l-5.jpg", 6: "pp-b-l-6.jpg", 14: "pp-b-l-14.jpg" }, R: { 0: "pp-b-r-0.jpg", 1: "pp-b-r-1.jpg", 2: "pp-b-r-2.jpg", 3: "pp-b-r-3.jpg", 4: "pp-b-r-4.jpg", 5: "pp-b-r-5.jpg", 6: "pp-b-r-6.jpg", 14: "pp-b-r-14.jpg" } }}, { name: "Santa", mirror: 1, team: 6, look: 1, skin: "#c8834f", face: "hd-s.jpg", solo: { L: "sx-s-l.jpg", R: "sx-s-r.jpg" }, art: { L: { 0: "km-e-l-0.jpg", 1: "km-e-l-1.jpg", 2: "km-e-l-2.jpg", 3: "km-e-l-3.jpg", 4: "km-e-l-4.jpg", 5: "km-e-l-5.jpg", 6: "km-e-l-6.jpg", 14: "km-e-l-14.jpg" }, R: { 0: "km-e-r-0.jpg", 1: "km-e-r-1.jpg", 2: "km-e-r-2.jpg", 3: "km-e-r-3.jpg", 4: "km-e-r-4.jpg", 5: "km-e-r-5.jpg", 6: "km-e-r-6.jpg", 14: "km-e-r-14.jpg" } } }, { name: "The Grinch", mirror: 1, team: 6, look: 1, skin: "#9fb52e", face: "hd-g.jpg", solo: { L: "sx-g-l.jpg", R: "sx-g-r.jpg" }, art: { L: { 0: "km-e-l-0.jpg", 1: "km-e-l-1.jpg", 2: "km-e-l-2.jpg", 3: "km-e-l-3.jpg", 4: "km-e-l-4.jpg", 5: "km-e-l-5.jpg", 6: "km-e-l-6.jpg", 14: "km-e-l-14.jpg" }, R: { 0: "km-e-r-0.jpg", 1: "km-e-r-1.jpg", 2: "km-e-r-2.jpg", 3: "km-e-r-3.jpg", 4: "km-e-r-4.jpg", 5: "km-e-r-5.jpg", 6: "km-e-r-6.jpg", 14: "km-e-r-14.jpg" } } }] }; window.FL_POSTER = 1; window.FL_MUSIC = 1; } else if (__pm === 'allstar') { window.FL_INGAME = 1; window.FL_LOOK2 = 1; window.FL_PROMO = { tag: "Jai Alai Allstar Player Match Up", target: 15, adEvery: 5, modes: ["side", "aerial", "table"], teams: [14, 0, 1, 2, 3, 4, 5, 6], extra: [{ name: "Fantasy League", logo: "brand.png", ui: "#c4c5cb", kit: { jersey: "#141418", sash: "#2a2a30", helm: "#9a9ba2", num: "#ffffff", nk: { helm: "#9a9ba2", belt: "#3a3a42" } } }], kits: { 6: { jersey: "#1e2c58", sash: "#d8232f", belt: "#d8232f", helm: "#1e2c58", num: "#ffffff" } }, choose: true, slotTeams: [6, 6], blank: { L: { 0: "kh-blank-l-14.jpg", 1: "kh-blank-l-14.jpg", 2: "kh-blank-l-14.jpg", 3: "kh-blank-l-14.jpg", 4: "kh-blank-l-14.jpg", 5: "kh-blank-l-14.jpg", 6: "kh-blank-l-14.jpg", 14: "kh-blank-l-14.jpg" }, R: { 0: "kh-blank-r-14.jpg", 1: "kh-blank-r-14.jpg", 2: "kh-blank-r-14.jpg", 3: "kh-blank-r-14.jpg", 4: "kh-blank-r-14.jpg", 5: "kh-blank-r-14.jpg", 6: "kh-blank-r-14.jpg", 14: "kh-blank-r-14.jpg" } }, people: [{ name: "Johan", team: 6, look: 1, skin: "#60402b", face: "hd-aj.jpg", art: { L: { 0: "jg-j-l-0.jpg", 1: "jg-j-l-1.jpg", 2: "jg-j-l-2.jpg", 3: "jg-j-l-3.jpg", 4: "jg-j-l-4.jpg", 5: "jg-j-l-5.jpg", 6: "jg-j-l-6.jpg", 14: "jg-j-l-14.jpg" }, R: { 0: "jg-j-r-0.jpg", 1: "jg-j-r-1.jpg", 2: "jg-j-r-2.jpg", 3: "jg-j-r-3.jpg", 4: "jg-j-r-4.jpg", 5: "jg-j-r-5.jpg", 6: "jg-j-r-6.jpg", 14: "jg-j-r-14.jpg" } } }, { name: "Gorka", team: 6, look: 1, skin: "#503929", face: "hd-ag.jpg", art: { L: { 0: "jg-g-l-0.jpg", 1: "jg-g-l-1.jpg", 2: "jg-g-l-2.jpg", 3: "jg-g-l-3.jpg", 4: "jg-g-l-4.jpg", 5: "jg-g-l-5.jpg", 6: "jg-g-l-6.jpg", 14: "jg-g-l-14.jpg" }, R: { 0: "jg-g-r-0.jpg", 1: "jg-g-r-1.jpg", 2: "jg-g-r-2.jpg", 3: "jg-g-r-3.jpg", 4: "jg-g-r-4.jpg", 5: "jg-g-r-5.jpg", 6: "jg-g-r-6.jpg", 14: "jg-g-r-14.jpg" } } }, { name: "Benny Bueno", team: 6, look: 1, skin: "#633b25", face: "hd-an.jpg", art: { L: { 0: "jg-n-l-0.jpg", 1: "jg-n-l-1.jpg", 2: "jg-n-l-2.jpg", 3: "jg-n-l-3.jpg", 4: "jg-n-l-4.jpg", 5: "jg-n-l-5.jpg", 6: "jg-n-l-6.jpg", 14: "jg-n-l-14.jpg" }, R: { 0: "jg-n-r-0.jpg", 1: "jg-n-r-1.jpg", 2: "jg-n-r-2.jpg", 3: "jg-n-r-3.jpg", 4: "jg-n-r-4.jpg", 5: "jg-n-r-5.jpg", 6: "jg-n-r-6.jpg", 14: "jg-n-r-14.jpg" } } }, { name: "Joey Cornblit", team: 6, look: 1, skin: "#693e2a", face: "hd-ac.jpg", art: { L: { 0: "jg-c-l-0.jpg", 1: "jg-c-l-1.jpg", 2: "jg-c-l-2.jpg", 3: "jg-c-l-3.jpg", 4: "jg-c-l-4.jpg", 5: "jg-c-l-5.jpg", 6: "jg-c-l-6.jpg", 14: "jg-c-l-14.jpg" }, R: { 0: "jg-c-r-0.jpg", 1: "jg-c-r-1.jpg", 2: "jg-c-r-2.jpg", 3: "jg-c-r-3.jpg", 4: "jg-c-r-4.jpg", 5: "jg-c-r-5.jpg", 6: "jg-c-r-6.jpg", 14: "jg-c-r-14.jpg" } } }, { name: "JJ Goicoechea", team: 6, look: -1, skin: "#81472f", face: "hd-aq.jpg", art: { L: { 0: "jg-q-l-0.jpg", 1: "jg-q-l-1.jpg", 2: "jg-q-l-2.jpg", 3: "jg-q-l-3.jpg", 4: "jg-q-l-4.jpg", 5: "jg-q-l-5.jpg", 6: "jg-q-l-6.jpg", 14: "jg-q-l-14.jpg" }, R: { 0: "jg-q-r-0.jpg", 1: "jg-q-r-1.jpg", 2: "jg-q-r-2.jpg", 3: "jg-q-r-3.jpg", 4: "jg-q-r-4.jpg", 5: "jg-q-r-5.jpg", 6: "jg-q-r-6.jpg", 14: "jg-q-r-14.jpg" } } }] }; window.FL_POSTER = 1; window.FL_MUSIC = 1; } else {
 window.FL_LOOK2 = 1; window.FL_POSTER = 1; window.FL_MUSIC = 1;
+}
 /* ---------- Jai alai rules + physics (no DOM) ---------- */
 var Core = (function () {
   'use strict';
@@ -1938,7 +1942,7 @@ window.FLFeedback = (function () {
     catch (x) { id = track.tmp || (track.tmp = Math.random().toString(36).slice(2, 10) + 'tmp'); }
     try { fetch(url + '?e=' + e + '&u=' + id + (tags ? '&k=' + tags : ''), { mode: 'no-cors', keepalive: true, cache: 'no-store' }).catch(function () { /* counter unreachable: play on */ }); } catch (x) { /* ignore */ }
   }
-  track('visit');
+  if (!window.FL_INGAME && !window.FL_GOSTEP) track('visit');   // moving between the games inside the page is not a new visit
   var FACE_KEY = 'flja-face', faceImg = null;
   function setFace(url) {
     if (!url) { faceImg = null; return; }
@@ -2144,8 +2148,8 @@ window.FLFeedback = (function () {
       '<section class="wz-step" id="wz3" hidden>' + wzTop(3, 'Choose Where to Play') + '<div class="wz-tiles">' +
         '<button type="button" class="wz-tile" data-wz="league"><img src="brand.png" alt=""><span><b>League Play</b><i>Six Club Teams</i></span></button>' +
         '<button type="button" class="wz-tile" data-wz="world"><img src="usa-crest.png" alt=""><span><b>World Cup Play</b><i>Six National Teams</i></span></button>' +
-        '<a class="wz-tile" href="' + ALLSTAR_URL + '" target="_blank" rel="noopener">' + wzStar('#ffffff', '#ffffff', 'usa-crest.png') + '<span><b>All Star Players</b><i>Past &amp; Present All Star Roster</i></span></a>' +
-        '<a class="wz-tile" href="' + CELEB_URL + '" target="_blank" rel="noopener">' + wzStar('#c9a55c', '#e7c97e', 'brand.png') + '<span><b>Celebrity Players</b><i>Special Guests &amp; Limited Edition Collabs</i></span></a>' +
+        '<button type="button" class="wz-tile" data-wz="allstar">' + wzStar('#ffffff', '#ffffff', 'usa-crest.png') + '<span><b>All Star Players</b><i>Past &amp; Present All Star Roster</i></span></button>' +
+        '<button type="button" class="wz-tile" data-wz="celeb">' + wzStar('#c9a55c', '#e7c97e', 'brand.png') + '<span><b>Celebrity Players</b><i>Special Guests &amp; Limited Edition Collabs</i></span></button>' +
         (MULTI && !window.FL_VIEW3 ? '<button type="button" class="wz-tile" data-wz="hvp"><img src="hoots-crest.png" alt=""><span><b>Hoots vs Peaks</b><i>The Rivalry Match</i></span></button>' : '') +
         '</div></section>' +
       '<section class="wz-step" id="wz4" hidden>' + wzTop(4, 'Pick Your Teams') +
@@ -2233,6 +2237,7 @@ window.FLFeedback = (function () {
     if (a === 'aim-on' || a === 'aim-off') { cfg.guide = a === 'aim-on'; save(); wzPaint(); return true; }
     if (a === 'league' || a === 'world') { setComp(a); picked = [false, false]; wzShow(4); return true; }
     if (a === 'hvp') { WZ.hvp = true; hvpAsk(); return true; }
+    if (a === 'celeb' || a === 'allstar') { if (window.FL_NAV) window.FL_NAV(a); else window.open(a === 'celeb' ? CELEB_URL : ALLSTAR_URL, '_blank'); return true; }
     if (a === 'play') { if (net.role === 'guest') { $('wzMsg').textContent = 'Your friend is hosting: the match starts on their phone.'; return true; } if (net.role === 'host' && !net.peer) { $('wzMsg').textContent = 'Waiting for your friend to join with your code.'; return true; } if (!bothPicked()) { $('wzMsg').textContent = picked[0] || picked[1] ? 'Pick the other team.' : 'Pick both teams.'; return true; } $('wzMsg').textContent = ''; posterGo(); return true; }
     if (a === 'contact') { $('wzContact').hidden = false; $('wzCNote').textContent = ''; return true; }
     if (a === 'contact-close') { $('wzContact').hidden = true; return true; }
@@ -2240,6 +2245,7 @@ window.FLFeedback = (function () {
   }
   function wzHvpGo() { if (WZ && WZ.hvp) { WZ.hvp = false; setTimeout(posterGo, 50); } }   // Hoots vs Peaks from the step menu: straight into the match
   wzInit();
+  if (WZ && window.FL_GOSTEP) setTimeout(function () { wzShow(3); }, 0);   // back from Celebrity or All Star: land on Choose Where to Play
   elSetup.addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     if (WZ && b.dataset.wz && wzClick(b)) return;
@@ -4078,7 +4084,7 @@ window.FLFeedback = (function () {
   }
   function promoBuild() {
     var P = PROMO, NAMES = { aerial: 'Professional', side: 'Amateur', table: 'Cocktail Table' }, st = document.createElement('style'), F = 'var(--body,system-ui,sans-serif)';
-    st.textContent = '#promo .pm-back{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:max(14px,env(safe-area-inset-top,0px));z-index:2;color:#c9a55c;font:600 13px/1 ' + F + ';letter-spacing:.12em;text-transform:uppercase;text-decoration:none;padding:6px 0}' +
+    st.textContent = '#promo .pm-back{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:max(14px,env(safe-area-inset-top,0px));z-index:2;color:#c9a55c;font:600 13px/1 ' + F + ';letter-spacing:.12em;text-transform:uppercase;text-decoration:none;padding:6px 0;background:none;border:0;cursor:pointer}' +
       '#promo{position:fixed;inset:0;z-index:10040;background:#07070a;color:#f2efe6;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;justify-content:center;font-family:' + F + '}' +
       '#promo[hidden]{display:none}body.promo-open{overflow:hidden}' +
       '#promo .pm-in{width:100%;max-width:470px;min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:8px;padding:max(10px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}' +
@@ -4107,7 +4113,7 @@ window.FLFeedback = (function () {
     document.head.appendChild(st);
     var el = document.createElement('div'); el.id = 'promo'; el.hidden = true;
     var HOME = /github\.io$/.test(location.hostname) ? 'https://jpd-coder.github.io/FLJA-GAME/#setup' : 'https://claude.ai/artifact/R9qdfZutx585RNqNHore6o';   // back to the main game's menu
-    el.innerHTML = '<a class="pm-back" href="' + HOME + '">\u2039 Back</a><div class="pm-in"><div class="pm-tag">' + esc(P.tag) + '</div>' +
+    el.innerHTML = (window.FL_INGAME && window.FL_NAV ? '<button type="button" class="pm-back" id="pmBack">\u2039 Back</button>' : '<a class="pm-back" href="' + HOME + '">\u2039 Back</a>') + '<div class="pm-in"><div class="pm-tag">' + esc(P.tag) + '</div>' +
       '<div class="pm-art" role="img" aria-label="">' + [0, 1].map(function (i) { return '<img class="pm-half" data-i="' + i + '" alt="">'; }).join('') + '<span class="pm-vs" aria-hidden="true">VS</span></div>' +
       '<div class="pm-ctl"><div class="pm-lbl" id="pmAsL">Play as</div>' +
       '<div class="pm-row" role="group" aria-labelledby="pmAsL">' + [0, 1].map(function (i) { return '<button type="button" class="pm-name" data-i="' + i + '"><span></span><em></em></button>'; }).join('') + '</div>' +
@@ -4119,6 +4125,7 @@ window.FLFeedback = (function () {
       '<div class="pm-row pm-go"><button type="button" id="pmAds">Play with Ads</button><button type="button" id="pmFree">Play Ad Free<small>$0.99 per mo.</small></button></div>' +
       '<p class="pm-note">Preview: ad-free play is open at no charge during this test. Nothing is billed.</p></div></div>';
     document.body.appendChild(el); promoEl = el;
+    if (el.querySelector('#pmBack')) el.querySelector('#pmBack').addEventListener('click', function () { window.FL_NAV('step3'); });
     el.addEventListener('click', function (e) {
       var nb = e.target.closest('.pm-name'), mb = e.target.closest('.pm-modes button[data-m]');
       if (nb && !nb.disabled) { promoMe = +nb.getAttribute('data-i'); promoPaint(); }
@@ -4542,7 +4549,7 @@ window.FLFeedback = (function () {
   var RING = true, ringT0 = 0;
   function homeOn() { var b = document.getElementById('a2hs'); return b && !b.hidden ? 1.85 : 0; }   // room at the foot for the Play full screen banner
   function ringGeo() {
-    var top = u() * 4 + 22, home = homeOn() * 58, BTN = u() * 3.2 + 56 + 62 + home, foot = u() * 10.4 + BTN + 14;   // the "presents" line above; PLAY FREE, the buttons and Save to Home Screen below
+    var top = u() * 4 + 22, home = homeOn() * 58, BTN = 180 + home, foot = u() * 4.2 + BTN + 8;   // the "presents" line above; PLAY FREE, the buttons and Save to Home Screen below
     var R = Math.min((W / 2 - 10) / 1.23, (H - top - foot) / 2.46);   // badges sit on the ring and never run off the screen
     var L = Math.min(R * 0.46, 132);                                // badge size: twelve round the ring, never touching
     var block = 2 * R + L + foot, y0 = top + Math.max(0, (H - top - block - 12) / 2);   // the whole card centred on the screen
@@ -4681,6 +4688,7 @@ window.FLFeedback = (function () {
     var how = '';
     try { how = sessionStorage.getItem('flja-back') || ''; sessionStorage.removeItem('flja-back'); } catch (e) { how = ''; }
     if (!how && location.hash === '#setup') how = device();
+    if (!how && window.FL_GOSTEP) how = device();                   // back from Celebrity or All Star
     if (!how || !passOK()) return;
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ }
     setTimeout(function () { go(how === 'pc' ? 'pc' : 'mobile'); }, 0);
