@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261124233629";
+window.FL_BUILD = "20261124234604";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -1407,7 +1407,7 @@ if (typeof module !== 'undefined') module.exports = Core;
 window.FLFeedback = (function () {
   'use strict';
   var MODES = [['aerial', 'Professional'], ['side', 'Amateur'], ['table', 'Cocktail Table'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', 'Vintage']];
-  var K_PLAYED = 'flja-modes', K_DONE = 'flja-fb-done', WAIT = 8000, fullAt = 0, asked = false, box = null, state = function () { return { idle: false }; };
+  var K_PLAYED = 'flja-modes', K_DONE = 'flja-fb-done', K_ASKED = 'flja-fb-asked', WAIT = 8000, fullAt = 0, asked = false, box = null, state = function () { return { idle: false }; };
   function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private window: the survey still works, it just will not remember */ } }
   function playedSet() { var o = {}; try { o = JSON.parse(get(K_PLAYED) || '{}') || {}; } catch (e) { o = {}; } return o; }
@@ -1491,13 +1491,13 @@ window.FLFeedback = (function () {
   }
   /* between matches, once every mode has been played and they have not already answered: open it, once per visit */
   setInterval(function () {
-    if (window.FL_PROMO || asked || get(K_DONE) || !allPlayed()) return;   // a promo page never asks
+    if (window.FL_PROMO || asked || get(K_DONE) || get(K_ASKED) || !allPlayed()) return;   // a promo page never asks
     var s; try { s = state(); } catch (e) { s = { idle: false }; }
     if (!s) return;
-    if (s.idle) { open(); return; }
+    if (s.idle) { set(K_ASKED, '1'); open(); return; }               // it offers itself one time only: ignored or closed, it never pops up again (Give Feedback still opens it)
     if (!s.live) return;                                   // a match is running: give them a few seconds in the last mode, then pause it and ask
     if (!fullAt) fullAt = Date.now();
-    if (Date.now() - fullAt >= WAIT) { try { if (s.pause) s.pause(); } catch (e) { /* the survey still opens */ } open(); }
+    if (Date.now() - fullAt >= WAIT) { try { if (s.pause) s.pause(); } catch (e) { /* the survey still opens */ } set(K_ASKED, '1'); open(); }
   }, 1200);
   return { played: played, open: open, close: close, allPlayed: allPlayed, isOpen: function () { return !!(box && !box.hidden); }, bind: function (fn) { state = fn; } };
 })();
@@ -2762,6 +2762,8 @@ window.FLFeedback = (function () {
   function moveTip() {
     var el = $('moveTip'); if (!el || net.role) return;
     var pro = view === 'aerial', pc = window.FL_PLAY === 'pc' || !('ontouchstart' in window);
+    if (moveTip.seen[pro ? 1 : 0]) return;                         // shown once for each kind of joystick: changing modes or starting a new match does not bring it back
+    moveTip.seen[pro ? 1 : 0] = true;
     var stick = pro
       ? '<li><b style="display:inline;font:inherit;color:var(--gold);letter-spacing:0;text-transform:none">Joystick:</b> up runs toward the front wall, down toward the back wall, left and right step across the court. A small push walks, a full push runs.</li>'
       : '<li><b style="display:inline;font:inherit;color:var(--gold);letter-spacing:0;text-transform:none">Joystick:</b> push right to run toward the front wall, left toward the back wall. A small push walks, a full push runs.</li>';
@@ -2772,6 +2774,7 @@ window.FLFeedback = (function () {
     el.querySelector('.mt-body').innerHTML = html;
     el.hidden = false; tipOpen = true;
   }
+  moveTip.seen = [false, false];
   function moveTipClose() { var el = $('moveTip'); if (el) el.hidden = true; tipOpen = false; }
   if ($('moveTip')) { $('moveTip').addEventListener('click', function (e) { if (e.target.closest('.mt-x, .mt-go') || e.target.id === 'moveTip') moveTipClose(); }); }
   function startMatch(score) {
@@ -5025,7 +5028,7 @@ window.Table = (function () {
     var s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); s.buffer = b; f.type = 'bandpass'; f.frequency.value = 1100; f.Q.value = 0.6; g.gain.value = vol || 0.25; s.connect(f); f.connect(g); g.connect(ac.destination); s.start(); }
 
   /* ---- the match ---- */
-  var tip = false;
+  var tip = false, tipShown = false;                              // the how-to card shows the first time the table opens, not on every return to it
   var game = null, mode = 'intro', paused = false, target = null, joy = { id: null, x: 0, y: 0, ox: 0, oy: 0 }, tapT = 0, VRUN = 1350, lastZ = 0.5, throwReq = null, fightReq = false, fx = { rings: [], trail: [], bits: [], texts: [] }, T = 0, pressed = -1, pressT = 0, topHit = -1, topT = 0, glowPh = 0, serveOK = false;
   function newMatch(score) {
     game = Core.newGame({ seats: O.singles ? [1, 0, 0, 0] : [1, 1, 0, 0], solo: [!O.singles, false], singles: !!O.singles, target: O.target, level: O.level, rebHold: O.rebHold, firstServe: 0,
@@ -5271,7 +5274,7 @@ window.Table = (function () {
     if (!bound) { bound = true; cv.addEventListener('pointerdown', down); cv.addEventListener('pointermove', move); cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up); window.addEventListener('keydown', kd, true); window.addEventListener('keyup', ku, true); }
     FLOOR.forEach(function (f) { load(f[0]); }); load('brand.png'); load('fronton6.jpg'); load(O.teams[0].logo); load(O.teams[1].logo); if (O.teams[0].face) load(O.teams[0].face); if (O.teams[1].face) load(O.teams[1].face);
     layout(); game = null; mode = 'intro'; keys = {}; joy.id = null; joy.x = joy.y = 0;
-    tip = false; if (!O.intro) { newMatch(O.score); tip = true; }   // opened from the game: the how-to card first, every time
+    tip = false; if (!O.intro) { newMatch(O.score); tip = !tipShown; tipShown = true; }   // opened from the game: the how-to card first, every time
     if (!running) { running = true; last = performance.now(); raf = requestAnimationFrame(frame); }
   }
   function close() { running = false; cancelAnimationFrame(raf); if (cv) { cv.style.display = 'none'; } keys = {}; }

@@ -583,7 +583,7 @@ window.Table = (function () {
     var s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); s.buffer = b; f.type = 'bandpass'; f.frequency.value = 1100; f.Q.value = 0.6; g.gain.value = vol || 0.25; s.connect(f); f.connect(g); g.connect(ac.destination); s.start(); }
 
   /* ---- the match ---- */
-  var tip = false;
+  var tip = false, tipShown = false;                              // the how-to card shows the first time the table opens, not on every return to it
   var game = null, mode = 'intro', paused = false, target = null, joy = { id: null, x: 0, y: 0, ox: 0, oy: 0 }, tapT = 0, VRUN = 1350, lastZ = 0.5, throwReq = null, fightReq = false, fx = { rings: [], trail: [], bits: [], texts: [] }, T = 0, pressed = -1, pressT = 0, topHit = -1, topT = 0, glowPh = 0, serveOK = false;
   function newMatch(score) {
     game = Core.newGame({ seats: O.singles ? [1, 0, 0, 0] : [1, 1, 0, 0], solo: [!O.singles, false], singles: !!O.singles, target: O.target, level: O.level, rebHold: O.rebHold, firstServe: 0,
@@ -829,7 +829,7 @@ window.Table = (function () {
     if (!bound) { bound = true; cv.addEventListener('pointerdown', down); cv.addEventListener('pointermove', move); cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up); window.addEventListener('keydown', kd, true); window.addEventListener('keyup', ku, true); }
     FLOOR.forEach(function (f) { load(f[0]); }); load('brand.png'); load('fronton6.jpg'); load(O.teams[0].logo); load(O.teams[1].logo); if (O.teams[0].face) load(O.teams[0].face); if (O.teams[1].face) load(O.teams[1].face);
     layout(); game = null; mode = 'intro'; keys = {}; joy.id = null; joy.x = joy.y = 0;
-    tip = false; if (!O.intro) { newMatch(O.score); tip = true; }   // opened from the game: the how-to card first, every time
+    tip = false; if (!O.intro) { newMatch(O.score); tip = !tipShown; tipShown = true; }   // opened from the game: the how-to card first, every time
     if (!running) { running = true; last = performance.now(); raf = requestAnimationFrame(frame); }
   }
   function close() { running = false; cancelAnimationFrame(raf); if (cv) { cv.style.display = 'none'; } keys = {}; }
