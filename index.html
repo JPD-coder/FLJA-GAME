@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261124075442";
+window.FL_BUILD = "20261124080000";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -737,6 +737,11 @@ body.wiz { min-height: calc(100vh - 16px); min-height: calc(100dvh - 16px); }
 #wiz .wz-sel { height: 44px !important; min-height: 0 !important; flex: 1 1 0; padding-top: 0; padding-bottom: 0; }
 #wiz .wz-sel.wz-wide { flex: none; }
 @media (max-width: 430px) { #filmGo button#goGame { flex-basis: 310px; min-width: 0; } }
+
+/* menu steps: no top bar; Back sits top left on the Hoots vs Peaks door like the other pages */
+body.wiz.pv-setup #bar, body.wiz .app:has(#setup:not([hidden])) #bar { display: none !important; }
+#wiz .wz-step { min-height: calc(100vh - 66px); min-height: calc(100dvh - 66px); }
+#hvpGate .g-back { position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); top: max(14px, env(safe-area-inset-top, 0px)); width: auto !important; min-height: 0 !important; padding: 6px 0; border: 0 !important; background: none !important; color: #c9a55c !important; font: 600 13px/1 var(--body) !important; letter-spacing: .12em !important; text-transform: uppercase; }
 </style>
 </head>
 <body>
@@ -749,7 +754,7 @@ body.wiz { min-height: calc(100vh - 16px); min-height: calc(100dvh - 16px); }
 <div id="hvpGate" hidden><form id="hvpForm" autocomplete="off"><img class="g-art" src="hvp-door.jpg?v=2" alt="A Hooters player and a Twin Peaks player face off, each with a cesta">
 <div class="g-name">Members only</div><div class="g-big"><span class="ho">Hoots</span> vs <span class="pk">Peaks</span></div>
 <input id="hvpPass" name="flja-word2" type="text" inputmode="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" data-1p-ignore data-lpignore="true" enterkeyhint="go" aria-label="Hoots vs Peaks password" placeholder="Password">
-<button type="submit">Enter</button><button type="button" class="g-back" id="hvpBack">Back</button><div class="g-no" id="hvpNo" role="alert"></div></form></div>
+<button type="submit">Enter</button><button type="button" class="g-back" id="hvpBack">&#8249; Back</button><div class="g-no" id="hvpNo" role="alert"></div></form></div>
 <div id="moveTip" hidden role="dialog" aria-label="How to move"><div class="mt-card"><button type="button" class="mt-x" aria-label="Close">&times;</button><b>How to move</b><div class="mt-body"></div><button type="button" class="mt-go">Got it</button></div></div>
 <div id="poster" hidden><div class="pz"><div class="ph l"></div><div class="ph r"></div><div class="vs">VS</div></div><div class="side-txt"><div class="pn"></div><div class="pload"><span class="spin"></span>Loading match</div></div></div>
 <div id="film"><canvas id="filmCv"></canvas><div class="film-btns"><button id="filmSound" type="button">Sound on</button><button id="filmSkip" type="button">Skip</button></div><div id="filmGo" hidden><button id="goGame" type="button">Enter Game</button><i class="brk"></i><a id="goArena" href="arena.html">Enter Arena</a><i class="brk b2"></i><a id="goMerch" href="https://usjaialai.com" target="_blank" rel="noopener">Merch Store</a></div></div>
@@ -4073,7 +4078,8 @@ window.FLFeedback = (function () {
   }
   function promoBuild() {
     var P = PROMO, NAMES = { aerial: 'Professional', side: 'Amateur', table: 'Cocktail Table' }, st = document.createElement('style'), F = 'var(--body,system-ui,sans-serif)';
-    st.textContent = '#promo{position:fixed;inset:0;z-index:10040;background:#07070a;color:#f2efe6;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;justify-content:center;font-family:' + F + '}' +
+    st.textContent = '#promo .pm-back{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:max(14px,env(safe-area-inset-top,0px));z-index:2;color:#c9a55c;font:600 13px/1 ' + F + ';letter-spacing:.12em;text-transform:uppercase;text-decoration:none;padding:6px 0}' +
+      '#promo{position:fixed;inset:0;z-index:10040;background:#07070a;color:#f2efe6;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;justify-content:center;font-family:' + F + '}' +
       '#promo[hidden]{display:none}body.promo-open{overflow:hidden}' +
       '#promo .pm-in{width:100%;max-width:470px;min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:8px;padding:max(10px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}' +
       '#promo .pm-tag{text-align:center;font:800 11px/1.2 ' + F + ';letter-spacing:.2em;text-transform:uppercase;color:#c9a55c}' +
@@ -4100,7 +4106,8 @@ window.FLFeedback = (function () {
       '@media (orientation:landscape) and (max-height:560px){#promo .pm-in{max-width:none;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 18px}#promo .pm-tag{flex:0 0 100%}#promo .pm-art{width:min(46%, calc((100dvh - 50px) * 1.158))}#promo .pm-ctl{flex:0 1 400px;min-width:0;gap:6px}#promo select.pm-team{min-height:36px}#promo .pm-name{min-height:42px}#promo .pm-go button{min-height:46px}#promo .pm-modes button{min-height:38px}}';
     document.head.appendChild(st);
     var el = document.createElement('div'); el.id = 'promo'; el.hidden = true;
-    el.innerHTML = '<div class="pm-in"><div class="pm-tag">' + esc(P.tag) + '</div>' +
+    var HOME = /github\.io$/.test(location.hostname) ? 'https://jpd-coder.github.io/FLJA-GAME/#setup' : 'https://claude.ai/artifact/R9qdfZutx585RNqNHore6o';   // back to the main game's menu
+    el.innerHTML = '<a class="pm-back" href="' + HOME + '">\u2039 Back</a><div class="pm-in"><div class="pm-tag">' + esc(P.tag) + '</div>' +
       '<div class="pm-art" role="img" aria-label="">' + [0, 1].map(function (i) { return '<img class="pm-half" data-i="' + i + '" alt="">'; }).join('') + '<span class="pm-vs" aria-hidden="true">VS</span></div>' +
       '<div class="pm-ctl"><div class="pm-lbl" id="pmAsL">Play as</div>' +
       '<div class="pm-row" role="group" aria-labelledby="pmAsL">' + [0, 1].map(function (i) { return '<button type="button" class="pm-name" data-i="' + i + '"><span></span><em></em></button>'; }).join('') + '</div>' +
