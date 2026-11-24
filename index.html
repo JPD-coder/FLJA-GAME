@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261124195008";
+window.FL_BUILD = "20261124205434";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -728,6 +728,10 @@ body.wiz { min-height: calc(100vh - 16px); min-height: calc(100dvh - 16px); }
 #wiz .online-row { flex-wrap: nowrap; gap: 6px; } #wiz .online-row .ghost { flex: 1 1 0; padding: 8px 4px; font-size: 13px; white-space: nowrap; } #wiz .online-row input { flex: 0 0 84px; width: 84px; padding: 7px 4px; font-size: 16px; text-align: center; border: 1.5px solid #1fe0d6; border-radius: 6px; color: #fff; } #wiz .online-row input::placeholder { color: #8fb9b6; opacity: 1; }
 #wiz [data-wz="p2cpu"] { flex: 0 0 30%; } #wiz [data-wz="p2online"] { flex: 1 1 auto; white-space: nowrap; letter-spacing: .06em; }
 html.inplay, html.inplay body { overscroll-behavior: none; touch-action: none; }
+#wiz .wz-standby { background: rgba(5,6,8,.94); } #wiz .wz-standby h3 { margin: 0 0 8px; text-align: center; color: #ff2d95; font: 900 26px/1 var(--display); letter-spacing: .16em; text-transform: uppercase; animation: wzsb 1.4s ease-in-out infinite; }
+#wiz .wz-sbcode { margin: 0 0 10px; text-align: center; color: #9a9da6; font: 700 13px/1 var(--display); letter-spacing: .14em; text-transform: uppercase; } #wiz .wz-sbcode b { display: block; margin-top: 6px; color: #1fe0d6; font-size: 34px; letter-spacing: .22em; }
+#wiz .wz-standby .wz-atxt { text-align: center; margin-bottom: 14px; } @keyframes wzsb { 50% { opacity: .45; } }
+#wiz.wz-net [data-wz="celeb"], #wiz.wz-net [data-wz="allstar"], #wiz.wz-net [data-wz="hvp"], #wiz.wz-net [data-wz="skins"] { opacity: .3; pointer-events: none; }
 #wiz .wz-court { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 7px; }
 #wiz .wz-court span { display: block; margin-bottom: 4px; text-align: center; color: #9a9da6; font: 700 10.5px/1 var(--display); letter-spacing: .14em; text-transform: uppercase; }
 #wiz .wz-court .wz-seg button { min-height: 34px; padding: 4px 2px; }
@@ -2259,6 +2263,7 @@ window.FLFeedback = (function () {
         [['1928 Mickey', 'skin-mickey.jpg'], ['1926 Pooh', 'bh-b-l-14.jpg'], ['1929 Popeye', 'pp-b-l-14.jpg'], ['Santa', 'sx-s-l.jpg'], ['The Grinch', 'sx-g-l.jpg']].map(function (k) { return '<button type="button" class="wz-skin" data-wz="skin" data-skin="' + k[0] + '"><img src="' + k[1] + '?s=11" alt=""><b>' + k[0] + '</b></button>'; }).join('') +
         '<button type="button" class="wz-skin wz-you" data-wz="avatar"><span class="wz-youart"><img src="kh-blank-l-14.jpg?s=11" alt=""><i>?</i></span><b>Your Avatar</b></button>' +
         '</div></section>' +
+      '<div class="wz-pop wz-standby" id="wzStandby" hidden><div class="wz-popcard"><h3>Stand By</h3><p class="wz-sbcode">Game code <b id="wzSbCode"></b></p><p class="wz-atxt" id="wzSbMsg"></p><button type="button" class="wz-next" data-wz="standby-leave">Leave Game</button></div></div>' +
       '<div class="wz-pop" id="wzAvatar" hidden><form class="wz-popcard" id="wzAvatarForm" autocomplete="off"><h3>Your Avatar</h3>' +
         '<p class="wz-atxt">Send us two head shots, a front view and a side view, and we custom build an avatar of you to play in the game.</p>' +
         '<input id="wzAName" type="text" placeholder="Your name" aria-label="Your name" maxlength="80">' +
@@ -2356,6 +2361,15 @@ window.FLFeedback = (function () {
     if (n === 4 && !picked[0] && !picked[1]) { $('wzMsg').textContent = ''; }
     elSetup.scrollTop = 0; try { window.scrollTo(0, 0); } catch (e) { /* ignore */ }
     wzPaint();
+    wzNet();
+  }
+  function wzNet() {                                              // online: the person who joined waits here while the host picks everything
+    if (!WZ) return;
+    var sb = $('wzStandby'), g = net.role === 'guest' && mode === 'demo';
+    sb.hidden = !g;
+    $('wiz').classList.toggle('wz-net', !!net.role);
+    if (g) { $('wzSbCode').textContent = net.code; $('wzSbMsg').textContent = net.peer ? 'You are connected. Your friend is picking where to play and the teams. The match starts here on its own, so keep this screen open.' : 'Looking for that game. Check the code with your friend, and make sure they tapped Host a Game.'; }
+    if (net.role === 'host' && WZ.step === 4 && mode === 'demo') $('wzMsg').textContent = net.peer ? 'Your friend is standing by. Pick both teams, then tap Play.' : 'Waiting for your friend to join with code ' + net.code + '.';
   }
   function wzPaint() {
     if (!WZ || !$('wiz')) return;
@@ -2408,6 +2422,7 @@ window.FLFeedback = (function () {
       if (!cfg.seats[0] && !cfg.seats[1]) cfg.seats[1 - ci] = 1;   // you always play at least one of them
       cfg.seats[2] = 0; cfg.seats[3] = 0; save(); wzPaint(); return true;
     }
+    if (a === 'standby-leave') { netLeave(); buildSetup(); wzNet(); return true; }
     if (a === 'p2cpu') { WZ.p2 = 'cpu'; if (net.role) netLeave(); wzPaint(); return true; }
     if (a === 'p2online') { WZ.p2 = 'online'; renderOnline(); wzPaint(); return true; }
     if (a === 'lang-en' || a === 'lang-es') { cfg.lang = a === 'lang-en' ? 'en' : 'es'; save(); wzPaint(); return true; }
@@ -2680,6 +2695,7 @@ window.FLFeedback = (function () {
 
   /* ---------- modes ---------- */
   function show() {
+    if (WZ && $('wzStandby')) wzNet();
     document.documentElement.classList.toggle('inplay', mode === 'match' && !paused);
     var m = mode === 'match', over = m && game.phase === 'over';
     if (wantSides() !== sidesOn) buildPads();
@@ -4126,7 +4142,7 @@ window.FLFeedback = (function () {
   var GAME_URL = STANDALONE ? location.href.split('#')[0].split('?')[0] : 'https://claude.ai/artifact/J2go4JLG1gzsF4YWZYcDux';
   function inviteText() {
     return 'Play me in Fantasy League Jai Alai! Open ' + GAME_URL + (STANDALONE ? '' : ' (sign in to Claude with the email I invited)') +
-      ', tap Join and enter code ' + net.code + '.';
+      ', tap Enter Game, then Next, choose Play a Friend or Foe, type code ' + net.code + ' and tap Join With Code.';
   }
   function renderOnline() {
     var el = $('onlineBody'), h, nm = cfg.names, note = net.note ? '<p class="online-note">' + esc(net.note) + '</p>' : '';
@@ -4139,8 +4155,8 @@ window.FLFeedback = (function () {
         '<input id="onCode" maxlength="4" placeholder="CODE" aria-label="Game code" autocapitalize="characters" autocomplete="off" spellcheck="false"></div>' + note;
     } else if (net.role === 'host') {
       h = '<p class="online-code">Game code<b>' + esc(net.code) + '</b></p><p class="online-note">' +
-        (net.peer ? 'Your opponent is in. You play ' + esc(nm[0]) + ' and they play ' + esc(nm[1]) + '. Tap the court to start.'
-          : 'Give this code to your opponent. Waiting for them to join. You will play ' + esc(nm[0]) + '.') +
+        (net.peer ? 'Your friend is in and standing by. Tap Next, pick where to play and both teams, then tap Play to start the match on both phones.'
+          : 'Give this code to your friend. Then tap Next to pick where to play and both teams.') +
         '</p><div class="online-row">' +
         (STANDALONE ? '<a class="ghost" id="onText" href="sms:?&body=' + encodeURIComponent(inviteText()) + '">Text invite</a>' : '') +
         '<button type="button" class="ghost" id="onCopy" data-on="copy">Copy invite</button>' +
@@ -4151,6 +4167,7 @@ window.FLFeedback = (function () {
         (net.peer ? 'Connected. You play ' + esc(nm[1]) + '. Waiting for the host to start.' : 'Looking for that game. Check the code with the host.') +
         '</p><div class="online-row"><button type="button" class="ghost" id="onLeave" data-on="leave">Leave</button></div>';
     }
+    wzNet();
     if (el.dataset.h === h && el.firstChild) return;            // nothing changed: leave it alone. A phone's keyboard opening resizes the page, and redrawing the box here closed the keyboard.
     var oc = $('onCode'), keep = oc ? oc.value : '', foc = oc && document.activeElement === oc;
     el.dataset.h = h; el.innerHTML = h;
