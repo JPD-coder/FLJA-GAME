@@ -729,9 +729,8 @@ window.Table = (function () {
     ctx.save(); ctx.shadowColor = '#ff3a2a'; ctx.shadowBlur = joy.id != null ? 14 : 4; ctx.fillStyle = '#e0261c'; ctx.beginPath(); ctx.arc(JX + joy.x * L.jr * 0.6, JY + joy.y * L.jr * 0.6, L.jr * 0.42, 0, 6.3); ctx.fill(); ctx.restore();
     fIdx.forEach(function (i) {                                       // Fight: red, and pulsing while the fight is on (tap again to keep it going)
         var fb = btnPos(i), fon = game && game.players.some(function (q) { return q.human && q.fightT > game.t; }), fp = fon ? 0.5 + 0.5 * Math.sin(T * 12.5) : 0, fh = pressed === i && T - pressT < 0.18;
-        ctx.save(); ctx.globalAlpha = mode === 'play' && !paused ? 1 : 0.35; ctx.shadowColor = '#ff2a1a'; ctx.shadowBlur = 6 + 16 * fp; ctx.fillStyle = fon ? 'rgb(' + Math.round(26 + 198 * fp) + ',' + Math.round(11 + 46 * fp) + ',' + Math.round(11 + 33 * fp) + ')' : '#1a0b0b';
-        ctx.beginPath(); ctx.arc(fb.x, fb.y, fb.r * (fh ? 0.9 : 1 + 0.08 * fp), 0, 6.3); ctx.fill(); ctx.shadowBlur = 0; ctx.strokeStyle = '#e0392c'; ctx.lineWidth = 2.5; ctx.stroke();
-        ctx.fillStyle = fon && fp > 0.5 ? '#fff' : '#ff6a5c'; ctx.font = '900 ' + Math.max(8, fb.r * 0.42) + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('FIGHT', fb.x, fb.y + 1); ctx.restore();
+        var fz = L.jr * 0.84 * (fh ? 0.88 : 1 + 0.2 * fp);                // the \ud83d\udca5 symbol, as big as the joystick ball
+        ctx.save(); ctx.globalAlpha = mode === 'play' && !paused ? 1 : 0.4; ctx.shadowColor = '#ff3a2a'; ctx.shadowBlur = 5 + 14 * fp; ctx.font = fz + 'px system-ui,"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('\ud83d\udca5', fb.x, fb.y + fz * 0.06); ctx.restore();
     });
   }
   function drawFx(dt) {

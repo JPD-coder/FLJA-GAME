@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261125210712";
+window.FL_BUILD = "20261125211309";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -750,6 +750,12 @@ html:not(.fight-on) .pad .fightb, html:not(.fight-on) .fight-only { display: non
 #codeBox p { margin: 0; min-height: 18px; color: #c8cad0; font: 400 13px/1.4 var(--body); } #codeBox p.ok { color: #fff; font-weight: 700; }
 #codeBox button { min-height: 44px; border-radius: 999px; border: 1.5px solid #de0a7b; background: #de0a7b; color: #fff; font: 900 15px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
 #codeBox button#codeX { background: none; border-color: #3a3d46; color: #c8cad0; } #codeBox button:focus-visible, #codeBox input:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+/* Fight is shown as the \1F4A5 symbol, the size of the joystick ball */
+.pad .fightb, .pad .fightb.on { width: calc(var(--sc, 70px) * .67); height: calc(var(--sc, 70px) * .67); padding: 0; border: 0; border-radius: 50%; background: none; color: inherit; font-size: calc(var(--sc, 70px) * .56); line-height: 1; letter-spacing: 0; display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 0 5px rgba(255, 90, 40, .55)); }
+.pad .fightb:active { transform: scale(.88); }
+.pad .fightb.go { animation: fight-boom .5s ease-in-out infinite; } @keyframes fight-boom { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.22); filter: drop-shadow(0 0 12px #ff3a2a); } }
+@media (prefers-reduced-motion: reduce) { .pad .fightb.go { animation: none; background: none; filter: drop-shadow(0 0 12px #ff3a2a); } }
+#codeBox.won input, #codeBox.won button[type="submit"] { display: none; } #codeBox .code-boom { display: block; text-align: center; font-size: 54px; line-height: 1; margin-bottom: -10px; } #codeBox.won p { color: #e9e6df; font-size: 14px; text-align: left; }
 #wiz .wz-court { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 7px; }
 #wiz .wz-court span { display: block; margin-bottom: 4px; text-align: center; color: #9a9da6; font: 700 10.5px/1 var(--display); letter-spacing: .14em; text-transform: uppercase; }
 #wiz .wz-court .wz-seg button { min-height: 34px; padding: 4px 2px; }
@@ -909,7 +915,6 @@ body.wiz.pv-setup #bar, body.wiz .app:has(#setup:not([hidden])) #bar { display: 
         <div><dt><i class="sw s3"></i>Dos Paredes &middot; Two-Wall</dt><dd>A kill shot. The ball hits the side wall first, around line 3, then the front wall. It comes off the front wall dead and drops short, first bouncing around lines 4 to 9, and angles away across the court toward the open side. Running it down is close to impossible. Where the Costado carries deep, the Dos Paredes dies short. It is the one side-wall shot in every mode.</dd></div>
         <div><dt><i class="sw s2"></i>Cortada &middot; Cut <small>(Pro, Cocktail)</small></dt><dd>Caught in the front of the court and thrown low and hard into the middle of the front wall. It bounces and tails sharply into the side wall, and the speed and tight angle make it very hard to reach.</dd></div>
         <div><dt><i class="sw s4"></i>Costado &middot; Side Wall <small>(Pro, Cocktail)</small></dt><dd>A stylish, difficult backhand. The ball hits the side wall first, high up the court by line 2, then the front wall. It kicks off the front wall and carries deep and low, first bouncing around lines 8 to 14 and often reaching the back wall, skidding along the floor down the side-wall half of the court. Where the Dos Paredes dies short, the Costado carries deep.</dd></div>
-        <div class="fight-only"><dt><i class="sw" style="background:#d6322b"></i>Fight</dt><dd>The red button under Serve (E on a keyboard). Your player runs at the opponent about to field the ball and swings his cesta for 3 seconds: keep tapping to keep fighting. A player being hit can barely move or catch, so landing a hit first can win you the point.</dd></div>
       </dl>
       <p class="guide-note">Each shot shows where it will go on the wall and floor; red means a fault. The aim moves slower on Easy pace and faster on Hard.</p>
       <h3>3. Run and Catch</h3>
@@ -2571,7 +2576,7 @@ window.FLFeedback = (function () {
         for (var q = 0; q < set.length; q++) out += sb(only, set[q]);
         return out + langBtn();
       };
-      var serveBall = function (only) { return sb(only, 0, ' ball') + '<button type="button" class="fightb" data-seat="' + s + '" data-fo="' + only + '" data-act="F" title="Fight \u2014 run at the other side and swing your cesta at him; keep tapping to keep fighting">Fight</button>'; };   // Fight sits under Serve
+      var serveBall = function (only) { return sb(only, 0, ' ball') + '<button type="button" class="fightb" data-seat="' + s + '" data-fo="' + only + '" data-act="F" title="Fight \u2014 run at the other side and swing your cesta at him; keep tapping to keep fighting" aria-label="Fight">\ud83d\udca5</button>'; };   // Fight sits under Serve
       // four shot buttons sit above a box naming the player they belong to
       var box = function (only) { return '<div class="shotbox" data-box="' + only + '"><div class="shots">' + four(only) + '</div><div class="shot-label">' + (cfg.singles ? 'Singles' : only % 2 ? 'Back Court' : 'Front Court') + '</div></div>'; };
       var minis = '<div class="minis"><button type="button" class="mini" data-mini="menu" aria-label="New match">Menu</button>' +
@@ -2884,10 +2889,12 @@ window.FLFeedback = (function () {
         var v = $('codeIn').value.replace(/[\s\ufe0f]/g, ''), msg = $('codeMsg');
         if (v === '\ud83d\udca5') {
           try { localStorage.setItem('flja-fight', '1'); } catch (er) { /* private window */ } fightOn.mem = true; fightPaint();
-          msg.textContent = '\ud83d\udca5 Fight unlocked! Look for the red Fight button during a match.'; msg.className = 'ok'; $('codeIn').value = '';
+          box.classList.add('won'); box.querySelector('h3').textContent = 'Fight Unlocked'; $('codeX').textContent = 'Got It'; $('codeIn').value = '';
+          msg.innerHTML = '<span class="code-boom">\ud83d\udca5</span><br>The \ud83d\udca5 button under Serve (E on a keyboard). Your player runs at the opponent about to field the ball and swings his cesta for 3 seconds: keep tapping to keep fighting. A player being hit can barely move or catch, so landing a hit first can win you the point.';
         } else { msg.textContent = v ? 'That is not a code.' : 'Type a code first.'; msg.className = ''; }
       });
     }
+    box.classList.remove('won'); box.querySelector('h3').textContent = 'Enter Code'; $('codeX').textContent = 'Close';
     $('codeMsg').textContent = ''; $('codeIn').value = ''; box.hidden = false; try { $('codeIn').focus(); } catch (e) { /* ignore */ }
   }
   var vsTap = 0;
@@ -5247,9 +5254,8 @@ window.Table = (function () {
     ctx.save(); ctx.shadowColor = '#ff3a2a'; ctx.shadowBlur = joy.id != null ? 14 : 4; ctx.fillStyle = '#e0261c'; ctx.beginPath(); ctx.arc(JX + joy.x * L.jr * 0.6, JY + joy.y * L.jr * 0.6, L.jr * 0.42, 0, 6.3); ctx.fill(); ctx.restore();
     fIdx.forEach(function (i) {                                       // Fight: red, and pulsing while the fight is on (tap again to keep it going)
         var fb = btnPos(i), fon = game && game.players.some(function (q) { return q.human && q.fightT > game.t; }), fp = fon ? 0.5 + 0.5 * Math.sin(T * 12.5) : 0, fh = pressed === i && T - pressT < 0.18;
-        ctx.save(); ctx.globalAlpha = mode === 'play' && !paused ? 1 : 0.35; ctx.shadowColor = '#ff2a1a'; ctx.shadowBlur = 6 + 16 * fp; ctx.fillStyle = fon ? 'rgb(' + Math.round(26 + 198 * fp) + ',' + Math.round(11 + 46 * fp) + ',' + Math.round(11 + 33 * fp) + ')' : '#1a0b0b';
-        ctx.beginPath(); ctx.arc(fb.x, fb.y, fb.r * (fh ? 0.9 : 1 + 0.08 * fp), 0, 6.3); ctx.fill(); ctx.shadowBlur = 0; ctx.strokeStyle = '#e0392c'; ctx.lineWidth = 2.5; ctx.stroke();
-        ctx.fillStyle = fon && fp > 0.5 ? '#fff' : '#ff6a5c'; ctx.font = '900 ' + Math.max(8, fb.r * 0.42) + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('FIGHT', fb.x, fb.y + 1); ctx.restore();
+        var fz = L.jr * 0.84 * (fh ? 0.88 : 1 + 0.2 * fp);                // the \ud83d\udca5 symbol, as big as the joystick ball
+        ctx.save(); ctx.globalAlpha = mode === 'play' && !paused ? 1 : 0.4; ctx.shadowColor = '#ff3a2a'; ctx.shadowBlur = 5 + 14 * fp; ctx.font = fz + 'px system-ui,"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('\ud83d\udca5', fb.x, fb.y + fz * 0.06); ctx.restore();
     });
   }
   function drawFx(dt) {
