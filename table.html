@@ -753,7 +753,7 @@ window.Table = (function () {
     ctx.save(); ctx.shadowColor = '#ff3a2a'; ctx.shadowBlur = joy.id != null ? 14 : 4; ctx.fillStyle = '#e0261c'; ctx.beginPath(); ctx.arc(JX + joy.x * L.jr * 0.6, JY + joy.y * L.jr * 0.6, L.jr * 0.42, 0, 6.3); ctx.fill(); ctx.restore();
     fIdx.forEach(function (i) {                                       // Fight: red, and pulsing while the fight is on (tap again to keep it going)
         var fb = btnPos(i), zB = BTNS[i].s === 'Z', fon = game && game.players.some(function (q) { return q.human && (zB ? q.speedT : q.fightT) > game.t; }), fp = fon ? 0.5 + 0.5 * Math.sin(T * 12.5) : 0, fh = pressed === i && T - pressT < 0.18;
-        var fz = L.jr * 0.84 * (fh ? 0.88 : 1 + 0.2 * fp);                // the \ud83d\udca5 symbol, as big as the joystick ball
+        var fz = Math.min(L.jr * 0.84, fb.r * 1.75) * (fh ? 0.88 : 1 + 0.12 * fp);   // sized to the gap it sits in, so it never touches the joystick or the button beside it;                // the \ud83d\udca5 symbol, as big as the joystick ball
         ctx.save(); ctx.globalAlpha = mode === 'play' && !paused ? 1 : 0.4; ctx.shadowColor = zB ? '#7fd8ff' : '#ff3a2a'; ctx.shadowBlur = 5 + 14 * fp; ctx.font = fz + 'px system-ui,"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(zB ? '\u2744\ufe0f' : '\ud83d\udca5', fb.x, fb.y + fz * 0.06); ctx.restore();
     });
   }
