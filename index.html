@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261125213228";
+window.FL_BUILD = "20261125214056";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2923,22 +2923,31 @@ window.FLFeedback = (function () {
       box = document.createElement('div'); box.id = 'codeBox'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Enter a code');
       box.innerHTML = '<form><h3>Enter Code</h3><input id="codeIn" maxlength="12" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Code"><p id="codeMsg" role="status"></p><button type="submit">Enter</button><button type="button" id="codeX">Close</button></form>';
       document.body.appendChild(box);
-      box.addEventListener('click', function (e) { if (e.target === box || e.target.id === 'codeX') box.hidden = true; });
+      codeBox.next = function () {
+        var hit = codeBox.queue && codeBox.queue.shift(); if (!hit) return false;
+        box.classList.add('won'); box.querySelector('h3').textContent = CHEATS[hit][1]; $('codeX').textContent = 'Got It';
+        $('codeMsg').innerHTML = '<span class="code-boom">' + CHEATS[hit][0] + (hit === 'speed' ? '\ufe0f' : '') + '</span><br>' + CHEATS[hit][2];
+        return true;
+      };
+      box.addEventListener('click', function (e) { if (e.target === box || e.target.id === 'codeX') { if (!codeBox.next()) box.hidden = true; } });
       box.addEventListener('keydown', function (e) { if (e.key === 'Escape') box.hidden = true; e.stopPropagation(); });
       box.querySelector('form').addEventListener('submit', function (e) {
         e.preventDefault();
         var v = $('codeIn').value.replace(/[\s\ufe0f]/g, ''), msg = $('codeMsg');
-        var hit = null; for (var n in CHEATS) if (v.indexOf(CHEATS[n][0]) >= 0) hit = n;
-        if (hit) {
-          window['FL_' + hit.toUpperCase() + '_ON'] = true;
-          try { localStorage.setItem('flja-' + hit, '1'); } catch (er) { /* private window */ }
-          try { sessionStorage.setItem('flja-' + hit, '1'); } catch (er) { /* private window */ }
-          fightPaint();
-          box.classList.add('won'); box.querySelector('h3').textContent = CHEATS[hit][1]; $('codeX').textContent = 'Got It'; $('codeIn').value = '';
-          msg.innerHTML = '<span class="code-boom">' + CHEATS[hit][0] + (hit === 'speed' ? '\ufe0f' : '') + '</span><br>' + CHEATS[hit][2];
+        var hits = []; for (var n in CHEATS) if (v.indexOf(CHEATS[n][0]) >= 0) hits.push(n);
+        hits.sort(function (a, b) { return v.indexOf(CHEATS[a][0]) - v.indexOf(CHEATS[b][0]); });      // more than one code at once: each gets its own box, in the order typed
+        if (hits.length) {
+          hits.forEach(function (hit) {
+            window['FL_' + hit.toUpperCase() + '_ON'] = true;
+            try { localStorage.setItem('flja-' + hit, '1'); } catch (er) { /* private window */ }
+            try { sessionStorage.setItem('flja-' + hit, '1'); } catch (er) { /* private window */ }
+          });
+          fightPaint(); $('codeIn').value = '';
+          codeBox.queue = hits; codeBox.next();
         } else { msg.textContent = v ? 'That is not a code.' : 'Type a code first.'; msg.className = ''; }
       });
     }
+    codeBox.queue = [];
     box.classList.remove('won'); box.querySelector('h3').textContent = 'Enter Code'; $('codeX').textContent = 'Close';
     $('codeMsg').textContent = ''; $('codeIn').value = ''; box.hidden = false; try { $('codeIn').focus(); } catch (e) { /* ignore */ }
   }
