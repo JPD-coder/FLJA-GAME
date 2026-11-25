@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261125211309";
+window.FL_BUILD = "20261125211540";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2874,7 +2874,12 @@ window.FLFeedback = (function () {
     lastTap = now;
   }, { passive: false });
   // ---- secret code box. Tap the VS on any match-up screen twice to open it. The code \ud83d\udca5 unlocks the Fight button on this device.
-  function fightOn() { try { return localStorage.getItem('flja-fight') === '1'; } catch (e) { return !!fightOn.mem; } }
+  function fightOn() {                                            // remembered on the device where the browser allows it, and always for as long as the game stays open
+    if (window.FL_FIGHT_ON) return true;
+    try { if (localStorage.getItem('flja-fight') === '1') return (window.FL_FIGHT_ON = true); } catch (e) { /* storage blocked */ }
+    try { if (sessionStorage.getItem('flja-fight') === '1') return (window.FL_FIGHT_ON = true); } catch (e) { /* storage blocked */ }
+    return false;
+  }
   function fightPaint() { document.documentElement.classList.toggle('fight-on', fightOn()); }
   function codeBox() {
     var box = $('codeBox');
@@ -2887,8 +2892,11 @@ window.FLFeedback = (function () {
       box.querySelector('form').addEventListener('submit', function (e) {
         e.preventDefault();
         var v = $('codeIn').value.replace(/[\s\ufe0f]/g, ''), msg = $('codeMsg');
-        if (v === '\ud83d\udca5') {
-          try { localStorage.setItem('flja-fight', '1'); } catch (er) { /* private window */ } fightOn.mem = true; fightPaint();
+        if (v.indexOf('\ud83d\udca5') >= 0) {
+          window.FL_FIGHT_ON = true;
+          try { localStorage.setItem('flja-fight', '1'); } catch (er) { /* private window */ }
+          try { sessionStorage.setItem('flja-fight', '1'); } catch (er) { /* private window */ }
+          fightPaint();
           box.classList.add('won'); box.querySelector('h3').textContent = 'Fight Unlocked'; $('codeX').textContent = 'Got It'; $('codeIn').value = '';
           msg.innerHTML = '<span class="code-boom">\ud83d\udca5</span><br>The \ud83d\udca5 button under Serve (E on a keyboard). Your player runs at the opponent about to field the ball and swings his cesta for 3 seconds: keep tapping to keep fighting. A player being hit can barely move or catch, so landing a hit first can win you the point.';
         } else { msg.textContent = v ? 'That is not a code.' : 'Type a code first.'; msg.className = ''; }
@@ -5155,7 +5163,7 @@ window.Table = (function () {
 
   /* ---- input ---- */
   var ptrs = {};
-  function fightOK() { try { return localStorage.getItem('flja-fight') === '1'; } catch (e) { return false; } }   // Fight is a secret: it exists only after the code has been entered
+  function fightOK() { if (window.FL_FIGHT_ON) return true; try { return localStorage.getItem('flja-fight') === '1' || sessionStorage.getItem('flja-fight') === '1'; } catch (e) { return false; } }   // Fight is a secret: it exists only after the code has been entered
   function btnAt(p) { for (var i = 0; i < BTNS.length; i++) { if (BTNS[i].s === 'F' && !fightOK()) continue; var b = btnPos(i); if (Math.hypot(p.x - b.x, p.y - b.y) < b.r + 5) return i; } return -1; }
   function topAt(p) { if (p.y > L.wallH + 6) return -1; for (var i = 0; i < 4; i++) { var b = topPos(i); if (p.x >= b.x - 3 && p.x <= b.x + b.w + 3) return i; } return -1; }
   function courtPt(p) { return { x: Math.max(C.PMIN, Math.min(C.PMAX, C.FRONT - (p.y - L.cy) / L.u)), z: Math.max(0.08, Math.min(0.92, (p.x - L.cx) / L.cw)) }; }
