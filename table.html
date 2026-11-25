@@ -210,7 +210,7 @@ var Core = (function () {
     g.phase = 'serve'; g.server = team; g.lastTeam = team; g.rally = 0; g.pred = null;
     P[team * 2].x = C.LINES[10] - 14; P[team * 2 + 1].x = C.LINES[13];
     P[o * 2].x = g.cfg.singles ? C.LINES[7] : (C.LINES[5] + C.LINES[6]) / 2; P[o * 2 + 1].x = C.LINES[12] - 20;
-    P.forEach(function (p) { p.holdT = 0; p.cool = 0; p.vx = 0; p.anim = 0; p.ai = {}; p.z = p.zh; p.fightT = 0; p.fightTgt = -1; p.swing = 0; p.stun = 0; });
+    P.forEach(function (p) { p.holdT = 0; p.cool = 0; p.vx = 0; p.anim = 0; p.ai = {}; p.z = p.zh; p.fightT = 0; p.fightTgt = -1; p.swing = 0; p.speedT = 0; p.trail = null; p.stun = 0; });
     g.holder = team * 2;
     if (g.cfg.solo[0]) g.act[0] = 0;
     if (g.cfg.solo[1]) g.act[1] = 2;
@@ -348,6 +348,22 @@ var Core = (function () {
       p = P[i]; if (p.out) continue;
       if (inputs[i] && inputs[i].fight && ctl(g, p) && g.phase !== 'over' && g.holder !== i) { p.fightT = g.t + FIGHT_S; inputs[i].fight = false; }
       if (p.fightT && (p.fightT <= g.t || g.phase === 'over' || g.holder === i)) { p.fightT = 0; p.fightTgt = -1; p.swing = 0; }
+      /* Speed: a press sends his player, lightning fast, to where the other side's ball is going to land.
+         Pressed again while he is still dashing, he ricochets on to the next of the four walls instead: front wall, side wall, back wall, open side. */
+      if (inputs[i] && inputs[i].speed && ctl(g, p) && g.phase !== 'over' && g.holder !== i) {
+        inputs[i].speed = false;
+        var again = p.speedT > g.t, coming = g.phase === 'rally' && g.holder < 0 && g.lastTeam !== p.team;
+        if (!again && coming) {
+          var itS = intercept(g, p, false), bx = g.pred && g.pred.bounceX != null ? g.pred.bounceX : (itS ? itS.x : p.x);
+          p.spX = Math.max(C.PMIN, Math.min(C.PMAX, bx)); p.spZ = null; p.spBall = true;
+        } else {
+          p.spW = again || p.spW != null ? ((p.spW == null ? -1 : p.spW) + 1) % 4 : 0; p.spBall = false;
+          p.spX = p.spW === 0 ? C.PMAX : p.spW === 2 ? C.PMIN : p.x; p.spZ = p.spW === 1 ? 0.08 : p.spW === 3 ? 0.92 : p.z;
+          if (!g.lat && (p.spW === 1 || p.spW === 3)) { p.spX = p.spW === 1 ? (C.PMIN + C.PMAX) / 2 : p.x < (C.PMIN + C.PMAX) / 2 ? C.PMAX : C.PMIN; }   // seen from the side there are only two walls to run between
+        }
+        p.speedT = g.t + 0.5; p.trail = [];
+      }
+      if (p.speedT && (p.speedT <= g.t || g.phase === 'over' || g.holder === i)) { p.speedT = 0; p.trail = null; }
     }
     for (i = 0; i < 4; i++) {
       p = P[i]; if (p.out) continue;
@@ -394,6 +410,13 @@ var Core = (function () {
       if (g.holder === i || p.anim > 0 || g.phase === 'over') lz = 0;
       p.lz = lz;
       p.z = Math.max(0.08, Math.min(0.92, p.z + lz * (p.human ? C.LAT_V * (g.lat ? (g.cfg.latZ || 0.75) : 1) : ({ easy: 0.5, normal: 0.68, hard: 0.9 })[g.cfg.level] || 0.68) * dt));
+      if (p.speedT > g.t && g.holder !== i && !(p.stun > g.t)) {       // the dash itself: across the whole court in about a third of a second
+        var sdx = p.spX - p.x, sst = 5200 * dt, zt2 = p.spZ;
+        if (p.spBall) zt2 = g.flags.hitFront ? g.ball.z + g.ball.vz * 0.2 : (g.flags.zT != null ? g.flags.zT : p.z);
+        if (p.trail) { p.trail.push({ x: p.x, z: p.z }); if (p.trail.length > 4) p.trail.shift(); }
+        p.x = Math.max(C.PMIN, Math.min(C.PMAX, p.x + Math.max(-sst, Math.min(sst, sdx)))); p.vx = Math.abs(sdx) > 4 ? (sdx > 0 ? 300 : -300) : 0; p.run += Math.min(Math.abs(sdx), sst);
+        if (zt2 != null) { var sdz = Math.max(0.08, Math.min(0.92, zt2)) - p.z; p.z += Math.max(-3.4 * dt, Math.min(3.4 * dt, sdz)); }
+      }
       if (p.jump > 0 && p.wall) {                                  // up the side wall: the foot is on it as he rises, then he swings back off it
         var jw = 1 - p.jump / 0.8;
         p.z = jw < 0.34 ? 0.02 : 0.02 + (p.zh - 0.02) * Math.min(1, (jw - 0.34) / 0.5);
@@ -490,7 +513,7 @@ window.Table = (function () {
   var C = Core.C, cv = null, ctx = null, O = null, running = false, raf = 0, bound = false;
   var DEF = { teams: [{ n: 'Square Groupers', logo: 'team-a.png', c1: '#c6ee32', c2: '#fcfc04' }, { n: 'Peloteros', logo: 'team-b.png', c1: '#f52f9b', c2: '#3cb5e4' }], singles: true, target: 15, level: 'normal', pace: 0.88, rebHold: 2, sound: true, score: null, intro: true, ads: 0, hooks: {}, names: ['Serve', 'Throw', 'Rebound', 'Cut', 'Two-Wall', 'Side Wall'] };   // names[0] is the serve, then the five shots in core order; English unless the game hands over others
   /* six buttons: three to the left of the stick, three to the right. s = core shot index, -1 = the serve */
-  var BTNS = [{ s: -1 }, { s: 0 }, { s: 1 }, { s: 3 }, { s: 2 }, { s: 4 }, { s: 'F', side: -1 }, { s: 'F', side: 1 }];   // the last two are Fight: one beside Rebound, one beside Side Wall
+  var BTNS = [{ s: -1 }, { s: 0 }, { s: 1 }, { s: 3 }, { s: 2 }, { s: 4 }, { s: 'F', side: -1 }, { s: 'Z', side: 1 }];   // the last two are Fight: one beside Rebound, one beside Side Wall
   var TOP = [{ k: 'menu', n: 'MENU' }, { k: 'mode', n: 'MODE' }, { k: 'music', n: '♪' }, { k: 'pause', n: 'PAUSE' }];
   var SHOTCOL = ['#f52f9b', '#3cb5e4', '#fcfc04', '#c6ee32', '#8f0bcd'];
   /* painted on the floor: three club logos in a line between lines 1 and 3, three between 12 and 14, all one size, and the Fantasy League mark in the middle */
@@ -529,7 +552,7 @@ window.Table = (function () {
   function toLogical(e) { return turn === 1 ? { x: vh - e.clientY, y: e.clientX } : turn === 2 ? { x: e.clientY, y: vw - e.clientX } : { x: e.clientX - ox, y: e.clientY }; }
   function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r); c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h); c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r); c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath(); }
   function btnPos(i) {
-    if (BTNS[i].s === 'F') {                                       // Fight: in the gap on the bottom row between the joystick and Rebound (left) or Side Wall (right)
+    if (BTNS[i].s === 'F' || BTNS[i].s === 'Z') {                  // Fight (left) and Speed (right): in the gap on the bottom row between the joystick and Rebound (left) or Side Wall (right)
       var sd = BTNS[i].side, sw0 = W / 2 - L.jr - 10, cx0 = sd < 0 ? sw0 / 2 + 2 : W - sw0 / 2 - 2, jEdge = W / 2 + sd * L.jr;
       var a0 = cx0 - sd * L.br, gap = Math.abs(jEdge - a0), fr = Math.min(L.br * 0.56, gap / 2 - 3);
       return { x: (a0 + jEdge) / 2, y: L.barY + L.barH * 0.74, r: fr };
@@ -584,7 +607,7 @@ window.Table = (function () {
 
   /* ---- the match ---- */
   var tip = false, tipShown = false;                              // the how-to card shows the first time the table opens, not on every return to it
-  var game = null, mode = 'intro', paused = false, target = null, joy = { id: null, x: 0, y: 0, ox: 0, oy: 0 }, tapT = 0, VRUN = 1350, lastZ = 0.5, throwReq = null, fightReq = false, fx = { rings: [], trail: [], bits: [], texts: [] }, T = 0, pressed = -1, pressT = 0, topHit = -1, topT = 0, glowPh = 0, serveOK = false;
+  var game = null, mode = 'intro', paused = false, target = null, joy = { id: null, x: 0, y: 0, ox: 0, oy: 0 }, tapT = 0, VRUN = 1350, lastZ = 0.5, throwReq = null, fightReq = false, speedReq = false, fx = { rings: [], trail: [], bits: [], texts: [] }, T = 0, pressed = -1, pressT = 0, topHit = -1, topT = 0, glowPh = 0, serveOK = false;
   function newMatch(score) {
     game = Core.newGame({ seats: O.singles ? [1, 0, 0, 0] : [1, 1, 0, 0], solo: [!O.singles, false], singles: !!O.singles, target: O.target, level: O.level, rebHold: O.rebHold, firstServe: 0,
       latK: 1, latAcc: 1e6, latZ: 1 }); tune();
@@ -631,11 +654,12 @@ window.Table = (function () {
   /* ---- input ---- */
   var ptrs = {};
   function fightOK() { if (window.FL_FIGHT_ON) return true; try { return localStorage.getItem('flja-fight') === '1' || sessionStorage.getItem('flja-fight') === '1'; } catch (e) { return false; } }   // Fight is a secret: it exists only after the code has been entered
-  function btnAt(p) { for (var i = 0; i < BTNS.length; i++) { if (BTNS[i].s === 'F' && !fightOK()) continue; var b = btnPos(i); if (Math.hypot(p.x - b.x, p.y - b.y) < b.r + 5) return i; } return -1; }
+  function cheatOK(n) { if (window['FL_' + n.toUpperCase() + '_ON']) return true; try { return localStorage.getItem('flja-' + n) === '1' || sessionStorage.getItem('flja-' + n) === '1'; } catch (e) { return false; } }
+  function btnAt(p) { for (var i = 0; i < BTNS.length; i++) { if ((BTNS[i].s === 'F' && !fightOK()) || (BTNS[i].s === 'Z' && !cheatOK('speed'))) continue; var b = btnPos(i); if (Math.hypot(p.x - b.x, p.y - b.y) < b.r + 5) return i; } return -1; }
   function topAt(p) { if (p.y > L.wallH + 6) return -1; for (var i = 0; i < 4; i++) { var b = topPos(i); if (p.x >= b.x - 3 && p.x <= b.x + b.w + 3) return i; } return -1; }
   function courtPt(p) { return { x: Math.max(C.PMIN, Math.min(C.PMAX, C.FRONT - (p.y - L.cy) / L.u)), z: Math.max(0.08, Math.min(0.92, (p.x - L.cx) / L.cw)) }; }
   function setJoy(p) { var dx = (p.x - joy.ox) / L.jr, dy = (p.y - joy.oy) / L.jr, m = Math.hypot(dx, dy); if (m > 1) { joy.ox += (dx - dx / m) * L.jr; joy.oy += (dy - dy / m) * L.jr; dx /= m; dy /= m; } joy.x = dx; joy.y = dy; }   // the stick's centre is wherever the thumb came down, and it follows a thumb that drags past the rim, so the thumb never loses it
-  function fire(i) { pressed = i; pressT = T; if (BTNS[i].s === 'F') { if (!paused && !tip && mode === 'play') fightReq = true; return; } if (!holding() || paused) { tone(120, 0.05, 'sine', 0.05); return; } var s = BTNS[i].s, serve = game.flags.serve; if (serve ? s === -1 : s >= 0) throwReq = serve ? 0 : s; else tone(120, 0.05, 'sine', 0.05); }
+  function fire(i) { pressed = i; pressT = T; if (BTNS[i].s === 'Z') { if (!paused && !tip && mode === 'play') speedReq = true; return; } if (BTNS[i].s === 'F') { if (!paused && !tip && mode === 'play') fightReq = true; return; } if (!holding() || paused) { tone(120, 0.05, 'sine', 0.05); return; } var s = BTNS[i].s, serve = game.flags.serve; if (serve ? s === -1 : s >= 0) throwReq = serve ? 0 : s; else tone(120, 0.05, 'sine', 0.05); }
   function topDo(i) { topHit = i; topT = T; var k = TOP[i].k, h = O.hooks || {};
     if (k === 'pause') { if (mode === 'play') paused = !paused; }
     else if (k === 'music') { if (h.music) h.music(); }
@@ -718,7 +742,7 @@ window.Table = (function () {
   function drawControls() {
     var me = holding() && !paused, serve = game && game.flags.serve, i, fIdx = [];
     for (i = 0; i < BTNS.length; i++) {
-      if (BTNS[i].s === 'F') { if (fightOK()) fIdx.push(i); continue; }           // the Fight buttons are drawn after the joystick
+      if (BTNS[i].s === 'F' || BTNS[i].s === 'Z') { if (BTNS[i].s === 'F' ? fightOK() : cheatOK('speed')) fIdx.push(i); continue; }           // the Fight buttons are drawn after the joystick
       var b = btnPos(i), s = BTNS[i].s, col = s < 0 ? '#ffffff' : SHOTCOL[s], on = me && (serve ? s < 0 : s >= 0), hit = pressed === i && T - pressT < 0.18;
       ctx.globalAlpha = on ? 1 : 0.3; ctx.save(); if (on) { ctx.shadowColor = s < 0 && serveOK ? '#ff2a1a' : col; ctx.shadowBlur = 10 + 6 * Math.sin(T * 7); } ctx.fillStyle = col; ctx.beginPath(); ctx.arc(b.x, b.y, b.r * (hit ? 0.9 : 1), 0, 6.3); ctx.fill(); ctx.restore();
       if (s < 0) { ctx.strokeStyle = '#e0392c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(b.x, b.y, b.r - 2.5, 0, 6.3); ctx.stroke(); }
@@ -728,9 +752,9 @@ window.Table = (function () {
     ctx.fillStyle = 'rgba(242,239,230,.35)'; var q = L.jr * 0.82; [[0, -q, 0], [q, 0, 1.57], [0, q, 3.14], [-q, 0, 4.71]].forEach(function (a) { ctx.save(); ctx.translate(JX + a[0], JY + a[1]); ctx.rotate(a[2]); ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(5, 3); ctx.lineTo(-5, 3); ctx.closePath(); ctx.fill(); ctx.restore(); });
     ctx.save(); ctx.shadowColor = '#ff3a2a'; ctx.shadowBlur = joy.id != null ? 14 : 4; ctx.fillStyle = '#e0261c'; ctx.beginPath(); ctx.arc(JX + joy.x * L.jr * 0.6, JY + joy.y * L.jr * 0.6, L.jr * 0.42, 0, 6.3); ctx.fill(); ctx.restore();
     fIdx.forEach(function (i) {                                       // Fight: red, and pulsing while the fight is on (tap again to keep it going)
-        var fb = btnPos(i), fon = game && game.players.some(function (q) { return q.human && q.fightT > game.t; }), fp = fon ? 0.5 + 0.5 * Math.sin(T * 12.5) : 0, fh = pressed === i && T - pressT < 0.18;
+        var fb = btnPos(i), zB = BTNS[i].s === 'Z', fon = game && game.players.some(function (q) { return q.human && (zB ? q.speedT : q.fightT) > game.t; }), fp = fon ? 0.5 + 0.5 * Math.sin(T * 12.5) : 0, fh = pressed === i && T - pressT < 0.18;
         var fz = L.jr * 0.84 * (fh ? 0.88 : 1 + 0.2 * fp);                // the \ud83d\udca5 symbol, as big as the joystick ball
-        ctx.save(); ctx.globalAlpha = mode === 'play' && !paused ? 1 : 0.4; ctx.shadowColor = '#ff3a2a'; ctx.shadowBlur = 5 + 14 * fp; ctx.font = fz + 'px system-ui,"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('\ud83d\udca5', fb.x, fb.y + fz * 0.06); ctx.restore();
+        ctx.save(); ctx.globalAlpha = mode === 'play' && !paused ? 1 : 0.4; ctx.shadowColor = zB ? '#7fd8ff' : '#ff3a2a'; ctx.shadowBlur = 5 + 14 * fp; ctx.font = fz + 'px system-ui,"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(zB ? '\u2744\ufe0f' : '\ud83d\udca5', fb.x, fb.y + fz * 0.06); ctx.restore();
     });
   }
   function drawFx(dt) {
@@ -806,6 +830,7 @@ window.Table = (function () {
       else if (!holding()) lastZ = 0.5;
       if (throwReq != null && holding()) { var hp = game.players[game.holder], serve = game.flags.serve; inp.throw = true; inp.hard = serve ? 0 : throwReq; if (!serve) inp.angle = pickAngle(hp, throwReq); inp.lat = lastZ < 0.38 ? -1 : lastZ > 0.62 ? 1 : 0; }   // the serve goes at whatever the sweep is on right now
       if (fightReq) inp.fight = true; fightReq = false;
+      if (speedReq) inp.speed = true; speedReq = false;
       throwReq = null;
       Core.step(game, dt * O.pace, [inp, inp, {}, {}]); events();
     }
