@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261125211540";
+window.FL_BUILD = "20261125212301";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -743,7 +743,7 @@ html.inplay, html.inplay body { overscroll-behavior: none; touch-action: none; }
 @media (prefers-reduced-motion: reduce) { #film *, #film *::before, #film *::after, #gate *, #wiz *, #wiz *::before, #wiz *::after, #fb * { animation-duration: .001s !important; animation-iteration-count: 1 !important; transition-duration: .001s !important; scroll-behavior: auto !important; } }
 html:not(.fight-on) .pad .fightb, html:not(.fight-on) .fight-only { display: none !important; }
 #wiz .wz-vs b { -webkit-user-select: none; user-select: none; padding: 6px 10px; }
-#codeBox { position: fixed; inset: 0; z-index: 400; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(5,6,8,.9); } #codeBox[hidden] { display: none; }
+#codeBox { position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(5,6,8,.9); } #codeBox[hidden] { display: none; }
 #codeBox form { width: min(320px, 100%); padding: 18px; border: 1.5px solid #1fe0d6; border-radius: 16px; background: #0b0c0f; display: flex; flex-direction: column; gap: 10px; text-align: center; }
 #codeBox h3 { margin: 0; color: #1fe0d6; font: 900 18px/1 var(--display); letter-spacing: .18em; text-transform: uppercase; }
 #codeBox input { padding: 10px; border: 1.5px solid #1fe0d6; border-radius: 10px; background: #14161b; color: #fff; font: 700 26px/1.2 var(--body); text-align: center; }
@@ -2907,7 +2907,11 @@ window.FLFeedback = (function () {
   }
   var vsTap = 0;
   document.addEventListener('click', function (e) {
-    var t = e.target; if (!t || !t.closest || !t.closest('.wz-vs b, .pm-vs, .vs')) return;
+    if (mode === 'match' && !paused) return;
+    var hit = [].some.call(document.querySelectorAll('.wz-vs b, .pm-vs, .vs'), function (v) {    // by position: on some screens another layer sits over the VS
+      var r = v.getBoundingClientRect(); return r.width > 0 && e.clientX >= r.left - 8 && e.clientX <= r.right + 8 && e.clientY >= r.top - 8 && e.clientY <= r.bottom + 8;
+    });
+    if (!hit) return;
     var now = Date.now(); if (now - vsTap < 500) { vsTap = 0; codeBox(); } else vsTap = now;
   });
   fightPaint();
