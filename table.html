@@ -630,7 +630,8 @@ window.Table = (function () {
 
   /* ---- input ---- */
   var ptrs = {};
-  function btnAt(p) { for (var i = 0; i < BTNS.length; i++) { var b = btnPos(i); if (Math.hypot(p.x - b.x, p.y - b.y) < b.r + 5) return i; } return -1; }
+  function fightOK() { try { return localStorage.getItem('flja-fight') === '1'; } catch (e) { return false; } }   // Fight is a secret: it exists only after the code has been entered
+  function btnAt(p) { for (var i = 0; i < BTNS.length; i++) { if (BTNS[i].s === 'F' && !fightOK()) continue; var b = btnPos(i); if (Math.hypot(p.x - b.x, p.y - b.y) < b.r + 5) return i; } return -1; }
   function topAt(p) { if (p.y > L.wallH + 6) return -1; for (var i = 0; i < 4; i++) { var b = topPos(i); if (p.x >= b.x - 3 && p.x <= b.x + b.w + 3) return i; } return -1; }
   function courtPt(p) { return { x: Math.max(C.PMIN, Math.min(C.PMAX, C.FRONT - (p.y - L.cy) / L.u)), z: Math.max(0.08, Math.min(0.92, (p.x - L.cx) / L.cw)) }; }
   function setJoy(p) { var dx = (p.x - joy.ox) / L.jr, dy = (p.y - joy.oy) / L.jr, m = Math.hypot(dx, dy); if (m > 1) { joy.ox += (dx - dx / m) * L.jr; joy.oy += (dy - dy / m) * L.jr; dx /= m; dy /= m; } joy.x = dx; joy.y = dy; }   // the stick's centre is wherever the thumb came down, and it follows a thumb that drags past the rim, so the thumb never loses it
@@ -717,7 +718,7 @@ window.Table = (function () {
   function drawControls() {
     var me = holding() && !paused, serve = game && game.flags.serve, i, fIdx = [];
     for (i = 0; i < BTNS.length; i++) {
-      if (BTNS[i].s === 'F') { fIdx.push(i); continue; }           // the Fight buttons are drawn after the joystick
+      if (BTNS[i].s === 'F') { if (fightOK()) fIdx.push(i); continue; }           // the Fight buttons are drawn after the joystick
       var b = btnPos(i), s = BTNS[i].s, col = s < 0 ? '#ffffff' : SHOTCOL[s], on = me && (serve ? s < 0 : s >= 0), hit = pressed === i && T - pressT < 0.18;
       ctx.globalAlpha = on ? 1 : 0.3; ctx.save(); if (on) { ctx.shadowColor = s < 0 && serveOK ? '#ff2a1a' : col; ctx.shadowBlur = 10 + 6 * Math.sin(T * 7); } ctx.fillStyle = col; ctx.beginPath(); ctx.arc(b.x, b.y, b.r * (hit ? 0.9 : 1), 0, 6.3); ctx.fill(); ctx.restore();
       if (s < 0) { ctx.strokeStyle = '#e0392c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(b.x, b.y, b.r - 2.5, 0, 6.3); ctx.stroke(); }
