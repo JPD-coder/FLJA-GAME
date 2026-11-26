@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126161443";
+window.FL_BUILD = "20261126163854";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2802,8 +2802,8 @@ window.FLFeedback = (function () {
     el.innerHTML = '<div class="ch-in"><div class="ch-tag">' + chTitle() + '</div>' + head + chBracket() + '<div class="ch-go">' + go + '</div></div>';
     el.hidden = false; try { el.querySelector('button').focus(); } catch (e) { /* ignore */ }
   }
-  /* ---------- League draft for the Fantasy League Championship: the 24-man Dania roster (Gorka and Johan added), four tiers of six,
-     a lottery for the order, then four snake rounds locked to the tiers (round 1 from Tier 1 ...). Every club ends with two front and two back courters.
+  /* ---------- League draft for the Fantasy League Championship: the 24-man Dania roster (Gorka and Johan added) plus eight free agents,
+     a lottery for the order, then four snake rounds from the open pool under a 10-point cap (Tier 1 costs 4 ... Tier 4 costs 1). Every club ends with two front and two back courters.
      Skip Draft lets the CPU pick every roster; a finished draft can be saved on this phone. Ratings are game ratings, not real statistics. ---------- */
   var DP = [   // number, name, position, height, tier, overall, hometown
     [15, 'Javier', 'F', '5\'9"', 1, 93, 'Markina'], [27, 'Libois', 'F', '6\'1"', 1, 91, 'Bayonne'], [8, 'Gorka', 'F', '5\'10"', 1, 92, 'Donostia'],
@@ -2814,16 +2814,18 @@ window.FLFeedback = (function () {
     [21, 'Danel', 'B', '5\'11"', 3, 80, 'Mutriku'], [26, 'Argoitia', 'B', '6\'0"', 3, 79, 'Azpeitia'], [67, 'Pierre', 'B', '6\'0"', 3, 76, 'Anglet'],
     [99, 'Bixente', 'F', '5\'8"', 4, 74, 'Ustaritz'], [91, 'Amets', 'F', '5\'7"', 4, 72, 'Zarautz'], [58, 'Tambour', 'F', '5\'6"', 4, 70, 'Pau'],
     [10, 'Aratz', 'B', '5\'8"', 4, 74, 'Tolosa'], [42, 'Montamat', 'B', '5\'9"', 4, 72, 'Mauleon'], [48, 'Ekhi', 'B', '5\'9"', 4, 70, 'Hernani'],
-    [3, 'Zubiaurre', 'F', '5\'10"', 1, 89, 'Elgoibar', 1], [44, 'Etxarri', 'B', '6\'1"', 2, 85, 'Oiartzun', 1], [61, 'Urkiola', 'F', '5\'9"', 3, 78, 'Bermeo', 1], [77, 'Lasaga', 'B', '6\'0"', 4, 71, 'Errenteria', 1]];   // the last four join only with an expansion club
-  var DT = ['', 'Elite', 'Starter', 'Rotation', 'Prospect'], DTC = ['', '#e8c25a', '#c9ced6', '#d08a4e', '#7fb3c8'];
+    [3, 'Zubiaurre', 'F', '5\'10"', 1, 89, 'Elgoibar', 1], [44, 'Etxarri', 'B', '6\'1"', 2, 85, 'Oiartzun', 1], [61, 'Urkiola', 'F', '5\'9"', 3, 78, 'Bermeo', 1], [77, 'Lasaga', 'B', '6\'0"', 4, 71, 'Errenteria', 1],   // those four join only with an expansion club; the eight below are free agents, always in the pool
+    [4, 'Goikoetxea', 'F', '5\'10"', 1, 88, 'Azkoitia', 0, 1], [5, 'Albizu', 'B', '6\'1"', 1, 88, 'Bergara', 0, 1], [6, 'Larrinaga', 'F', '5\'8"', 2, 84, 'Gernika', 0, 1], [7, 'Elizondo', 'B', '6\'0"', 2, 83, 'Baztan', 0, 1],
+    [9, 'Mendiola', 'F', '5\'9"', 3, 77, 'Arrasate', 0, 1], [12, 'Uribarri', 'B', '6\'0"', 3, 77, 'Getxo', 0, 1], [13, 'Arteaga', 'F', '5\'7"', 4, 71, 'Mungia', 0, 1], [16, 'Lizarraga', 'B', '5\'10"', 4, 71, 'Estella', 0, 1]];
+  var DCAP = 10, DT = ['', 'Elite', 'Starter', 'Rotation', 'Prospect'], DTC = ['', '#e8c25a', '#c9ced6', '#d08a4e', '#7fb3c8'];
   var DR = DP.map(function (p, i) {                                 // the five ratings follow the overall, steady for each player
     var h = 0, n = p[1]; for (var k = 0; k < n.length; k++) h = (h * 31 + n.charCodeAt(k)) % 997;
     var r = function (o, sp) { return Math.max(55, Math.min(99, p[5] + o + ((h >> sp) % 7) - 3)); };
     var face = PROMO && PROMO.people ? PROMO.people.filter(function (w) { return w.name === p[1]; })[0] : null;
-    return { i: i, ex: !!p[7], num: p[0], name: p[1], pos: p[2], ht: p[3], tier: p[4], ovr: p[5], home: p[6], age: 20 + (h % 13), photo: face && face.photo ? face.photo : (['Javier', 'Arrasate', 'Oierdi', 'Kanpandegi', 'Bereau', 'Aratz'].indexOf(p[1]) >= 0 ? 'db-' + p[0] + '.jpg' : ''),
+    return { i: i, ex: !!p[7], fa: !!p[8], cost: 5 - p[4], num: p[0], name: p[1], pos: p[2], ht: p[3], tier: p[4], ovr: p[5], home: p[6], age: 20 + (h % 13), photo: face && face.photo ? face.photo : (['Javier', 'Arrasate', 'Oierdi', 'Kanpandegi', 'Bereau', 'Aratz'].indexOf(p[1]) >= 0 ? 'db-' + p[0] + '.jpg' : ''),
       spd: r(p[2] === 'F' ? 3 : -2, 1), pow: r(p[2] === 'B' ? 3 : -2, 2), ctl: r(1, 3), rea: r(p[2] === 'F' ? 2 : 0, 4), sta: r(0, 5) };
   });
-  var DF = { on: false, order: [], seq: [], k: 0, ros: {}, auto: false, timer: 0, left: 0, saved: false };
+  var DF = { on: false, order: [], seq: [], k: 0, ros: {}, auto: false, timer: 0, left: 0, saved: false, fl: 'all' };
   var DKEY = 'flja-draft';
   function dfLoad() { try { var j = JSON.parse(localStorage.getItem(DKEY) || 'null'); if (!j || !j.ros) return null; var k = Object.keys(j.ros).map(Number).sort(function (a, b) { return a - b; }).join(), t = dfTeams().slice().sort(function (a, b) { return a - b; }).join(); return k === t ? j : null; } catch (e) { return null; } }
   function dfSave() { try { localStorage.setItem(DKEY, JSON.stringify({ me: CH.me, ros: DF.ros, order: DF.order, at: new Date().toLocaleDateString() })); return true; } catch (e) { return false; } }
@@ -2831,31 +2833,43 @@ window.FLFeedback = (function () {
   function dfN() { return dfTeams().length; }
   function DRp() { var n7 = dfN() === 7; return DR.filter(function (p) { return !p.ex || n7; }); }
   function dfAvg(t, key) { var r = DF.ros[t] || []; return r.length ? Math.round(r.reduce(function (s, i) { return s + DR[i][key || 'ovr']; }, 0) / r.length) : 0; }
-  function dfGrade(t) { var r = DF.ros[t] || [], a = r.length ? r.reduce(function (s, i) { return s + DR[i].ovr; }, 0) / r.length : 0, L = DRp().reduce(function (s, p) { return s + p.ovr; }, 0) / DRp().length;   // graded against the league average
+  function dfGrade(t) { var r = DF.ros[t] || [], a = r.length ? r.reduce(function (s, i) { return s + DR[i].ovr; }, 0) / r.length : 0, D = [].concat.apply([], dfTeams().map(function (x) { return DF.ros[x] || []; })), L = D.length ? D.reduce(function (s, i) { return s + DR[i].ovr; }, 0) / D.length : a;   // graded against the average drafted player
     return a >= L + 0.75 ? 'A' : a >= L ? 'B' : a >= L - 0.75 ? 'C' : 'D'; }
   function dfTaken(i) { for (var t in DF.ros) if (DF.ros[t].indexOf(i) >= 0) return true; return false; }
   function dfCount(t, pos) { return (DF.ros[t] || []).filter(function (i) { return DR[i].pos === pos; }).length; }
-  function dfCan(k, pos) {                                          // can pick k take this position and still leave every club two and two? (a small search over what is left)
-    var need = {}, sup = {}, T = dfTeams(), seen = {};
-    T.forEach(function (t) { need[t] = [2 - dfCount(t, 'F'), 2 - dfCount(t, 'B')]; });
-    for (var tr = 1; tr <= 4; tr++) sup[tr] = [0, 0];
-    DRp().forEach(function (p) { if (!dfTaken(p.i)) sup[p.tier][p.pos === 'F' ? 0 : 1]++; });
-    var go = function (j, nd, sp) {
-      if (j >= DF.seq.length) return true;
-      var key = j + '|' + JSON.stringify(nd) + JSON.stringify(sp); if (seen[key] != null) return seen[key];
-      var t = DF.seq[j], tr = Math.floor(j / dfN()) + 1, ok = false;
-      [0, 1].forEach(function (q) { if (ok) return; if (j === k && q !== (pos === 'F' ? 0 : 1)) return; if (nd[t][q] <= 0 || sp[tr][q] <= 0) return;
-        var n2 = JSON.parse(JSON.stringify(nd)), s2 = JSON.parse(JSON.stringify(sp)); n2[t][q]--; s2[tr][q]--; if (go(j + 1, n2, s2)) ok = true; });
-      return (seen[key] = ok);
+  function dfSpent(t) { return (DF.ros[t] || []).reduce(function (s, i) { return s + DR[i].cost; }, 0); }
+  function dfFeas(add) {                                            // can every club still finish two and two under the cap from who is left? add = {t, i} tries one pick first
+    var T = dfTeams(), sup = [], memo = {}, need = T.map(function (t) { var r = (DF.ros[t] || []).slice(); if (add && add.t === t) r.push(add.i);
+      var f = r.filter(function (i) { return DR[i].pos === 'F'; }).length, b = r.length - f; return [2 - f, 2 - b, DCAP - r.reduce(function (s, i) { return s + DR[i].cost; }, 0)]; });
+    if (need.some(function (n) { return n[0] < 0 || n[1] < 0 || n[2] < n[0] + n[1]; })) return false;
+    for (var c = 0; c < 8; c++) sup[c] = 0;                         // index: (cost - 1) * 2 + (0 front, 1 back)
+    DRp().forEach(function (p) { if (!dfTaken(p.i) && !(add && add.i === p.i)) sup[(p.cost - 1) * 2 + (p.pos === 'F' ? 0 : 1)]++; });
+    var go = function (ci) {
+      if (ci >= need.length) return true;
+      var key = ci + ':' + sup.join(); if (memo[key] != null) return memo[key];
+      var n = need[ci], ok = false;
+      var pick = function (q, left, from, bud, then) {               // choose 'left' players of side q, cheapest first, costs from 'from' up
+        if (!left) return then(bud);
+        for (var c = from; c <= 4 && !ok; c++) { var x = (c - 1) * 2 + q; if (sup[x] <= 0 || c > bud - (left - 1)) continue; sup[x]--; pick(q, left - 1, c, bud - c, then); sup[x]++; }
+      };
+      pick(0, n[0], 1, n[2], function (bud) { pick(1, n[1], 1, bud, function () { if (go(ci + 1)) ok = true; }); });
+      return (memo[key] = ok);
     };
-    return go(k, need, sup);
+    return go(0);
+  }
+  function dfWhy(t, p) {                                            // '' when club t can draft p, otherwise the reason
+    if (dfTaken(p.i)) return 'Drafted';
+    if (dfCount(t, p.pos) >= 2) return 'Need a ' + (p.pos === 'F' ? 'back' : 'front') + ' courter';
+    var r = DF.ros[t] || [], left = 3 - r.length;
+    if (dfSpent(t) + p.cost + left > DCAP) return 'Over your cap';
+    return dfFeas({ t: t, i: p.i }) ? '' : 'Leaves a club short';
   }
   function dfStart(mode) {                                          // mode: 'live', 'skip' or 'saved'
     var T = dfTeams(), i, j, x;
     if (mode === 'saved') { var sv = dfLoad(); if (sv) { DF.ros = sv.ros; DF.order = sv.order || T; DF.saved = true; if (sv.me != null && sv.me !== CH.me) { CH.me = sv.me; CH.m = null; } dfRecap(true); return; } }
     DF.order = T.slice(); for (i = DF.order.length - 1; i > 0; i--) { j = Math.floor(Math.random() * (i + 1)); x = DF.order[i]; DF.order[i] = DF.order[j]; DF.order[j] = x; }
     DF.seq = []; for (var rd = 0; rd < 4; rd++) DF.seq = DF.seq.concat(rd % 2 ? DF.order.slice().reverse() : DF.order);   // snake
-    DF.ros = {}; T.forEach(function (t) { DF.ros[t] = []; }); DF.k = 0; DF.saved = false; DF.on = true; DF.auto = mode === 'skip';
+    DF.ros = {}; T.forEach(function (t) { DF.ros[t] = []; }); DF.k = 0; DF.fl = 'all'; DF.last = null; DF.saved = false; DF.on = true; DF.auto = mode === 'skip';
     if (DF.auto) { while (DF.k < 4 * dfN()) dfCpu(); dfRecap(false); } else dfLottery();
   }
   function dfEl() {
@@ -2865,6 +2879,7 @@ window.FLFeedback = (function () {
       var b = e.target.closest('button'); if (!b || b.disabled) return;
       var a = b.getAttribute('data-df');
       if (a === 'go') dfBoard();
+      else if (a === 'flt') { DF.fl = b.getAttribute('data-f'); if (DF.seq[DF.k] === CH.me) DF.keep = DF.left; dfBoard(); }
       else if (a === 'pick') { var i = +b.getAttribute('data-i'); if (DF.seq[DF.k] === CH.me) dfTake(i); }
       else if (a === 'auto') { if (DF.seq[DF.k] === CH.me) dfTake(dfBest(DF.k)); }
       else if (a === 'save') { if (dfSave()) { DF.saved = true; b.textContent = 'Saved \u2713'; b.disabled = true; } }
@@ -2874,24 +2889,26 @@ window.FLFeedback = (function () {
     return el;
   }
   function dfHow() {                                              // How the Draft Works: the rules and every player's ratings, opened from the lottery screen
-    var rows = [1, 2, 3, 4].map(function (t) { var cell = function (pos) { return DRp().filter(function (p) { return p.tier === t && p.pos === pos; }).sort(function (a, b) { return b.ovr - a.ovr; }).map(function (p) { return '#' + p.num + ' ' + esc(p.name) + ' <b>' + p.ovr + '</b>'; }).join('<br>'); };
-      return '<tr><th scope="row" style="color:' + DTC[t] + '">' + t + '<br><i>' + DT[t] + '</i></th><td>' + cell('F') + '</td><td>' + cell('B') + '</td></tr>'; }).join('');
+    var rows = [1, 2, 3, 4].map(function (t) { var cell = function (pos) { return DRp().filter(function (p) { return p.tier === t && p.pos === pos; }).sort(function (a, b) { return b.ovr - a.ovr; }).map(function (p) { return '#' + p.num + ' ' + esc(p.name) + (p.fa ? '<sup>FA</sup>' : '') + ' <b>' + p.ovr + '</b>'; }).join('<br>'); };
+      return '<tr><th scope="row" style="color:' + DTC[t] + '">' + t + '<br><i>' + DT[t] + '</i><br><i>' + (5 - t) + ' pt' + (t < 4 ? 's' : '') + '</i></th><td>' + cell('F') + '</td><td>' + cell('B') + '</td></tr>'; }).join('');
+    var n = dfN(), np = DRp().length;
     return '<details class="df-how"><summary>How the Draft Works<span class="df-plus" aria-hidden="true"></span></summary><ul>' +
-      '<li><b>24 players, 6 clubs.</b> The Dania Beach roster plus Gorka and Johan: 12 front courters and 12 back courters.</li>' +
-      '<li><b>Four tiers of six.</b> Players are ranked by Overall into Tier 1 Elite, Tier 2 Starter, Tier 3 Rotation and Tier 4 Prospect, with three front and three back courters in each.</li>' +
+      '<li><b>' + np + ' players, ' + n + ' clubs, ' + 4 * n + ' picks.</b> The Dania Beach roster plus Gorka and Johan, and eight free agents (FA)' + (n === 7 ? ', plus four expansion players' : '') + '. ' + (np - 4 * n) + ' players go undrafted, so every pick is a real choice.</li>' +
+      '<li><b>Four tiers.</b> Players are ranked by Overall into Tier 1 Elite, Tier 2 Starter, Tier 3 Rotation and Tier 4 Prospect.</li>' +
+      '<li><b>10-point cap.</b> Tier 1 players cost 4 points, Tier 2 cost 3, Tier 3 cost 2 and Tier 4 cost 1. Your four players must fit in 10 points: two stars and two prospects (4+4+1+1), four solid players (3+3+2+2), or anything in between.</li>' +
       '<li><b>Lottery.</b> A draw sets the order for round 1.</li>' +
-      '<li><b>Snake order, tier-locked rounds.</b> Round 1 picks from Tier 1, round 2 from Tier 2, and so on. The order reverses each round, so the last pick in one round is the first pick in the next.</li>' +
-      '<li><b>Two and two.</b> Every club ends with two front courters and two back courters; a player who would break that is greyed out on your turn.</li>' +
-      '<li><b>Your pick.</b> You have 30 seconds. Tap Draft on a player, or Auto Pick to take the best available. If the clock runs out, you get the best available.</li>' +
-      '<li><b>Grades.</b> Each roster is graded A to D against the league average Overall.</li>' +
-      '<li><b>On the court.</b> Your roster\u2019s Speed and your opponent\u2019s Overall nudge how fast each side runs, on top of Easy, Normal and Hard.</li>' +
+      '<li><b>Snake order, open pool.</b> Four rounds, and any player can be taken in any round. The order reverses each round, so the last pick in one round is the first pick in the next.</li>' +
+      '<li><b>Two and two.</b> Every club ends with two front courters and two back courters. A player is greyed out on your turn if he would break that, put you over the cap, or leave another club unable to finish.</li>' +
+      '<li><b>Your pick.</b> You have 30 seconds. Filter by tier or position, tap Draft on a player, or Auto Pick for the best value. If the clock runs out, you get the best value.</li>' +
+      '<li><b>Grades.</b> Each roster is graded A to D against the average Overall of every drafted player.</li>' +
+      '<li><b>On the court.</b> Your roster’s Speed and your opponent’s Overall nudge how fast each side runs, on top of Easy, Normal and Hard.</li>' +
       '<li><b>Skip Draft</b> lets the CPU pick every roster. <b>Save My Team</b> keeps your draft on this phone for the next tournament.</li></ul>' +
       '<p class="df-rk">Ratings: Speed, Power, Control, Reaction and Stamina, 1 to 99, averaged into Overall. Game ratings, not real statistics.</p>' +
       '<table><thead><tr><th scope="col">Tier</th><th scope="col">Front Court</th><th scope="col">Back Court</th></tr></thead><tbody>' + rows + '</tbody></table></details>';
   }
   function dfLottery() {
     var el = dfEl(), T = dfTeams();
-    el.innerHTML = '<div class="df-in"><button type="button" class="df-back" data-df="back">\u2039 Back</button><div class="df-tag">League Draft</div><h3>Draft Lottery</h3><p class="df-sub">Drawing the order for round 1. The order snakes back each round.</p>' + dfHow() + '<ol class="df-lot">' +
+    el.innerHTML = '<div class="df-in"><button type="button" class="df-back" data-df="back">\u2039 Back</button><div class="df-tag">League Draft</div><h3>Draft Lottery</h3><p class="df-sub">Drawing the order for round 1. The order snakes back each round. 10-point cap per club.</p>' + dfHow() + '<ol class="df-lot">' +
       T.map(function (t) { return '<li data-t="' + t + '">' + chLogo(t) + '<span>' + esc(ROSTER[t].name) + '</span></li>'; }).join('') + '</ol><div class="df-go"><button type="button" data-df="go" disabled>Start Draft</button></div></div>';
     el.hidden = false;
     var n = 0, spin = setInterval(function () {                     // a quick shuffle, then the real order
@@ -2901,10 +2918,12 @@ window.FLFeedback = (function () {
         var g = el.querySelector('[data-df="go"]'); g.disabled = false; try { g.focus(); } catch (e) { /* ignore */ } }
     }, 110);
   }
-  function dfBest(k) {                                              // CPU: the best player left in the round's tier that keeps every roster two and two (a little luck between close ratings)
-    var tr = Math.floor(k / dfN()) + 1, c = DRp().filter(function (p) { return p.tier === tr && !dfTaken(p.i) && dfCan(k, p.pos); });
-    c.sort(function (a, b) { return (b.ovr + Math.random() * 2.5) - (a.ovr + Math.random() * 2.5); });
-    return c.length ? c[0].i : -1;
+  var DAV = [0, 91, 85.5, 78, 72];                                  // a typical Overall at each tier, for the CPU's planning
+  function dfFill(bud, n) { if (!n) return 0; var b = -1e9; for (var t = 1; t <= 4; t++) { var c = 5 - t; if (c <= bud - (n - 1)) b = Math.max(b, DAV[t] + dfFill(bud - c, n - 1)); } return b; }
+  function dfBest(k) {                                              // CPU: the player who makes the best four-man roster under the cap (this pick plus the best plan for the rest), a little luck between close values
+    var t = DF.seq[k], left = 3 - (DF.ros[t] || []).length, bud = DCAP - dfSpent(t), best = -1, bv = -1e9;
+    DRp().forEach(function (p) { if (dfWhy(t, p)) return; var v = p.ovr + dfFill(bud - p.cost, left) + Math.random() * 3; if (v > bv) { bv = v; best = p.i; } });
+    return best;
   }
   function dfCpu() { var i = dfBest(DF.k); if (i < 0) { DF.k = 4 * dfN(); return; } DF.ros[DF.seq[DF.k]].push(i); DF.k++; }
   function dfTake(i) { clearInterval(DF.timer); DF.ros[CH.me].push(i); DF.last = { t: CH.me, i: i }; DF.k++; dfBoard(); }
@@ -2912,29 +2931,33 @@ window.FLFeedback = (function () {
     var el = dfEl(); clearInterval(DF.timer);
     if (DF.k >= 4 * dfN()) { dfRecap(false); return; }
     var t = DF.seq[DF.k], rd = Math.floor(DF.k / dfN()) + 1, mine = t === CH.me, me = DF.ros[CH.me];
-    var pool = DRp().filter(function (p) { return p.tier === rd; });
+    var fl = DF.fl || 'all', pool = DRp().filter(function (p) { return !dfTaken(p.i) && (fl === 'all' || fl === 'F' || fl === 'B' ? fl === 'all' || p.pos === fl : p.tier === +fl); }).sort(function (a, b) { return b.ovr - a.ovr; });
+    var spent = dfSpent(CH.me), left = 4 - me.length;
     var bar = function (l, v) { return '<span class="df-bar"><i>' + l + '</i><s style="width:' + Math.round((v - 50) * 2) + '%"></s><b>' + v + '</b></span>'; };
     el.innerHTML = '<div class="df-in df-room"><button type="button" class="df-back" data-df="back">\u2039 Back</button><div class="df-tag">League Draft \u00b7 Round ' + rd + ' of 4</div>' +
       '<div class="df-clock' + (mine ? ' df-you' : '') + '">' + chLogo(t) + '<span><i>Pick ' + (DF.k + 1) + ' of ' + 4 * dfN() + ' \u00b7 On the clock</i><b>' + esc(ROSTER[t].name) + (mine ? ' (You)' : '') + '</b></span>' + (mine ? '<em id="dfSec">30</em>' : '') + '</div>' +
-      (DF.last ? '<p class="df-last">' + esc(ROSTER[DF.last.t].name) + ' select <b>#' + DR[DF.last.i].num + ' ' + esc(DR[DF.last.i].name) + '</b> (' + (DR[DF.last.i].pos === 'F' ? 'Front' : 'Back') + ')</p>' : '<p class="df-last">Round 1 opens with Tier 1 Elite</p>') +
-      '<h4 style="color:' + DTC[rd] + '">Tier ' + rd + ' \u00b7 ' + DT[rd] + '</h4><div class="df-pool">' +
-      pool.map(function (p) { var gone = dfTaken(p.i), ok = !gone && dfCan(DF.k, p.pos), who = ''; for (var tt in DF.ros) if (DF.ros[tt].indexOf(p.i) >= 0) who = ROSTER[tt].name;
-        return '<div class="df-card' + (gone ? ' df-gone' : '') + '" style="--tc:' + DTC[p.tier] + '"><div class="df-top"><span class="df-ph">' + (p.photo ? '<img src="' + p.photo + '" alt="">' : '') + '</span><span class="df-id"><b>#' + p.num + ' ' + esc(p.name) + '</b><i>' + (p.pos === 'F' ? 'Front Court' : 'Back Court') + ' \u00b7 ' + p.ht + ' \u00b7 ' + esc(p.home) + '</i></span><em>' + p.ovr + '</em></div>' +
+      (DF.last ? '<p class="df-last">' + esc(ROSTER[DF.last.t].name) + ' select <b>#' + DR[DF.last.i].num + ' ' + esc(DR[DF.last.i].name) + '</b> (' + (DR[DF.last.i].pos === 'F' ? 'Front' : 'Back') + ', ' + DR[DF.last.i].cost + ' pt' + (DR[DF.last.i].cost > 1 ? 's' : '') + ')</p>' : '<p class="df-last">Open pool \u00b7 any tier in any round</p>') +
+      '<div class="df-cap"><span>Your cap <b>' + (DCAP - spent) + '</b> of ' + DCAP + ' pts left</span><span>' + left + ' pick' + (left === 1 ? '' : 's') + ' left \u00b7 ' + (2 - dfCount(CH.me, 'F')) + ' front, ' + (2 - dfCount(CH.me, 'B')) + ' back</span></div>' +
+      '<div class="df-fl" role="group" aria-label="Filter players">' + [['all', 'All'], ['F', 'Front'], ['B', 'Back'], ['1', 'T1 \u00b7 4'], ['2', 'T2 \u00b7 3'], ['3', 'T3 \u00b7 2'], ['4', 'T4 \u00b7 1']].map(function (f) { return '<button type="button" data-df="flt" data-f="' + f[0] + '" aria-pressed="' + (fl === f[0]) + '"' + (+f[0] ? ' style="--tc:' + DTC[+f[0]] + '"' : '') + '>' + f[1] + '</button>'; }).join('') + '</div>' +
+      '<div class="df-pool">' + (pool.length ? '' : '<p class="df-by">No one left here. Try another filter.</p>') +
+      pool.map(function (p) { var why = mine ? dfWhy(CH.me, p) : '', ok = !why, gone = false, who = '';
+        return '<div class="df-card" style="--tc:' + DTC[p.tier] + '"><div class="df-top"><span class="df-ph">' + (p.photo ? '<img src="' + p.photo + '" alt="">' : '') + '</span><span class="df-id"><b>#' + p.num + ' ' + esc(p.name) + '</b><i>' + (p.pos === 'F' ? 'Front Court' : 'Back Court') + ' \u00b7 ' + p.ht + ' \u00b7 ' + esc(p.home) + '</i></span><em>' + p.ovr + '<small>' + p.cost + ' pt' + (p.cost > 1 ? 's' : '') + '</small></em></div>' + (p.fa ? '<span class="df-fa">Free Agent</span>' : '') +
           '<div class="df-bars">' + bar('SPD', p.spd) + bar('PWR', p.pow) + bar('CTL', p.ctl) + bar('REA', p.rea) + bar('STA', p.sta) + '</div>' +
-          (gone ? '<p class="df-by">Drafted by ' + esc(who) + '</p>' : mine ? '<button type="button" data-df="pick" data-i="' + p.i + '"' + (ok ? '' : ' disabled') + '>' + (ok ? 'Draft ' + esc(p.name) : 'Need a ' + (p.pos === 'F' ? 'back' : 'front') + ' courter') + '</button>' : '') + '</div>'; }).join('') + '</div>' +
-      '<div class="df-mine"><i>Your roster</i>' + [0, 1, 2, 3].map(function (s) { var i = me[s]; return '<span class="' + (i == null ? 'df-open' : '') + '">' + (i == null ? 'Open' : '#' + DR[i].num + ' ' + esc(DR[i].name) + ' \u00b7 ' + DR[i].pos) + '</span>'; }).join('') + '</div>' +
+          (gone ? '<p class="df-by">Drafted by ' + esc(who) + '</p>' : mine ? '<button type="button" data-df="pick" data-i="' + p.i + '"' + (ok ? '' : ' disabled') + '>' + (ok ? 'Draft ' + esc(p.name) : why) + '</button>' : '') + '</div>'; }).join('') + '</div>' +
+      '<div class="df-mine"><i>Your roster</i>' + [0, 1, 2, 3].map(function (s) { var i = me[s]; return '<span class="' + (i == null ? 'df-open' : '') + '">' + (i == null ? 'Open' : '#' + DR[i].num + ' ' + esc(DR[i].name) + ' \u00b7 ' + DR[i].pos + ' \u00b7 ' + DR[i].cost) + '</span>'; }).join('') + '</div>' +
       (mine ? '<div class="df-go"><button type="button" data-df="auto" class="df-alt">Auto Pick</button></div>' : '') + '</div>';
     el.hidden = false;
-    if (mine) { DF.left = 30; try { el.querySelector('[data-df="pick"]:not([disabled])').focus(); } catch (e) { /* ignore */ }
+    if (mine) { DF.left = DF.keep || 30; DF.keep = 0; try { el.querySelector('[data-df="pick"]:not([disabled])').focus({ preventScroll: true }); } catch (e) { /* ignore */ }
       DF.timer = setInterval(function () { DF.left--; var s = $('dfSec'); if (s) s.textContent = DF.left; if (DF.left <= 0) { clearInterval(DF.timer); dfTake(dfBest(DF.k)); } }, 1000); }
-    else setTimeout(function () { if (el.hidden || DF.seq[DF.k] !== t) return; var i = dfBest(DF.k); DF.ros[t].push(i); DF.last = { t: t, i: i }; DF.k++; dfBoard(); }, 1000);
+    else { var kk = DF.k; clearTimeout(DF.cpuT); DF.cpuT = setTimeout(function () { if (el.hidden || DF.k !== kk) return; var i = dfBest(DF.k); DF.ros[t].push(i); DF.last = { t: t, i: i }; DF.k++; dfBoard(); }, 1000); }
   }
   function dfRecap(fromSave) {                                      // every roster with a grade; screenshot-ready
     var el = dfEl(), T = dfTeams().slice().sort(function (a, b) { return a === CH.me ? -1 : b === CH.me ? 1 : dfAvg(b) - dfAvg(a); });
     el.innerHTML = '<div class="df-in"><button type="button" class="df-back" data-df="back">\u2039 Back</button><div class="df-tag">League Draft</div><h3>' + (fromSave ? 'Your Saved Draft' : 'Draft Recap') + '</h3><div class="df-rec">' +
       T.map(function (t) { var r = DF.ros[t].slice().sort(function (a, b) { return DR[a].pos === DR[b].pos ? DR[a].tier - DR[b].tier : DR[a].pos === 'F' ? -1 : 1; });
-        return '<div class="df-team' + (t === CH.me ? ' df-me' : '') + '"><div class="df-th">' + chLogo(t) + '<b>' + esc(ROSTER[t].name) + '</b><em class="df-g df-g' + dfGrade(t) + '">' + dfGrade(t) + '</em></div>' +
+        return '<div class="df-team' + (t === CH.me ? ' df-me' : '') + '"><div class="df-th">' + chLogo(t) + '<b>' + esc(ROSTER[t].name) + '</b><em class="df-g df-g' + dfGrade(t) + '">' + dfGrade(t) + '</em></div><p class="df-pts">' + dfSpent(t) + ' of ' + DCAP + ' pts \u00b7 avg ' + dfAvg(t) + '</p>' +
           r.map(function (i) { var p = DR[i]; return '<p><span style="color:' + DTC[p.tier] + '">T' + p.tier + '</span> ' + p.pos + ' #' + p.num + ' ' + esc(p.name) + '<b>' + p.ovr + '</b></p>'; }).join('') + '</div>'; }).join('') + '</div>' +
+      (function () { var u = DRp().filter(function (p) { return !dfTaken(p.i); }).sort(function (a, b) { return b.ovr - a.ovr; }); return u.length ? '<p class="df-und"><b>Undrafted:</b> ' + u.map(function (p) { return '#' + p.num + ' ' + esc(p.name) + ' (' + p.pos + ', ' + p.ovr + ')'; }).join(', ') + '</p>' : ''; })() +
       '<div class="df-go">' + (DF.on || fromSave ? '<button type="button" data-df="save" class="df-alt"' + (DF.saved ? ' disabled>Saved \u2713' : '>Save My Team<small>$0.99 per month</small>') + '</button><button type="button" data-df="play">Play Quarterfinal</button>' : '<button type="button" data-df="close">Back to Bracket</button>') + '</div>' +
       (DF.on || fromSave ? '<p class="df-note">Preview: saving is open at no charge during this test.</p>' : '') + '</div>';
     el.hidden = false; try { el.querySelector('[data-df="play"],[data-df="close"]').focus(); } catch (e) { /* ignore */ }
@@ -2962,7 +2985,12 @@ window.FLFeedback = (function () {
       '#dfBox .df-pool{display:grid;grid-template-columns:1fr 1fr;gap:6px}#dfBox .df-card{border:1.5px solid var(--tc);border-radius:11px;background:#10131d;padding:6px;display:flex;flex-direction:column;gap:5px;min-width:0}#dfBox .df-card.df-gone{opacity:.42}' +
       '#dfBox .df-top{display:flex;align-items:center;gap:6px;min-width:0}#dfBox .df-ph{flex:none;width:30px;height:30px;border-radius:50%;background:#000;border:1.5px solid #fff;overflow:hidden}#dfBox .df-ph img{width:100%;height:100%;object-fit:cover;display:block}' +
       '#dfBox .df-id{display:flex;flex-direction:column;gap:2px;min-width:0}#dfBox .df-id b{font:800 12px/1.05 ' + F + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#dfBox .df-id i{font:500 9px/1.15 ' + F + ';font-style:normal;color:#9a9da6}' +
-      '#dfBox .df-top em{margin-left:auto;font:900 17px/1 ' + F + ';font-style:normal;color:var(--tc)}#dfBox .df-bars{display:flex;flex-direction:column;gap:2px}' +
+      '#dfBox .df-top em{margin-left:auto;font:900 17px/1 ' + F + ';font-style:normal;color:var(--tc);display:flex;flex-direction:column;align-items:flex-end;gap:2px}#dfBox .df-top em small{font:800 8.5px/1 ' + F + ';letter-spacing:.06em;text-transform:uppercase;color:#c9cbd4}' +
+      '#dfBox .df-fa{align-self:flex-start;font:800 8px/1 ' + F + ';letter-spacing:.12em;text-transform:uppercase;color:#0b0c0f;background:' + A + ';border-radius:4px;padding:2px 5px}#dfBox .df-how sup{font:800 7.5px/1 ' + F + ';color:' + A + ';margin-left:2px}' +
+      '#dfBox .df-cap{flex:none;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:7px 10px;border-radius:10px;background:#0f1220;border:1px solid #232a44;font:600 11.5px/1.2 ' + F + ';color:#c9cbd4}#dfBox .df-cap b{font:900 15px/1 ' + F + ';color:' + P + '}' +
+      '#dfBox .df-fl{flex:none;display:flex;gap:5px;overflow-x:auto;padding-bottom:2px}#dfBox .df-fl button{flex:none;min-height:32px;padding:0 10px;border-radius:999px;border:1.5px solid var(--tc,#3a4160);background:transparent;color:#f2efe6;font:800 11px/1 ' + F + ';letter-spacing:.04em;text-transform:uppercase;cursor:pointer}#dfBox .df-fl button[aria-pressed="true"]{background:var(--tc,' + A + ');border-color:var(--tc,' + A + ');color:#0b0c0f}' +
+      '#dfBox .df-pts{margin:0 0 2px;font:700 9.5px/1.2 ' + F + ';letter-spacing:.06em;text-transform:uppercase;color:#a9adba}#dfBox .df-und{margin:0;font:500 11px/1.4 ' + F + ';color:#a9adba}#dfBox .df-und b{color:#f2efe6}' +
+      '#dfBox .df-top em{}#dfBox .df-bars{display:flex;flex-direction:column;gap:2px}' +
       '#dfBox .df-bar{display:grid;grid-template-columns:24px 1fr 18px;align-items:center;gap:4px;font:700 8.5px/1 ' + F + '}#dfBox .df-bar i{font-style:normal;color:#8d909a;letter-spacing:.06em}#dfBox .df-bar s{display:block;height:4px;border-radius:2px;background:var(--tc);text-decoration:none}#dfBox .df-bar b{text-align:right;color:#d7d9e0}' +
       '#dfBox .df-card button{min-height:34px;border-radius:9px;border:0;background:' + P + ';color:#fff;font:800 11.5px/1 ' + F + ';letter-spacing:.04em;text-transform:uppercase;cursor:pointer}#dfBox .df-card button:disabled{background:#232838;color:#8d909a;cursor:default}#dfBox .df-by{margin:0;font:600 10px/1.2 ' + F + ';color:#a9adba;text-align:center}' +
       '#dfBox .df-mine{display:grid;grid-template-columns:1fr 1fr;gap:4px}#dfBox .df-mine i{grid-column:1/-1;font:700 9.5px/1 ' + F + ';font-style:normal;letter-spacing:.14em;text-transform:uppercase;color:' + A + '}#dfBox .df-mine span{padding:6px 7px;border-radius:7px;background:#2a0b1c;border:1px solid ' + P + ';font:700 11px/1.1 ' + F + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#dfBox .df-mine span.df-open{background:transparent;border-style:dashed;border-color:#3a4160;color:#6f7380}' +
