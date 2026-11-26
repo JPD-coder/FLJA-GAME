@@ -514,7 +514,7 @@ window.Table = (function () {
   var DEF = { teams: [{ n: 'Square Groupers', logo: 'team-a.png', c1: '#c6ee32', c2: '#fcfc04' }, { n: 'Peloteros', logo: 'team-b.png', c1: '#f52f9b', c2: '#3cb5e4' }], singles: true, target: 15, level: 'normal', pace: 0.88, rebHold: 2, sound: true, score: null, intro: true, ads: 0, hooks: {}, names: ['Serve', 'Throw', 'Rebound', 'Cut', 'Two-Wall', 'Side Wall'] };   // names[0] is the serve, then the five shots in core order; English unless the game hands over others
   /* six buttons: three to the left of the stick, three to the right. s = core shot index, -1 = the serve */
   var BTNS = [{ s: -1 }, { s: 0 }, { s: 1 }, { s: 3 }, { s: 2 }, { s: 4 }, { s: 'F', side: -1 }, { s: 'Z', side: 1 }];   // the last two are Fight: one beside Rebound, one beside Side Wall
-  var TOP = [{ k: 'menu', n: 'MENU' }, { k: 'mode', n: 'MODE' }, { k: 'music', n: '♪' }, { k: 'pause', n: 'PAUSE' }];
+  var TOP = [{ k: 'menu', n: 'MENU' }, { k: 'mode', n: 'MODE' }, { k: 'music', n: '\u266a' }, { k: 'pause', n: 'PAUSE' }];
   var SHOTCOL = ['#f52f9b', '#3cb5e4', '#fcfc04', '#c6ee32', '#8f0bcd'];
   /* painted on the floor: three club logos in a line between lines 1 and 3, three between 12 and 14, all one size, and the Fantasy League mark in the middle */
   var FLOOR = [];                                                  // the floor carries only the Fantasy League mark, in the middle
@@ -637,7 +637,7 @@ window.Table = (function () {
     game.events.forEach(function (ev) {
       if (ev === 'whack' && game.whack) { var wt = game.players[game.whack.i]; tone(190, 0.09, 'square', 0.16, 70); say('\ud83d\udca5', '#ff4b3e', Xz(wt.z), Y(wt.x) - 24, false, 0.6); return; }
       if (ev === 'throw') { tone(520, 0.12, 'triangle', 0.12, 260); fx.trail = [];
-        if (!game.flags.serve && (game.hard | 0) === 1) say(String(O.names[2]).toUpperCase() + ' · BACK WALL', SHOTCOL[1], W / 2, L.cy + L.ch * 0.52, false, 1.9); }             // the one call: it is going to the back wall, so do not chase it, get into position
+        if (!game.flags.serve && (game.hard | 0) === 1) say(String(O.names[2]).toUpperCase() + ' \u00b7 BACK WALL', SHOTCOL[1], W / 2, L.cy + L.ch * 0.52, false, 1.9); }             // the one call: it is going to the back wall, so do not chase it, get into position
       else if (ev === 'front') { tone(170, 0.09, 'square', 0.22, 90); ring(bx, L.cy, col, 1.5); }
       else if (ev === 'side') { tone(210, 0.07, 'square', 0.16, 120); ring(L.cx, by, col, 1.3); }
       else if (ev === 'back' || ev === 'chicchac') { tone(140, 0.09, 'square', 0.2, 80); ring(bx, L.cy + L.ch, col, 1.5); }
@@ -846,7 +846,7 @@ window.Table = (function () {
     if (game) { ctx.save(); ctx.beginPath(); ctx.rect(0, L.wallH, W, L.barY - L.wallH); ctx.clip(); drawGuides(dt); var me2 = mine(), P = game.players.filter(function (p) { return !p.out; }).sort(function (a, b) { return b.x - a.x; }); P.forEach(function (p) { drawPlayer(p, p === me2); }); drawBall(); ctx.restore(); }
     drawControls(); drawFx(dt);
     if (mode === 'intro') panel(['COCKTAIL TABLE', 'Lay your phone flat and play from this end.', 'Move with the stick, or touch the court.', 'Serve when lines 4 and 7 flash red.', 'Throw with the colored buttons.'], 'TAP TO PLAY');
-    else if (mode === 'over') panel([O.teams[game.winner].n.toUpperCase() + (O.teams[game.winner].one ? ' WINS' : ' WIN'), game.score[0] + ' – ' + game.score[1]], 'PLAY AGAIN', true);
+    else if (mode === 'over') panel([O.teams[game.winner].n.toUpperCase() + (O.teams[game.winner].one ? ' WINS' : ' WIN'), game.score[0] + ' \u2013 ' + game.score[1]], 'PLAY AGAIN', true);
     else if (tip) panel(['HOW TO PLAY', 'Lay your phone flat and play from this end.', 'Move: push the red stick, or touch the court.', 'Serve: tap SERVE when lines 4 and 7 flash red.', 'Throw: tap a colored button once you catch it.', 'Rebound call: it is going to the back wall. Get behind it.'], 'GOT IT');   // the match waits behind this card until it is closed
     else if (paused) panel(['PAUSED'], 'TAP TO PLAY ON');
     else if (adv.on) drawAd();
