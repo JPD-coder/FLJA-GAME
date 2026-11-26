@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126225547";
+window.FL_BUILD = "20261126230547";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2955,7 +2955,8 @@ window.FLFeedback = (function () {
     var redraw = function () { if (q) return; q = requestAnimationFrame(function () { q = 0; avDraw(cv); }); };
     var sync = function () { el.querySelector('.av-bm').hidden = AV.g !== 'm'; el.querySelector('.av-bf').hidden = AV.g === 'm'; el.querySelector('.av-ht').hidden = AV.g !== 'm'; [].forEach.call(el.querySelectorAll('.av-mo'), function (n) { n.hidden = AV.g !== 'm'; }); [].forEach.call(el.querySelectorAll('button[data-av]'), function (b) { var k = b.getAttribute('data-av'), v = b.getAttribute('data-v'), s = b.getAttribute('data-s');
       if (v != null) b.setAttribute('aria-pressed', String((k === 'ht' ? avHT() : AV[k]) === +v)); else if (s != null) b.setAttribute('aria-pressed', String(AV[k] === s)); else if (k === 'tog') b.setAttribute('aria-pressed', String(!!AV[b.getAttribute('data-k')])); }); };
-    var col = function (id, keys) { $(id).addEventListener('input', function () { var v = this.value, me = this; keys.forEach(function (k) { AV[k] = v; var t = $('av' + k.charAt(0).toUpperCase() + k.slice(1)); if (t && t !== me) t.value = v; }); avSave(); redraw(); }); };
+    AV.picked = AV.picked || {};                                     // a color wheel stays blank until the player picks a color with it
+    var col = function (id, keys) { var inp = $(id); inp.classList.toggle('av-blank', !AV.picked[keys[0]]); inp.addEventListener('input', function () { var v = this.value; this.classList.remove('av-blank'); keys.forEach(function (k) { AV[k] = v; AV.picked[k] = 1; }); avSave(); redraw(); }); };
     col('avSkc', ['skc']); col('avHrc', ['hrc']); col('avShirt', ['shirt']); col('avShorts', ['shorts']); col('avBelt', ['belt']); col('avCesta', ['cesta']); col('avSlc', ['slc']); col('avLgc', ['lgc']);
     var BODYK = { fh: 1, bm: 1, bf: 1, skin: 1, hair: 1, ht: 1, hat: 1, ear: 1, tog: 1 };
     el.onclick = function (e) {
@@ -2977,7 +2978,7 @@ window.FLFeedback = (function () {
       st.textContent = '#avBox{position:fixed;inset:0;z-index:2147482300;background:rgba(4,6,10,.9);display:flex;align-items:center;justify-content:center;padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}#avBox[hidden]{display:none}' +
         '#avBox .av-in{position:relative;width:min(100%,460px);max-height:100%;overflow:auto;box-sizing:border-box;background:#0a0c12;border:2px solid ' + A + ';border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px;color:#f2efe6}' +
         '#avBox .df-back{position:absolute;top:10px;left:10px;background:none;border:0;color:#c9cbd4;font:700 12px/1 ' + F + ';min-height:32px;cursor:pointer}#avBox .df-tag{text-align:center;font:700 10.5px/1 ' + F + ';letter-spacing:.16em;text-transform:uppercase;color:' + A + ';padding-top:22px}' +
-        '#avBox h3{margin:0;text-align:center;font:900 21px/1 var(--display, ' + F + ');text-transform:uppercase;letter-spacing:.02em}#avBox h3:focus{outline:none}' +
+        '#avBox h3{margin:0;text-align:center;font:900 21px/1 var(--display, ' + F + ');text-transform:uppercase;letter-spacing:.02em}#avBox h3:focus{outline:none}#avBox input.av-blank::-webkit-color-swatch{background:transparent!important;border-color:transparent}#avBox input.av-blank::-moz-color-swatch{background:transparent!important;border-color:transparent}#avBox [hidden]{display:none!important}' +
         '#avBox .av-stage{position:sticky;top:-12px;z-index:2;background:#0a0c12;margin:0 -12px;padding:4px 12px 6px;border-bottom:1px solid #1d2233;display:flex;flex-direction:column;align-items:center;gap:6px}#avBox canvas{display:block;width:auto;max-width:100%;height:min(38vh,310px);border-radius:12px}' +
         '#avBox .av-ctl{display:flex;flex-direction:column;gap:5px}#avBox .av-l{font:800 10.5px/1 ' + F + ';letter-spacing:.14em;text-transform:uppercase;color:#a9adba;margin-top:5px}' +
         '#avBox .av-row{display:flex;flex-wrap:wrap;gap:5px}#avBox .av-row button{min-height:34px;padding:0 11px;border-radius:999px;border:1.5px solid #3a4160;background:transparent;color:#f2efe6;font:700 12.5px/1 ' + F + ';text-transform:lowercase;cursor:pointer;display:inline-flex;align-items:center;gap:6px}' +
