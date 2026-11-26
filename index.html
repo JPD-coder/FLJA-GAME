@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126193522";
+window.FL_BUILD = "20261126195131";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2705,41 +2705,97 @@ window.FLFeedback = (function () {
   function exShrink(file, cb) {                                     // an uploaded logo, squared to 256 px on a clear background
     var r = new FileReader(); r.onload = function () { var im = new Image(); im.onload = function () { var cv = document.createElement('canvas'); cv.width = cv.height = 256; var x = cv.getContext('2d'), s = Math.min(256 / im.width, 256 / im.height);
       x.drawImage(im, (256 - im.width * s) / 2, (256 - im.height * s) / 2, im.width * s, im.height * s); cb(cv.toDataURL('image/png')); }; im.onerror = function () { cb(null); }; im.src = r.result; }; r.readAsDataURL(file); }
-  /* ---------- Build Your Avatar: the base male and female photos, recolored (skin, hair, uniform), reshaped (body style) and dressed (top, shoes, hats, jewelry) on a canvas */
+  /* ---------- Build Your Avatar: starts on the uniform silhouette (male or female kit), then the base player photo once a body choice is made.
+     Skin, hair and uniform are recolored from the photo; the body is reshaped row by row (a belly pushes forward, fat reaches the face); hair styles, hats and jewelry are drawn. */
   var AVKEY = 'flja-avatar', AVW = 640, AVH = 700;
-  var AV_SK = [['White', '#efc9a8'], ['Tan', '#d09468'], ['Brown', '#a2683f'], ['Light Black', '#774a2d'], ['Dark Black', '#4a2d1c']];
-  var AV_HR = [['Black', '#221b18'], ['Dark Brown', '#4a2f1f'], ['Brown', '#7d5032'], ['Auburn', '#933d22'], ['Red', '#b8481e'], ['Blonde', '#dcb46e'], ['Platinum', '#ebe0c9'], ['Gray', '#a6a39f']];
-  var AV_BD = [['Super Skinny', 0.8, 0], ['Slim', 0.9, 0], ['Athletic', 0.95, 0], ['Muscular', 1, 0], ['Chubby', 1.1, 0.07], ['Fat', 1.22, 0.15]];
-  var AV_HAT = ['None', 'Baseball Cap', 'Trucker Hat'], AV_EAR = ['None', 'Diamond', 'Cross', 'Small Hoop', 'Big Hoops'];
-  var AV_GEO = {                                                    // 640 x 700 picture coordinates: body center, neck, waist, light levels, hat, ear lobe, neck chain, free wrist (x, y, tilt, arm width)
-    f: { cx: 280, neck: 150, waist: 412, skinL: 132, hairL: 39, fabL: 47, hat: [318, 58, 64, 50], lobe: [287, 101], chain: [[292, 152], [348, 149], [322, 186]], wrist: [430, 421, 0.36, 30] },
-    m: { cx: 300, neck: 112, waist: 375, skinL: 152, hairL: 47, fabL: 52, hat: [302, 50, 76, 54], lobe: [281, 81], chain: [[270, 116], [327, 113], [299, 153]], wrist: [427, 384, 0.26, 33] }
+  var AV_SK = [['white', '#efc9a8'], ['tan', '#d09468'], ['brown', '#a2683f'], ['light black', '#774a2d'], ['dark black', '#4a2d1c']];
+  var AV_HR = [['black', '#221b18'], ['dark brown', '#4a2f1f'], ['brown', '#7d5032'], ['auburn', '#933d22'], ['red', '#b8481e'], ['blonde', '#dcb46e'], ['platinum', '#ebe0c9'], ['gray', '#a6a39f']];
+  var AV_HT = ['straight', 'curly', 'short', 'long', 'afro', 'high top fade', 'dreads', 'nappy'];
+  var AV_BD = [['super skinny', 0.8, 0, 0.3, 0], ['slim', 0.9, 0, 0.3, 0], ['athletic', 0.95, 0, 0.3, 0], ['muscular', 1, 0, 0.3, 0], ['chubby', 1.1, 0, 0.3, 0], ['fat', 1.22, 0, 0.3, 0]];   // belly, fat face and the slob body wait on new base art   // name, width, belly, face share, double chin
+  var AV_CE = [['black', '#26262b'], ['natural', '#d29a5c'], ['white', '#efede6'], ['red', '#c62828'], ['blue', '#1f4fd6'], ['gold', '#d4a72c'], ['pink', '#e11d74']];
+  var AV_HAT = ['none', 'baseball cap', 'trucker hat'], AV_EAR = ['none', 'diamond', 'cross', 'small hoop', 'big hoops'];
+  var AV_GEO = {                                                    // 640 x 700 picture coordinates
+    f: { cx: 280, half: 62, neck: 150, waist: 405, skinL: 132, hairL: 39, fabL: 47, ceL: 162, ceOrig: 1, ht: 3, head: [312, 64, 42, 52], chin: [348, 134], hat: [318, 58, 64, 50], lobe: [287, 101], chain: [[292, 152], [348, 149], [322, 186]], wrist: [430, 421, 0.36, 30] },
+    m: { cx: 300, half: 86, neck: 112, waist: 365, skinL: 152, hairL: 47, fabL: 52, ceL: 27, ceOrig: 0, ht: 1, head: [298, 55, 46, 51], chin: [345, 114], hat: [302, 50, 76, 54], lobe: [281, 81], chain: [[270, 116], [327, 113], [299, 153]], wrist: [427, 384, 0.26, 33] },
+    fk: { fabL: 55, ceL: 168, ceOrig: 1 }, mk: { fabL: 58, ceL: 45, ceOrig: 0 }
   };
-  var AV = { g: 'm', body: 3, skin: 1, hair: 1, shirt: '#0b0b0b', shorts: '#0b0b0b', shoes: '#0b0b0b', top: 'shirt', shoe: 'low', hat: 0, ear: 0, chain: false, brace: false, watch: false };
-  try { var avS = JSON.parse(localStorage.getItem(AVKEY) || 'null'); if (avS) for (var avk in avS) if (avk in AV) AV[avk] = avS[avk]; } catch (e) { /* ignore */ }
+  var AV = { view: 'kit', g: 'm', body: 3, skin: 1, hair: 1, ht: -1, shirt: '#0b0b0b', shorts: '#0b0b0b', shoes: '#0b0b0b', top: 'shirt', shoe: 'low', cesta: 0, hat: 0, ear: 0, chain: false, brace: false, watch: false };
+  try { var avS = JSON.parse(localStorage.getItem(AVKEY) || 'null'); if (avS && avS.v === 2) for (var avk in avS) if (avk in AV) AV[avk] = avS[avk]; } catch (e) { /* ignore */ }
   var AVC = {};                                                     // loaded pictures per base
   function avHex(h) { h = String(h || '#000').replace('#', ''); if (h.length === 3) h = h.replace(/./g, '$&$&'); var n = parseInt(h, 16) || 0; return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
-  function avLoad(g, cb) {
-    if (AVC[g] && AVC[g].ok) return cb(AVC[g]);
-    var o = AVC[g] = AVC[g] || { n: 0 }, names = ['av-' + g + '.jpg', 'av-' + g + '-m1.png', 'av-' + g + '-m2.png', 'av-' + g + '-bg.jpg'], left = 4;
+  function avLoad(key, cb) {
+    if (AVC[key] && AVC[key].ok) return cb(AVC[key]);
+    var o = AVC[key] = AVC[key] || {}, kit = key.length > 1;
+    var names = kit ? ['av-' + key + '.jpg', 'av-' + key + '-m.png', 'av-' + key + '-c.png', 'av-' + key + '-t.jpg'] : ['av-' + key + '.jpg', 'av-' + key + '-m1.png', 'av-' + key + '-m2.png', 'av-' + key + '-c.png', 'av-' + key + '-bg.jpg'], left = names.length;
     o.cbs = (o.cbs || []).concat([cb]); if (o.busy) return; o.busy = true; o.im = [];
     names.forEach(function (src, k) {
       var im = new Image(); im.onload = im.onerror = function () {
         o.im[k] = im; if (--left) return;
         var px = function (img) { var c = document.createElement('canvas'); c.width = AVW; c.height = AVH; var x = c.getContext('2d'); x.drawImage(img, 0, 0, AVW, AVH); return x.getImageData(0, 0, AVW, AVH).data; };
-        try { o.rgb = px(o.im[0]); o.m1 = px(o.im[1]); o.m2 = px(o.im[2]); o.ok = true; } catch (er) { o.ok = false; }
+        try { o.px = names.map(function (n, i) { return i === names.length - 1 && !kit ? null : px(o.im[i]); }); o.ok = true; } catch (er) { o.ok = false; }
         o.busy = false; var l = o.cbs; o.cbs = []; l.forEach(function (f) { f(o); });
-      }; im.src = src + '?a=1';
+      }; im.src = src + '?a=2';
     });
   }
+  function avRnd(seed) { var s = seed; return function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
   function avGold(x, x0, y0, x1, y1) { var gr = x.createLinearGradient(x0, y0, x1, y1); gr.addColorStop(0, '#8a5a12'); gr.addColorStop(0.35, '#f6d36b'); gr.addColorStop(0.55, '#fff2b8'); gr.addColorStop(0.8, '#c8901f'); gr.addColorStop(1, '#7a4c0c'); return gr; }
   function avShade(rgb, k) { return 'rgb(' + rgb.map(function (v) { return Math.max(0, Math.min(255, Math.round(v * k))); }).join(',') + ')'; }
+  function avHT() { return AV_GEO[AV.g].ht; }                    // hair types wait on new base art; the drawn styles below are kept for that
+  function avHair(x, G) {                                           // a drawn hair style, painted behind the face and body (destination-over), then a scalp under it
+    var t = avHT(), H = avHex(AV_HR[AV.hair][1]), S = avHex(AV_SK[AV.skin][1]), h = G.head, cx = h[0], cy = h[1], rx = h[2], ry = h[3], R = avRnd(7 + t * 13);
+    var col = function (k) { return avShade(H, k); };
+    x.save(); x.globalCompositeOperation = 'destination-over';
+    var cap = function (v) { x.beginPath(); x.ellipse(cx, cy, rx * (1 + v), ry * (1 + v), 0, -0.42, 2.25, true); x.quadraticCurveTo(cx - rx * 0.35, cy + ry * 0.45, cx - rx * 0.05, cy + ry * 0.3); x.quadraticCurveTo(cx + rx * 0.5, cy - ry * 0.05, cx + rx * 0.92, cy - ry * 0.4); x.closePath(); };
+    var fillG = function (x0, y0, x1, y1) { var gr = x.createLinearGradient(x0, y0, x1, y1); gr.addColorStop(0, col(1.35)); gr.addColorStop(0.5, col(1)); gr.addColorStop(1, col(0.6)); return gr; };
+    var strands = function (n, len, wid, k, fx, fy) { x.lineCap = 'round'; for (var i = 0; i < n; i++) { var p = fx(R(), R()); x.strokeStyle = col(k[0] + R() * (k[1] - k[0])); x.lineWidth = wid; x.beginPath(); x.moveTo(p[0], p[1]); x.quadraticCurveTo(p[0] + p[2] * len * 0.5 + (R() - 0.5) * 4, p[1] + p[3] * len * 0.5, p[0] + p[2] * len, p[1] + p[3] * len); x.stroke(); } };
+    var onCap = function (v) { return function (a, b) { var an = -0.42 - a * 2.6, rr = 0.35 + b * 0.65; return [cx + Math.cos(an) * rx * (1 + v) * rr, cy + Math.sin(an) * ry * (1 + v) * rr, -Math.sin(an) * 0.6 - 0.2, Math.cos(an) * 0.6 + 0.5]; }; };
+    var curls = function (n, rad, area, v) { for (var i = 0; i < n; i++) { var p = area(R(), R()); x.strokeStyle = col(0.7 + R() * 0.8); x.lineWidth = 1.3; x.beginPath(); x.arc(p[0], p[1], rad * (0.6 + R() * 0.6), R() * 6, R() * 6 + 4.2); x.stroke(); } };
+    var hang = function (len, wid, wave) {                          // hair falling down the back from the crown
+      x.beginPath(); x.moveTo(cx - rx * 0.2, cy - ry * 0.7); x.quadraticCurveTo(cx - rx * 1.35, cy - ry * 0.2, cx - rx * 1.25 - wid * 0.2, cy + len);
+      x.lineTo(cx - rx * 1.25 + wid, cy + len + 6); x.quadraticCurveTo(cx - rx * 0.1 + wid * 0.2, cy + ry * 0.6, cx - rx * 0.05, cy + ry * 0.2); x.closePath(); x.fillStyle = fillG(cx - rx * 1.4, 0, cx, 0); x.fill();
+      strands(70, len * 0.9, 1.1, [0.6, 1.5], function (a, b) { return [cx - rx * (0.3 + a * 1.0), cy - ry * 0.3 + b * len * 0.3, (R() - 0.5) * wave, 1]; });
+    };
+    if (t === 4) {                                                  // afro: a big round cloud
+      var ar = Math.max(rx, ry) * 1.55, ax = cx - rx * 0.18, ay = cy - ry * 0.28, gr = x.createRadialGradient(ax + ar * 0.3, ay - ar * 0.35, ar * 0.1, ax, ay, ar);
+      gr.addColorStop(0, col(1.45)); gr.addColorStop(0.6, col(1)); gr.addColorStop(1, col(0.62)); x.fillStyle = gr; x.beginPath();
+      for (var i = 0; i <= 48; i++) { var an = i / 48 * Math.PI * 2, rr = ar * (0.96 + R() * 0.08); x[i ? 'lineTo' : 'moveTo'](ax + Math.cos(an) * rr, ay + Math.sin(an) * rr * 0.92); } x.closePath(); x.fill();
+      for (i = 0; i < 900; i++) { var a2 = R() * 6.283, r2 = Math.sqrt(R()) * ar; x.fillStyle = col(0.55 + R() * 0.95); x.fillRect(ax + Math.cos(a2) * r2, ay + Math.sin(a2) * r2 * 0.92, 1.4, 1.4); }
+    } else if (t === 5) {                                           // high top fade: a tall flat top over faded sides
+      var top = cy - ry * 2.0, x0 = cx - rx * 0.78, x1 = cx + rx * 0.82; x.beginPath(); x.moveTo(x0, cy - ry * 0.35); x.lineTo(x0 - 3, top + 6); x.quadraticCurveTo(x0, top, x0 + 8, top); x.lineTo(x1 - 6, top); x.quadraticCurveTo(x1 + 2, top, x1 + 2, top + 6); x.lineTo(x1, cy - ry * 0.5); x.closePath();
+      x.fillStyle = fillG(0, top, 0, cy); x.fill(); for (i = 0; i < 700; i++) { x.fillStyle = col(0.55 + R() * 0.9); x.fillRect(x0 + R() * (x1 - x0), top + R() * (cy - ry * 0.4 - top), 1.3, 1.3); }
+      var fd = x.createLinearGradient(0, cy - ry * 0.6, 0, cy + ry * 0.35); fd.addColorStop(0, col(0.9)); fd.addColorStop(1, 'rgba(' + H.join(',') + ',0.15)'); cap(0); x.fillStyle = fd; x.fill();
+    } else if (t === 6) {                                           // dreads: thick ropes from the crown down to the shoulders
+      for (i = 0; i < 26; i++) { var u = i / 25, sx = cx - rx * 0.9 + u * rx * 1.6, sy = cy - ry * 0.85 + Math.abs(u - 0.55) * ry * 0.6, ex = cx - rx * (1.5 - u * 0.9) + (R() - 0.5) * 10, ey = cy + ry * (1.6 + R() * 0.8) - (u > 0.75 ? ry * 1.1 : 0);
+        x.strokeStyle = col(0.55); x.lineWidth = 7.5; x.lineCap = 'round'; x.beginPath(); x.moveTo(sx, sy); x.quadraticCurveTo((sx + ex) / 2 - 10, (sy + ey) / 2, ex, ey); x.stroke();
+        x.strokeStyle = col(1.05 + R() * 0.3); x.lineWidth = 5; x.setLineDash([3, 2.2]); x.stroke(); x.setLineDash([]); }
+      cap(0.06); x.fillStyle = fillG(cx, cy - ry, cx, cy + ry * 0.4); x.fill();
+    } else if (t === 1) {                                           // curly: a bumpy crown of curls
+      x.beginPath(); for (i = 0; i <= 36; i++) { var a3 = -0.42 - i / 36 * 2.7, b3 = 1.2 + (i % 2 ? 0.08 : 0); x[i ? 'lineTo' : 'moveTo'](cx + Math.cos(a3) * rx * b3, cy + Math.sin(a3) * ry * b3); } x.lineTo(cx - rx * 0.05, cy + ry * 0.3); x.closePath(); x.fillStyle = fillG(cx, cy - ry * 1.2, cx, cy + ry * 0.5); x.fill();
+      for (i = 0; i < 30; i++) { var a4 = -0.42 - R() * 2.7; x.fillStyle = col(0.75 + R() * 0.5); x.beginPath(); x.arc(cx + Math.cos(a4) * rx * 1.12, cy + Math.sin(a4) * ry * 1.12, 6 + R() * 4, 0, 6.3); x.fill(); }
+      curls(170, 3.2, function (a, b) { var an = -0.42 - a * 2.7, rr = 0.3 + b * 0.9; return [cx + Math.cos(an) * rx * 1.15 * rr, cy + Math.sin(an) * ry * 1.15 * rr]; });
+    } else if (t === 7) {                                           // nappy: short tight coils with a fuzzy edge
+      cap(0.12); x.fillStyle = fillG(cx, cy - ry, cx, cy + ry * 0.4); x.fill();
+      for (i = 0; i < 1100; i++) { var a5 = -0.42 - R() * 2.65, r5 = Math.sqrt(R()) * 1.16; x.fillStyle = col(0.5 + R() * 0.9); x.fillRect(cx + Math.cos(a5) * rx * r5, cy + Math.sin(a5) * ry * r5, 1.5, 1.5); }
+    } else {                                                        // straight, short and long
+      if (t === 0) hang(ry * 2.3, rx * 0.95, 1.5);
+      if (t === 3) hang(ry * 4.4, rx * 1.15, 6);
+      cap(t === 2 ? 0.05 : 0.1); x.fillStyle = fillG(cx, cy - ry, cx, cy + ry * 0.4); x.fill();
+      strands(t === 2 ? 120 : 90, t === 2 ? 7 : 14, 1, [0.6, 1.5], onCap(t === 2 ? 0.05 : 0.1));
+    }
+    x.beginPath(); x.ellipse(cx, cy + 2, rx * 0.98, ry * 0.98, 0, 0, 6.3); var sg = x.createRadialGradient(cx + rx * 0.3, cy - ry * 0.3, 2, cx, cy, rx * 1.1); sg.addColorStop(0, avShade(S, 1.1)); sg.addColorStop(1, avShade(S, 0.7)); x.fillStyle = sg; x.fill();   // the scalp
+    x.restore();
+  }
+  function avChin(x, G, k) {                                        // a double chin under the jaw for the bigger bodies
+    if (k <= 0) return; var S = avHex(AV_SK[AV.skin][1]), c = G.chin, rx = 13 + 12 * k, ry = 7 + 7 * k, gx = c[0] - 6 - 4 * k, gy = c[1] + 7 + 5 * k;
+    var gr = x.createRadialGradient(gx + rx * 0.2, gy - ry * 0.4, 1, gx, gy, rx); gr.addColorStop(0, avShade(S, 1.08)); gr.addColorStop(0.7, avShade(S, 0.92)); gr.addColorStop(1, avShade(S, 0.62));
+    x.save(); x.fillStyle = gr; x.beginPath(); x.ellipse(gx, gy, rx, ry, 0.25, 0, 6.3); x.fill(); x.strokeStyle = avShade(S, 0.55); x.lineWidth = 1; x.beginPath(); x.ellipse(gx, gy, rx, ry, 0.25, 0.2, 2.6); x.stroke(); x.restore();
+  }
   function avDress(x, G) {                                          // hats, earrings, chains, bracelets and watch, drawn on the unwarped figure
     var C = avHex(AV.shirt), dark = C[0] + C[1] + C[2] < 90; if (dark) C = [34, 34, 38];
     if (AV.chain) { var c = G.chain; [[0, 3.4], [9, 2.6]].forEach(function (k) {
       x.save(); x.lineCap = 'round'; x.beginPath(); x.moveTo(c[0][0] - k[0] * 0.15, c[0][1]); x.quadraticCurveTo(c[2][0], c[2][1] + k[0] * 2.2, c[1][0] + k[0] * 0.15, c[1][1]);
       x.lineWidth = k[1] + 1.6; x.strokeStyle = 'rgba(60,35,5,.75)'; x.stroke(); x.lineWidth = k[1]; x.strokeStyle = avGold(x, c[0][0], 0, c[1][0], 0); x.setLineDash([k[1] * 1.1, k[1] * 0.45]); x.stroke(); x.restore(); }); }
-    var w = G.wrist, ax = Math.sin(w[2]), ay = Math.cos(w[2]);        // along the forearm
+    var w = G.wrist, ax = Math.sin(w[2]), ay = Math.cos(w[2]);
     var band = function (d, th, fill, edge) { x.save(); x.translate(w[0] - ax * d, w[1] - ay * d); x.rotate(-w[2]); x.beginPath(); x.ellipse(0, 0, w[3] / 2 + 1.5, th, 0, 0, Math.PI * 2); x.fillStyle = fill; x.fill(); x.lineWidth = 1; x.strokeStyle = edge; x.stroke(); x.restore(); };
     if (AV.brace) [12, 18, 24].forEach(function (d, i) { band(d + (AV.watch ? 6 : -8), 2.4 + (i === 1 ? 0.8 : 0), avGold(x, w[0] - w[3] / 2, 0, w[0] + w[3] / 2, 0), 'rgba(70,40,5,.8)'); });
     if (AV.watch) { band(0, 5.5, avGold(x, w[0] - w[3] / 2, 0, w[0] + w[3] / 2, 0), 'rgba(70,40,5,.9)');
@@ -2755,13 +2811,13 @@ window.FLFeedback = (function () {
       x.fillStyle = '#5a3a10'; x.fillRect(-0.5, 9.8, 1, 6.5); x.restore(); }
     if (AV.ear === 3 || AV.ear === 4) { var r = AV.ear === 3 ? 5.5 : 13; x.save(); x.lineWidth = AV.ear === 3 ? 1.8 : 1.6; x.strokeStyle = 'rgba(70,40,5,.7)'; x.beginPath(); x.arc(L[0], L[1] + r, r, 0, Math.PI * 2); x.stroke();
       x.lineWidth -= 0.6; x.strokeStyle = avGold(x, L[0] - r, L[1], L[0] + r, L[1] + 2 * r); x.stroke(); x.restore(); }
-    if (AV.hat) { var h = G.hat, hx = h[0], hy = h[1], rx = h[2], ry = h[3], base = avShade(C, 1), sh = avShade(C, 0.72), hi = avShade(C, 1.35);
+    if (AV.hat) { var h = G.hat, hx = h[0], hy = h[1] - (avHT() === 4 ? 26 : avHT() === 5 ? 34 : 0), rx = h[2] * (avHT() === 4 ? 1.15 : 1), ry = h[3], base = avShade(C, 1), sh = avShade(C, 0.72), hi = avShade(C, 1.35);
       x.save();
       x.beginPath(); x.moveTo(hx + rx * 0.45, hy + ry * 0.08); x.quadraticCurveTo(hx + rx * 1.25, hy - ry * 0.05, hx + rx * 1.62, hy + ry * 0.32); x.quadraticCurveTo(hx + rx * 1.2, hy + ry * 0.42, hx + rx * 0.4, hy + ry * 0.3); x.closePath();
       x.fillStyle = sh; x.fill(); x.strokeStyle = 'rgba(0,0,0,.45)'; x.lineWidth = 1; x.stroke();
       x.beginPath(); x.ellipse(hx, hy, rx, ry, 0, Math.PI, 0); x.quadraticCurveTo(hx, hy + ry * 0.24, hx - rx, hy); x.closePath();
       var gr = x.createRadialGradient(hx + rx * 0.25, hy - ry * 0.65, 4, hx, hy - ry * 0.2, rx * 1.15); gr.addColorStop(0, hi); gr.addColorStop(0.55, base); gr.addColorStop(1, sh); x.fillStyle = gr; x.fill();
-      if (AV.hat === 2) {                                           // trucker: a white foam front and a mesh back
+      if (AV.hat === 2) {
         x.save(); x.clip(); x.fillStyle = '#f4f2ec'; x.beginPath(); x.moveTo(hx - rx * 0.05, hy + 4); x.quadraticCurveTo(hx + rx * 0.1, hy - ry * 0.7, hx + rx * 0.25, hy - ry - 4); x.lineTo(hx + rx + 4, hy - ry); x.lineTo(hx + rx + 4, hy + ry); x.closePath(); x.fill();
         x.strokeStyle = 'rgba(0,0,0,.28)'; x.lineWidth = 0.8; for (var mx = hx - rx; mx < hx; mx += 4.2) { x.beginPath(); x.moveTo(mx, hy - ry); x.lineTo(mx + 6, hy + 4); x.stroke(); x.beginPath(); x.moveTo(mx + 6, hy - ry); x.lineTo(mx, hy + 4); x.stroke(); }
         x.fillStyle = base; x.beginPath(); x.ellipse(hx + rx * 0.5, hy - ry * 0.45, rx * 0.2, ry * 0.18, -0.1, 0, Math.PI * 2); x.fill(); x.restore(); }
@@ -2770,108 +2826,127 @@ window.FLFeedback = (function () {
       x.fillStyle = sh; x.beginPath(); x.ellipse(hx + rx * 0.06, hy - ry + 1, 4.5, 2.4, 0, 0, Math.PI * 2); x.fill();
       x.restore(); }
   }
-  function avShoe(x, X, Y, s) {                                     // the shoe inset: a side view, low top or high top, in the shoe color
+  function avShoe(x, X, Y) {                                        // the shoe inset: a side view, low top or high top, in the shoe color
     var C = avHex(AV.shoes), dark = C[0] + C[1] + C[2] < 90; if (dark) C = [40, 40, 44];
-    x.save(); x.translate(X, Y); x.scale(s, s);
-    x.fillStyle = 'rgba(8,10,16,.78)'; x.strokeStyle = 'rgba(255,255,255,.18)'; x.lineWidth = 1; x.beginPath(); x.roundRect ? x.roundRect(0, 0, 170, 104, 12) : x.rect(0, 0, 170, 104); x.fill(); x.stroke();
-    x.fillStyle = '#c9cbd4'; x.font = '800 10px system-ui,sans-serif'; x.textAlign = 'left'; x.fillText(AV.shoe === 'high' ? 'HIGH TOP' : 'LOW TOP', 10, 16);
+    x.save(); x.translate(X, Y);
+    x.fillStyle = 'rgba(8,10,16,.78)'; x.strokeStyle = 'rgba(255,255,255,.18)'; x.lineWidth = 1; x.beginPath(); if (x.roundRect) x.roundRect(0, 0, 170, 104, 12); else x.rect(0, 0, 170, 104); x.fill(); x.stroke();
+    x.fillStyle = '#c9cbd4'; x.font = '800 11px system-ui,sans-serif'; x.textAlign = 'left'; x.fillText(AV.shoe === 'high' ? 'high top' : 'low top', 10, 17);
     var hi = AV.shoe === 'high', top = hi ? 22 : 46;
     x.beginPath(); x.moveTo(26, 82); x.lineTo(26, top + 6); x.quadraticCurveTo(26, top, 34, top); x.lineTo(66, top); x.quadraticCurveTo(72, top, 72, top + 8); x.lineTo(74, 56); x.quadraticCurveTo(110, 58, 136, 66); x.quadraticCurveTo(152, 71, 152, 80); x.lineTo(152, 82); x.closePath();
     var gr = x.createLinearGradient(0, top, 0, 84); gr.addColorStop(0, avShade(C, 1.3)); gr.addColorStop(1, avShade(C, 0.75)); x.fillStyle = gr; x.fill(); x.strokeStyle = 'rgba(0,0,0,.55)'; x.lineWidth = 1.2; x.stroke();
-    x.strokeStyle = '#ffffff'; x.lineWidth = 2.2; x.lineCap = 'round'; for (var i = 0; i < (hi ? 6 : 3); i++) { var lx = 70 + i * 0 + (hi ? 0 : 0), ly = (hi ? 30 : 52) + i * 6; x.beginPath(); x.moveTo(lx - 7 + i * 4, ly); x.lineTo(lx + 3 + i * 4, ly + 2); x.stroke(); }
+    x.strokeStyle = '#ffffff'; x.lineWidth = 2.2; x.lineCap = 'round'; for (var i = 0; i < (hi ? 6 : 3); i++) { var ly = (hi ? 30 : 52) + i * 6; x.beginPath(); x.moveTo(63 + i * 4, ly); x.lineTo(73 + i * 4, ly + 2); x.stroke(); }
     x.fillStyle = 'rgba(255,255,255,.85)'; x.beginPath(); x.moveTo(36, 72); x.quadraticCurveTo(80, 60, 118, 72); x.quadraticCurveTo(80, 66, 40, 78); x.closePath(); x.fill();
     if (hi) { x.fillStyle = avShade(C, 0.6); x.beginPath(); x.ellipse(36, 40, 6, 6, 0, 0, Math.PI * 2); x.fill(); }
     x.fillStyle = '#f2f0ea'; x.beginPath(); x.moveTo(22, 82); x.lineTo(156, 82); x.quadraticCurveTo(158, 92, 148, 93); x.lineTo(28, 93); x.quadraticCurveTo(20, 92, 22, 82); x.fill(); x.strokeStyle = 'rgba(0,0,0,.35)'; x.lineWidth = 1; x.stroke();
-    x.fillStyle = 'rgba(0,0,0,.25)'; x.fillRect(24, 88, 132, 2);
     x.restore();
   }
+  function avTint(d, s, p, w, T, L0, k0, k1) { var k = k0 + k1 * (0.299 * s[p] + 0.587 * s[p + 1] + 0.114 * s[p + 2]) / L0; d[p] += (T[0] * k - d[p]) * w; d[p + 1] += (T[1] * k - d[p + 1]) * w; d[p + 2] += (T[2] * k - d[p + 2]) * w; }
   function avDraw(cv) {
-    var g = AV.g, G = AV_GEO[g];
-    avLoad(g, function (o) {
-      if (!o.ok || AV.g !== g) return;
-      var f = o.fig || (o.fig = document.createElement('canvas')); f.width = AVW; f.height = AVH; var fx = f.getContext('2d'), id = fx.createImageData(AVW, AVH), d = id.data, s = o.rgb, m1 = o.m1, m2 = o.m2;
-      var SK = avHex(AV_SK[AV.skin][1]), HR = avHex(AV_HR[AV.hair][1]), TS = avHex(AV.shirt), TP = avHex(AV.shorts), tank = AV.top === 'tank';
-      var keepT = TS[0] + TS[1] + TS[2] < 90, keepP = TP[0] + TP[1] + TP[2] < 90;
-      for (var p = 0; p < d.length; p += 4) {
-        var r = s[p], gg = s[p + 1], b = s[p + 2], L = 0.299 * r + 0.587 * gg + 0.114 * b, a = m1[p];
-        d[p + 3] = a; if (!a) continue;
-        var sk = m1[p + 1] / 255, hr = m1[p + 2] / 255, sh = m2[p] / 255, so = m2[p + 1] / 255, sl = tank ? m2[p + 2] / 255 : 0, k, t;
-        if (sl > 0) { k = 0.66 + 0.5 * L / G.fabL; sh = Math.max(0, sh - sl); r += (SK[0] * k - r) * sl; gg += (SK[1] * k - gg) * sl; b += (SK[2] * k - b) * sl; }
-        if (sk > 0) { k = L / G.skinL; t = L > 200 ? (L - 200) * 0.6 : 0; r += (SK[0] * k + t - r) * sk; gg += (SK[1] * k + t - gg) * sk; b += (SK[2] * k + t - b) * sk; }
-        if (hr > 0) { k = 0.18 + 0.82 * L / G.hairL; r += (HR[0] * k - r) * hr; gg += (HR[1] * k - gg) * hr; b += (HR[2] * k - b) * hr; }
-        if (sh > 0 && !keepT) { k = 0.36 + 0.92 * L / G.fabL; r += (TS[0] * k - r) * sh; gg += (TS[1] * k - gg) * sh; b += (TS[2] * k - b) * sh; }
-        if (so > 0 && !keepP) { k = 0.36 + 0.92 * L / G.fabL; r += (TP[0] * k - r) * so; gg += (TP[1] * k - gg) * so; b += (TP[2] * k - b) * so; }
-        d[p] = r; d[p + 1] = gg; d[p + 2] = b;
+    var kit = AV.view === 'kit', key = AV.g + (kit ? 'k' : ''), G = AV_GEO[AV.g], GK = AV_GEO[key];
+    avLoad(key, function (o) {
+      if (!o.ok || (AV.g + (AV.view === 'kit' ? 'k' : '')) !== key) return;
+      var TS = avHex(AV.shirt), TP = avHex(AV.shorts), CE = avHex(AV_CE[AV.cesta][1]), tank = AV.top === 'tank', keepT = TS[0] + TS[1] + TS[2] < 90, keepP = TP[0] + TP[1] + TP[2] < 90, keepC = AV.cesta === GK.ceOrig;
+      var x = cv.getContext('2d'), f = o.fig || (o.fig = document.createElement('canvas')); f.width = AVW; f.height = AVH; var fx = f.getContext('2d'), id = fx.createImageData(AVW, AVH), d = id.data, p, w;
+      if (kit) {                                                    // the uniform silhouette: recolor on the kit photo (a tank top swaps in the sleeveless picture)
+        var s = tank ? o.px[3] : o.px[0], m = o.px[1], c = o.px[2];
+        for (p = 0; p < d.length; p += 4) {
+          d[p] = s[p]; d[p + 1] = s[p + 1]; d[p + 2] = s[p + 2]; d[p + 3] = 255;
+          var sl = tank ? m[p + 2] / 255 : 0;
+          if ((w = m[p] / 255 * (1 - sl)) > 0 && !keepT) avTint(d, s, p, w, TS, GK.fabL, 0.36, 0.92);
+          if ((w = m[p + 1] / 255) > 0 && !keepP) avTint(d, s, p, w, TP, GK.fabL, 0.36, 0.92);
+          if ((w = c[p] / 255) > 0 && !keepC) avTint(d, s, p, w, CE, GK.ceL, 0.3, 0.7);
+        }
+        fx.putImageData(id, 0, 0); x.clearRect(0, 0, AVW, AVH); x.drawImage(f, 0, 0); avShoe(x, AVW - 186, AVH - 118); return;
       }
-      fx.putImageData(id, 0, 0); avDress(fx, G);
-      var x = cv.getContext('2d'), B = AV_BD[AV.body], kb = B[1], belly = B[2];
-      x.clearRect(0, 0, AVW, AVH); x.drawImage(o.im[3], 0, 0, AVW, AVH);
-      for (var y = 0; y < AVH; y++) {
-        var hd = Math.min(1, Math.max(0, (y - G.neck + 10) / 45)), sc = (1 + (kb - 1) * 0.3) * (1 - hd) + kb * hd;
-        sc += belly * Math.exp(-Math.pow((y - G.waist) / 95, 2)) * hd;
-        x.drawImage(f, 0, y, AVW, 1, G.cx - G.cx * sc, y, AVW * sc, 1);
+      var S0 = o.px[0], m1 = o.px[1], m2 = o.px[2], ce = o.px[3], SK = avHex(AV_SK[AV.skin][1]), HR = avHex(AV_HR[AV.hair][1]), ht = avHT(), own = ht === G.ht;
+      for (p = 0; p < d.length; p += 4) {
+        var a = m1[p]; d[p] = S0[p]; d[p + 1] = S0[p + 1]; d[p + 2] = S0[p + 2]; d[p + 3] = a; if (!a) continue;
+        var sk = m1[p + 1] / 255, hr = m1[p + 2] / 255, sh = m2[p] / 255, so = m2[p + 1] / 255, sl2 = tank ? m2[p + 2] / 255 : 0;
+        if (sl2 > 0) { sh = Math.max(0, sh - sl2); avTint(d, S0, p, sl2, SK, G.fabL, 0.66, 0.5); }
+        if (sk > 0) avTint(d, S0, p, sk, SK, G.skinL, 0, 1);
+        if (hr > 0) { if (own) avTint(d, S0, p, hr, HR, G.hairL, 0.18, 0.82); else d[p + 3] = a * (1 - hr); }
+        if (sh > 0 && !keepT) avTint(d, S0, p, sh, TS, G.fabL, 0.36, 0.92);
+        if (so > 0 && !keepP) avTint(d, S0, p, so, TP, G.fabL, 0.36, 0.92);
+        if ((w = ce[p] / 255) > 0 && !keepC) avTint(d, S0, p, w, CE, G.ceL, 0.3, 0.7);
       }
-      avShoe(x, AVW - 186, AVH - 118, 1);
+      fx.putImageData(id, 0, 0);
+      var B = AV_BD[AV.body]; if (!own) avHair(fx, G); avChin(fx, G, B[4]); avDress(fx, G);
+      var bc = o.body || (o.body = document.createElement('canvas')); bc.width = AVW; bc.height = AVH; var bx = bc.getContext('2d'), kb = B[1], belly = B[2], fs = B[3];
+      for (var y = 0; y < AVH; y++) {                               // row by row: the head widens by the face share, the belly pushes the front (right) side forward
+        var hd = Math.min(1, Math.max(0, (y - G.neck + 10) / 45)), sc = (1 + (kb - 1) * fs) * (1 - hd) + kb * hd, g = Math.exp(-Math.pow((y - G.waist + 18) / (70 + 40 * belly), 2)) * hd;
+        var kl = sc * (1 + belly * 0.22 * g), kr = sc * (1 + belly * g * 1.25 * G.half / 70);
+        bx.drawImage(f, 0, y, G.cx, 1, G.cx - G.cx * kl, y, G.cx * kl, 1); bx.drawImage(f, G.cx, y, AVW - G.cx, 1, G.cx, y, (AVW - G.cx) * kr, 1);
+      }
+      if (belly > 0) {                                              // roundness on the belly: light on the front, a shadow underneath
+        var bxp = G.cx + G.half * kb * (1 + belly * 1.1), byp = G.waist - 20; bx.save(); bx.globalCompositeOperation = 'source-atop';
+        var hl = bx.createRadialGradient(bxp - 10, byp - 30, 4, bxp - 10, byp - 20, 90 + 60 * belly); hl.addColorStop(0, 'rgba(255,255,255,' + (0.1 + 0.06 * belly) + ')'); hl.addColorStop(1, 'rgba(255,255,255,0)'); bx.fillStyle = hl; bx.fillRect(0, 0, AVW, AVH);
+        var dk = bx.createRadialGradient(bxp - 30, byp + 70 + 30 * belly, 4, bxp - 30, byp + 60 + 30 * belly, 80 + 50 * belly); dk.addColorStop(0, 'rgba(0,0,0,' + (0.25 + 0.15 * belly) + ')'); dk.addColorStop(1, 'rgba(0,0,0,0)'); bx.fillStyle = dk; bx.fillRect(0, 0, AVW, AVH); bx.restore();
+      }
+      x.clearRect(0, 0, AVW, AVH); x.drawImage(o.im[4], 0, 0, AVW, AVH); x.drawImage(bc, 0, 0); avShoe(x, AVW - 186, AVH - 118);
     });
   }
-  function avSave() { try { localStorage.setItem(AVKEY, JSON.stringify(AV)); } catch (e) { /* ignore */ } }
+  function avSave() { try { AV.v = 2; localStorage.setItem(AVKEY, JSON.stringify(AV)); } catch (e) { /* ignore */ } }
   function avOpen() {
     var el = $('avBox');
     if (!el) { el = document.createElement('div'); el.id = 'avBox'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'avH'); document.body.appendChild(el); }
-    var chips = function (key, list, label) { return '<div class="av-row" role="group" aria-label="' + label + '">' + list.map(function (n, i) { var v = typeof n === 'string' ? i : n[0]; return '<button type="button" data-av="' + key + '" data-v="' + i + '" aria-pressed="' + (AV[key] === i) + '">' + esc(typeof n === 'string' ? n : n[0]) + '</button>'; }).join('') + '</div>'; };
-    var sw = function (key, list, label) { return '<div class="av-row av-sw" role="group" aria-label="' + label + '">' + list.map(function (n, i) { return '<button type="button" data-av="' + key + '" data-v="' + i + '" aria-pressed="' + (AV[key] === i) + '"><i style="background:' + n[1] + '"></i>' + esc(n[0]) + '</button>'; }).join('') + '</div>'; };
-    var pair = function (key, opts, label) { return '<div class="av-row" role="group" aria-label="' + label + '">' + opts.map(function (o) { return '<button type="button" data-av="' + key + '" data-s="' + o[0] + '" aria-pressed="' + (AV[key] === o[0]) + '">' + o[1] + '</button>'; }).join('') + '</div>'; };
-    var tog = function (key, label) { return '<button type="button" data-av="tog" data-k="' + key + '" aria-pressed="' + !!AV[key] + '">' + label + '</button>'; };
+    var nm = function (n) { return typeof n === 'string' ? n : n[0]; };
+    var chips = function (key, list, label) { return '<div class="av-row" role="group" aria-label="' + label + '">' + list.map(function (n, i) { return '<button type="button" data-av="' + key + '" data-v="' + i + '" aria-pressed="false">' + esc(nm(n)) + '</button>'; }).join('') + '</div>'; };
+    var sw = function (key, list, label) { return '<div class="av-row av-sw" role="group" aria-label="' + label + '">' + list.map(function (n, i) { return '<button type="button" data-av="' + key + '" data-v="' + i + '" aria-pressed="false"><i style="background:' + n[1] + '"></i>' + esc(n[0]) + '</button>'; }).join('') + '</div>'; };
+    var pair = function (key, opts, label) { return '<div class="av-row" role="group" aria-label="' + label + '">' + opts.map(function (o) { return '<button type="button" data-av="' + key + '" data-s="' + o[0] + '" aria-pressed="false">' + o[1] + '</button>'; }).join('') + '</div>'; };
+    var tog = function (key, label) { return '<button type="button" data-av="tog" data-k="' + key + '" aria-pressed="false">' + label + '</button>'; };
     el.innerHTML = '<div class="av-in"><button type="button" class="df-back" data-av="close">\u2039 Back</button><div class="df-tag">Limited Edition Skins</div><h3 id="avH" tabindex="-1">Build Your Avatar</h3>' +
-      '<div class="av-stage"><canvas id="avCv" width="' + AVW + '" height="' + AVH + '" role="img" aria-label="Your avatar preview"></canvas></div>' +
+      '<div class="av-stage"><canvas id="avCv" width="' + AVW + '" height="' + AVH + '" role="img" aria-label="Your avatar preview"></canvas>' + pair('view', [['kit', 'uniform'], ['player', 'player']], 'Show') + '</div>' +
       '<div class="av-ctl">' +
-      '<div class="av-l">Player</div>' + pair('g', [['m', 'Male'], ['f', 'Female']], 'Player') +
+      '<div class="av-l">Player</div>' + pair('g', [['m', 'male'], ['f', 'female']], 'Player') +
+      '<div class="av-l">Uniform Color</div><div class="av-cols"><label><input type="color" id="avAll" value="' + AV.shirt + '">all</label><label><input type="color" id="avShirt" value="' + AV.shirt + '">shirt</label><label><input type="color" id="avShorts" value="' + AV.shorts + '">shorts</label><label><input type="color" id="avShoes" value="' + AV.shoes + '">shoes</label></div>' +
+      '<div class="av-l">Top</div>' + pair('top', [['tank', 'tank top'], ['shirt', 'shirt']], 'Top') +
+      '<div class="av-l">Shorts</div><div class="av-row"><button type="button" aria-pressed="true" disabled>standard</button></div>' +
+      '<div class="av-l">Shoes</div>' + pair('shoe', [['low', 'low top'], ['high', 'high top']], 'Shoes') +
+      '<div class="av-l">Cesta</div>' + sw('cesta', AV_CE, 'Cesta color') +
       '<div class="av-l">Body Style</div>' + chips('body', AV_BD, 'Body style') +
       '<div class="av-l">Skin Color</div>' + sw('skin', AV_SK, 'Skin color') +
       '<div class="av-l">Hair Color</div>' + sw('hair', AV_HR, 'Hair color') +
-      '<div class="av-l">Uniform Color</div><div class="av-cols"><label><input type="color" id="avAll" value="' + AV.shirt + '">All</label><label><input type="color" id="avShirt" value="' + AV.shirt + '">Shirt</label><label><input type="color" id="avShorts" value="' + AV.shorts + '">Shorts</label><label><input type="color" id="avShoes" value="' + AV.shoes + '">Shoes</label></div>' +
-      '<div class="av-l">Top</div>' + pair('top', [['tank', 'Tank Top'], ['shirt', 'Shirt']], 'Top') +
-      '<div class="av-l">Shorts</div><div class="av-row"><button type="button" aria-pressed="true" disabled>Standard</button></div>' +
-      '<div class="av-l">Shoes</div>' + pair('shoe', [['low', 'Low Top'], ['high', 'High Top']], 'Shoes') +
       '<div class="av-l">Hat</div>' + chips('hat', AV_HAT, 'Hat') +
       '<div class="av-l">Earrings</div>' + chips('ear', AV_EAR, 'Earrings') +
-      '<div class="av-l">Jewelry</div><div class="av-row" role="group" aria-label="Jewelry">' + tog('chain', 'Gold Chains') + tog('brace', 'Gold Bracelets') + tog('watch', 'Fancy Watch') + '</div>' +
+      '<div class="av-l">Jewelry</div><div class="av-row" role="group" aria-label="Jewelry">' + tog('chain', 'gold chains') + tog('brace', 'gold bracelets') + tog('watch', 'fancy watch') + '</div>' +
       '</div><button type="button" class="av-go" data-av="use">Use This Avatar<small>$0.99 per month</small></button>' +
       '<button type="button" class="av-link" data-av="photos">Or send us two photos and we custom build you</button></div>';
     el.hidden = false; var cv = $('avCv'), q = 0;
     var redraw = function () { if (q) return; q = requestAnimationFrame(function () { q = 0; avDraw(cv); }); };
     var sync = function () { [].forEach.call(el.querySelectorAll('button[data-av]'), function (b) { var k = b.getAttribute('data-av'), v = b.getAttribute('data-v'), s = b.getAttribute('data-s');
-      if (v != null) b.setAttribute('aria-pressed', String(AV[k] === +v)); else if (s != null) b.setAttribute('aria-pressed', String(AV[k] === s)); else if (k === 'tog') b.setAttribute('aria-pressed', String(!!AV[b.getAttribute('data-k')])); }); };
-    var col = function (id, keys) { $(id).addEventListener('input', function () { var v = this.value; keys.forEach(function (k) { AV[k] = v; if (k !== 'all') { var t = $('av' + k.charAt(0).toUpperCase() + k.slice(1)); if (t && t !== this) t.value = v; } }, this); avSave(); redraw(); }); };
+      if (v != null) b.setAttribute('aria-pressed', String((k === 'ht' ? avHT() : AV[k]) === +v)); else if (s != null) b.setAttribute('aria-pressed', String(AV[k] === s)); else if (k === 'tog') b.setAttribute('aria-pressed', String(!!AV[b.getAttribute('data-k')])); }); };
+    var col = function (id, keys) { $(id).addEventListener('input', function () { var v = this.value, me = this; keys.forEach(function (k) { AV[k] = v; var t = $('av' + k.charAt(0).toUpperCase() + k.slice(1)); if (t && t !== me) t.value = v; }); avSave(); redraw(); }); };
     col('avAll', ['shirt', 'shorts', 'shoes']); col('avShirt', ['shirt']); col('avShorts', ['shorts']); col('avShoes', ['shoes']);
+    var BODYK = { body: 1, skin: 1, hair: 1, ht: 1, hat: 1, ear: 1, tog: 1 };
     el.onclick = function (e) {
       var b = e.target.closest('button[data-av]'); if (!b) return; var k = b.getAttribute('data-av');
       if (k === 'close') { el.hidden = true; return; }
       if (k === 'photos') { el.hidden = true; $('wzANote').textContent = ''; $('wzAvatar').hidden = false; return; }
       if (k === 'use') { avSave(); el.hidden = true; exTermsBack(); WZ.skin = 'Your Avatar';
-        WZ.ref = [AV.g, AV.body, AV.skin, AV.hair, AV.shirt.slice(1), AV.shorts.slice(1), AV.shoes.slice(1), AV.top.charAt(0), AV.shoe.charAt(0), AV.hat, AV.ear, (AV.chain ? 'c' : '') + (AV.brace ? 'b' : '') + (AV.watch ? 'w' : '')].join('-');
+        WZ.ref = [AV.g, AV.body, AV.skin, AV.hair, avHT(), AV.shirt.slice(1), AV.shorts.slice(1), AV.shoes.slice(1), AV.top.charAt(0), AV.shoe.charAt(0), AV.cesta, AV.hat, AV.ear, (AV.chain ? 'c' : '') + (AV.brace ? 'b' : '') + (AV.watch ? 'w' : '')].join('-');
         $('wzTFor').textContent = 'Skin: Your Avatar \u2022 $0.99 per month'; $('wzTNote').textContent = 'Your avatar is saved on this phone.'; $('wzTerms').hidden = false; var tb = $('wzTerms').querySelector('.wz-tbody'); if (tb) tb.scrollTop = 0; return; }
       if (k === 'tog') AV[b.getAttribute('data-k')] = !AV[b.getAttribute('data-k')];
       else if (b.hasAttribute('data-v')) AV[k] = +b.getAttribute('data-v');
       else if (b.hasAttribute('data-s')) AV[k] = b.getAttribute('data-s');
+      if (BODYK[k]) AV.view = 'player';
       sync(); avSave(); redraw();
     };
     el.onkeydown = function (e) { if (e.key === 'Escape') el.hidden = true; };
-    redraw(); try { el.querySelector('#avH').focus(); } catch (er) { /* ignore */ }
+    sync(); redraw(); try { $('avH').focus(); } catch (er) { /* ignore */ }
     if (!$('avCss')) { var F = 'var(--ui, system-ui, sans-serif)', A = '#14b8a6', P = '#e11d74', st = document.createElement('style'); st.id = 'avCss';
       st.textContent = '#avBox{position:fixed;inset:0;z-index:2147482300;background:rgba(4,6,10,.9);display:flex;align-items:center;justify-content:center;padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}#avBox[hidden]{display:none}' +
         '#avBox .av-in{position:relative;width:min(100%,460px);max-height:100%;overflow:auto;box-sizing:border-box;background:#0a0c12;border:2px solid ' + A + ';border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px;color:#f2efe6}' +
-        '#avBox .df-back{position:absolute;top:10px;left:10px;background:none;border:0;color:#c9cbd4;font:700 12px/1 ' + F + ';min-height:32px;cursor:pointer}#avBox .df-tag{text-align:center;font:700 10.5px/1 ' + F + ';letter-spacing:.16em;text-transform:uppercase;color:' + A + '}' +
-        '#avBox h3{margin:0;text-align:center;font:900 21px/1 var(--display, ' + F + ');text-transform:uppercase;letter-spacing:.02em}' +
-        '#avBox .av-stage{position:sticky;top:-12px;z-index:2;background:#0a0c12;margin:0 -12px;padding:4px 12px 6px;border-bottom:1px solid #1d2233}#avBox canvas{display:block;width:auto;max-width:100%;height:min(40vh,330px);margin:0 auto;border-radius:12px}' +
+        '#avBox .df-back{position:absolute;top:10px;left:10px;background:none;border:0;color:#c9cbd4;font:700 12px/1 ' + F + ';min-height:32px;cursor:pointer}#avBox .df-tag{text-align:center;font:700 10.5px/1 ' + F + ';letter-spacing:.16em;text-transform:uppercase;color:' + A + ';padding-top:22px}' +
+        '#avBox h3{margin:0;text-align:center;font:900 21px/1 var(--display, ' + F + ');text-transform:uppercase;letter-spacing:.02em}#avBox h3:focus{outline:none}' +
+        '#avBox .av-stage{position:sticky;top:-12px;z-index:2;background:#0a0c12;margin:0 -12px;padding:4px 12px 6px;border-bottom:1px solid #1d2233;display:flex;flex-direction:column;align-items:center;gap:6px}#avBox canvas{display:block;width:auto;max-width:100%;height:min(38vh,310px);border-radius:12px}' +
         '#avBox .av-ctl{display:flex;flex-direction:column;gap:5px}#avBox .av-l{font:800 10.5px/1 ' + F + ';letter-spacing:.14em;text-transform:uppercase;color:#a9adba;margin-top:5px}' +
-        '#avBox .av-row{display:flex;flex-wrap:wrap;gap:5px}#avBox .av-row button{min-height:34px;padding:0 11px;border-radius:999px;border:1.5px solid #3a4160;background:transparent;color:#f2efe6;font:700 12px/1 ' + F + ';cursor:pointer;display:inline-flex;align-items:center;gap:6px}' +
+        '#avBox .av-row{display:flex;flex-wrap:wrap;gap:5px}#avBox .av-row button{min-height:34px;padding:0 11px;border-radius:999px;border:1.5px solid #3a4160;background:transparent;color:#f2efe6;font:700 12.5px/1 ' + F + ';text-transform:lowercase;cursor:pointer;display:inline-flex;align-items:center;gap:6px}' +
         '#avBox .av-row button[aria-pressed="true"]{background:' + P + ';border-color:' + P + ';color:#fff}#avBox .av-row button:disabled{opacity:1;cursor:default}' +
         '#avBox .av-sw i{width:16px;height:16px;border-radius:50%;border:1.5px solid rgba(255,255,255,.7);flex:none}' +
-        '#avBox .av-cols{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}#avBox .av-cols label{display:flex;flex-direction:column;align-items:center;gap:4px;font:700 11px/1 ' + F + ';color:#c9cbd4}#avBox .av-cols input{width:100%;height:36px;border:1.5px solid #3a4160;border-radius:10px;background:#11141d;padding:2px;cursor:pointer}' +
+        '#avBox .av-cols{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}#avBox .av-cols label{display:flex;flex-direction:column;align-items:center;gap:4px;font:700 11.5px/1 ' + F + ';color:#c9cbd4}#avBox .av-cols input{width:100%;height:36px;border:1.5px solid #3a4160;border-radius:10px;background:#11141d;padding:2px;cursor:pointer}' +
         '#avBox .av-go{margin-top:6px;min-height:52px;border:0;border-radius:12px;background:' + P + ';color:#fff;font:900 16px/1.1 ' + F + ';text-transform:uppercase;letter-spacing:.03em;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}#avBox .av-go small{font:700 11px/1 ' + F + ';text-transform:none;letter-spacing:0;opacity:.9}' +
         '#avBox .av-link{background:none;border:0;color:#c9cbd4;text-decoration:underline;font:600 12px/1.3 ' + F + ';min-height:36px;cursor:pointer}' +
-        '#avBox h3:focus{outline:none}#avBox .df-tag{padding-top:22px}#avBox button:focus-visible,#avBox input:focus-visible{outline:2px solid #fff;outline-offset:2px}';
+        '#avBox button:focus-visible,#avBox input:focus-visible{outline:2px solid #fff;outline-offset:2px}';
       document.head.appendChild(st); }
   }
   function exOpen() {
