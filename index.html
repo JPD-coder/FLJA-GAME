@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126151651";
+window.FL_BUILD = "20261126152326";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -476,6 +476,7 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
 .after .start { margin: 0; }
 .after .ghost { padding: 10px 18px; font-size: 14px; }
 .hint { margin: 0; text-align: center; color: var(--muted); font-size: 13px; }
+.hint.rotate { font-size: 16px; font-weight: 800; color: #f2efe6; letter-spacing: .02em; padding: 4px 0; }
 .rotate { display: none; }
 
 /* narrow screens: title left, Merch Store pinned top right, the other buttons on the row below */
@@ -994,6 +995,7 @@ body.wiz.pv-setup #bar, body.wiz .app:has(#setup:not([hidden])) #bar { display: 
   <div class="after" id="after" hidden>
     <button class="start" id="btnRematch" type="button">Rematch</button>
     <button class="ghost" id="btnChange" type="button">Change setup</button>
+    <button class="ghost" id="btnHome" type="button">Home</button>
   </div>
   <div class="menu-back" id="rewBack" hidden></div>
   <div class="menu" id="rewMenu" role="dialog" aria-modal="true" aria-labelledby="rewTitle" hidden>
@@ -2630,9 +2632,9 @@ window.FLFeedback = (function () {
       el.addEventListener('click', function (e) { var b = e.target.closest('button[data-ch]'); if (b) chNext(b.getAttribute('data-ch')); }); }
     var me = ROSTER[CH.me], who = whoOf(0) === 'women' ? 'w' : 'm', pic = POSTERS[CH.me + who] || POSTERS[CH.me + 'm'], head, go;
     if (CH.champ) { head = '<div class="cw"><div class="cw-pic" style="background-image:url(' + pic + ')"><span class="cw-cup" aria-hidden="true">\ud83c\udfc6</span><span class="cw-conf" aria-hidden="true"></span></div><h3>Champions!</h3><p>' + esc(chName(CH.me)) + ' win the ' + chTitle() + '</p></div>';
-      go = '<button type="button" data-ch="again">Play Again</button><button type="button" data-ch="menu">Menu</button>'; }
+      go = '<button type="button" data-ch="again">Play Again</button><button type="button" data-ch="menu">Home</button>'; }
     else if (CH.out) { head = '<h3>Eliminated</h3><p>' + esc(chName(CH.me)) + ' go out in the ' + CH_RND[CH.round] + '. ' + esc(chName(CH.m.f.w)) + ' win the title.</p>';
-      go = '<button type="button" data-ch="again">Try Again</button><button type="button" data-ch="menu">Menu</button>'; }
+      go = '<button type="button" data-ch="again">Try Again</button><button type="button" data-ch="menu">Home</button>'; }
     else { head = '<h3>You Advance!</h3><p>Next: ' + CH_RND[CH.round + 1] + ' vs ' + esc(chName(CH.round === 0 ? CH.m.s1.b : CH.m.f.b)) + ' \u00b7 ' + CH_LVL[CH.round + 1][2] + '</p>';
       go = '<button type="button" data-ch="next">Play ' + CH_RND[CH.round + 1] + '</button>'; }
     if (CH.g === 'league' && DF.ros[CH.me] && DF.ros[CH.me].length) go += '<button type="button" data-ch="ros">Rosters</button>';
@@ -2710,7 +2712,7 @@ window.FLFeedback = (function () {
   function dfHow() {                                              // How the Draft Works: the rules and every player's ratings, opened from the lottery screen
     var rows = [1, 2, 3, 4].map(function (t) { var cell = function (pos) { return DR.filter(function (p) { return p.tier === t && p.pos === pos; }).sort(function (a, b) { return b.ovr - a.ovr; }).map(function (p) { return '#' + p.num + ' ' + esc(p.name) + ' <b>' + p.ovr + '</b>'; }).join('<br>'); };
       return '<tr><th scope="row" style="color:' + DTC[t] + '">' + t + '<br><i>' + DT[t] + '</i></th><td>' + cell('F') + '</td><td>' + cell('B') + '</td></tr>'; }).join('');
-    return '<details class="df-how"><summary>How the Draft Works</summary><ul>' +
+    return '<details class="df-how"><summary>How the Draft Works<span class="df-plus" aria-hidden="true"></span></summary><ul>' +
       '<li><b>24 players, 6 clubs.</b> The Dania Beach roster plus Gorka and Johan: 12 front courters and 12 back courters.</li>' +
       '<li><b>Four tiers of six.</b> Players are ranked by Overall into Tier 1 Elite, Tier 2 Starter, Tier 3 Rotation and Tier 4 Prospect, with three front and three back courters in each.</li>' +
       '<li><b>Lottery.</b> A draw sets the order for round 1.</li>' +
@@ -2783,7 +2785,7 @@ window.FLFeedback = (function () {
       '#dfBox .df-in{width:min(100%,480px);max-height:100%;overflow:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;background:#0a0c12;border:2px solid ' + A + ';border-radius:16px;padding:12px 10px;display:flex;flex-direction:column;gap:8px}' +
       '#dfBox .df-tag{text-align:center;font:700 10.5px/1 ' + F + ';letter-spacing:.16em;text-transform:uppercase;color:' + A + '}#dfBox h3{margin:0;text-align:center;font:900 21px/1 var(--display,' + F + ');letter-spacing:.08em;text-transform:uppercase;color:' + P + '}' +
       '#dfBox h4{margin:2px 0 0;font:800 11.5px/1 ' + F + ';letter-spacing:.14em;text-transform:uppercase}#dfBox .df-sub,#dfBox .df-note{margin:0;text-align:center;font:500 12px/1.35 ' + F + ';color:#a9adba}' +
-      '#dfBox .df-how{border:1px solid #232a44;border-radius:10px;background:#0f1220;padding:0 10px}#dfBox .df-how summary{cursor:pointer;min-height:38px;display:flex;align-items:center;font:800 12.5px/1 ' + F + ';letter-spacing:.1em;text-transform:uppercase;color:' + A + '}#dfBox .df-how summary::marker{color:' + A + '}' +
+      '#dfBox .df-how{border:1px solid #232a44;border-radius:10px;background:#0f1220;padding:0 10px}#dfBox .df-how summary{cursor:pointer;min-height:38px;display:flex;align-items:center;font:800 12.5px/1 ' + F + ';letter-spacing:.1em;text-transform:uppercase;color:' + A + '}#dfBox .df-how summary{list-style:none;justify-content:space-between}#dfBox .df-how summary::-webkit-details-marker{display:none}#dfBox .df-plus:before{content:"+";font:900 22px/1 ' + F + ';color:' + A + '}#dfBox .df-how[open] .df-plus:before{content:"\\2212"}' +
       '#dfBox .df-how ul{margin:0 0 8px;padding-left:17px;display:flex;flex-direction:column;gap:5px;font:500 12px/1.4 ' + F + ';color:#d7d9e0}#dfBox .df-how b{color:#fff}#dfBox .df-rk{margin:0 0 6px;font:500 11px/1.35 ' + F + ';color:#a9adba}' +
       '#dfBox .df-how table{width:100%;border-collapse:collapse;margin-bottom:10px;font:600 11.5px/1.45 ' + F + '}#dfBox .df-how th,#dfBox .df-how td{padding:5px 4px;border-top:1px solid #1e2440;text-align:left;vertical-align:top}#dfBox .df-how thead th{font:800 9.5px/1 ' + F + ';letter-spacing:.1em;text-transform:uppercase;color:' + A + '}#dfBox .df-how tbody th{font:900 15px/1.1 ' + F + ';width:62px}#dfBox .df-how tbody th i{font:700 9px/1 ' + F + ';font-style:normal;letter-spacing:.06em;text-transform:uppercase}#dfBox .df-how td b{color:#a9adba;margin-left:3px}' +
       '#dfBox .df-lot{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}#dfBox .df-lot li{display:flex;align-items:center;gap:9px;min-height:36px;padding:0 10px;border-radius:10px;background:#121627;border:1px solid #232a44;font:800 14px/1 ' + F + '}' +
@@ -2817,7 +2819,7 @@ window.FLFeedback = (function () {
     if (what === 'ros') { dfRecap(false); return; }
     var el = $('chBoard'); if (el) el.hidden = true;
     if (window.Table && window.Table.isOpen()) window.Table.close();
-    if (what === 'menu') { CH.on = false; CH.busy = false; startDemo(); wzShow(7); return; }
+    if (what === 'menu') { goHome(); return; }
     if (what === 'again') { if (CH.g === 'league') { chPaint(); wzShow(7); startDemo(); dfStart($('chDraft').value === 'saved' ? 'saved' : 'live'); return; } chDraw(CH.me); } else CH.round++;
     startDemo(); chStart();
   }
@@ -2830,8 +2832,15 @@ window.FLFeedback = (function () {
     $('chView').innerHTML = [['aerial', 'Professional'], ['side', 'Amateur'], ['table', 'Cocktail Table'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', 'Vintage']].filter(function (m) { return m[0] === 'table' || viewOK(m[0]); }).map(function (m) { return '<option value="' + m[0] + '"' + (m[0] === curV ? ' selected' : '') + '>' + m[1] + '</option>'; }).join('');
     var dd = $('chDraft'), sv = dfLoad(); dd.hidden = CH.g !== 'league';
     dd.innerHTML = '<option value="live">Live Draft \u00b7 You Pick Your Roster</option><option value="skip">Skip Draft \u00b7 CPU Picks All Rosters</option>' + (sv ? '<option value="saved">My Saved Team \u00b7 ' + esc(ROSTER[sv.me] ? ROSTER[sv.me].name : '') + ' (' + esc(sv.at || '') + ')</option>' : '');
-    $('chBr').innerHTML = CH.me >= 0 ? chBracket() : '<p class="ch-empty">Pick your team to draw the bracket. Win three in a row: Quarterfinal on Easy, Semifinal on Normal, Championship on Hard.</p>';
+    $('chBr').innerHTML = CH.me >= 0 ? chBracket() : '';
     $('chMsg').textContent = '';
+  }
+  function goHome() {                                             // Home: close whatever game is up and go back to Choose Where to Play
+    PM.on = false; PM.open = false; CH.on = false; CH.busy = false; cfg.youK = cfg.cpuK = 1;
+    ['pmBoard', 'pmRules', 'chBoard', 'dfBox'].forEach(function (id) { var e = $(id); if (e) e.hidden = true; });
+    if (window.Table && window.Table.isOpen()) window.Table.close();
+    if (PROMO && window.FL_NAV) { window.FL_NAV('step3'); return; }
+    startDemo(); if (WZ) wzShow(3);
   }
   function wzHome() { if (WZ) wzShow(cfg.comp === 'hvp' ? 5 : WZ.champ ? 7 : 4); }   // back from a match (Menu, New match, Change setup): the page they started it from
   wzInit();
@@ -3300,6 +3309,7 @@ window.FLFeedback = (function () {
       point: function (w) { pmPoint(w); },
       win: function (w, sc) { chOver(w === 0, sc); },
       menu: function () { PM.on = false; window.Table.close(); startDemo(); wzHome(); },
+      home: function () { goHome(); },
       mode: function (sc) { window.Table.close(); cfg.table = false; var nx = PROMO ? (PROMO.dania ? 'aerial' : 'side') : viewOK('vintage') ? 'vintage' : 'aerial'; setView(nx); cfg.view = view; save(); startMatch(sc || undefined); },   // on to the next mode, same match
       music: window.FL_MUSIC ? function () { musToggle(); } : null, musicOn: function () { return !!spLive; } } });
     try { musicUI(); } catch (e) { /* no player on this page */ }   // if music is already on, it moves to the 80s list
@@ -3311,6 +3321,7 @@ window.FLFeedback = (function () {
   if ($('btnMusic')) $('btnMusic').addEventListener('click', musToggle);   // the header button is gone: music sits in the Pause / Menu / View row
   $('btnRematch').addEventListener('click', function () { if (net.role === 'guest') return; unlock(); startMatch(); });
   $('btnChange').addEventListener('click', function () { startDemo(); wzHome(); });
+  if ($('btnHome')) $('btnHome').addEventListener('click', goHome);
   $('btnSetup').addEventListener('click', function () { startDemo(); wzHome(); });
   $('btnPause').addEventListener('click', togglePause);
   $('btnView').addEventListener('click', function () { changeView(); });
@@ -4839,8 +4850,9 @@ window.FLFeedback = (function () {
   function pmRules() {                                           // How to Play, shown as each Dania game begins; play waits until it is closed
     var el = $('pmRules');
     if (!el) { el = document.createElement('div'); el.id = 'pmRules'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'pmRulesH'); document.body.appendChild(el);
-      el.addEventListener('click', function (e) { if (e.target.closest('button')) { el.hidden = true; PM.open = false; if (window.Table && window.Table.isOpen()) window.Table.resume(); } }); }
+      el.addEventListener('click', function (e) { if (e.target.closest('button')) { el.hidden = true; PM.open = false; if (PM.mt) { PM.mt = false; var mt = $('moveTip'); if (mt) { mt.hidden = false; tipOpen = true; } } if (window.Table && window.Table.isOpen()) window.Table.resume(); } }); }
     el.innerHTML = '<div class="pb-in"><h3 id="pmRulesH">How to Play</h3><p class="pr-t">First team to 7 points takes the win! Points double after the first round, and 2nd and 3rd place are decided by the remaining scores\u2014with a quick playoff to break any ties.</p><div class="pb-go"><button type="button">Let\u2019s Play</button></div></div>';
+    var mt = $('moveTip'); PM.mt = !!(mt && !mt.hidden); if (PM.mt) { mt.hidden = true; tipOpen = false; }   // How to Move waits until How to Play is closed
     PM.open = true; el.hidden = false; if (window.Table && window.Table.isOpen()) window.Table.pause();
     try { el.querySelector('button').focus(); } catch (e) { /* ignore */ }
   }
@@ -4863,7 +4875,7 @@ window.FLFeedback = (function () {
           '<span class="pb-nm">' + esc(pmPostName(k)) + (k === 0 ? ' <u>You</u>' : '') + (fin && i < 3 ? ' <u class="pb-pl">' + place[i] + '</u>' : '') + '</span><b class="pb-pts">' + g.pts[k] + '</b></li>'; }).join('') + '</ol>' +
       (fin ? '<p class="pb-ord">Order of finish <b>' + PM.order.slice(0, 3).map(function (k) { return k + 1; }).join('\u2013') + '</b></p>' +
         PM.playoff.map(function (o) { var nth = ['', '1st', '2nd', '3rd'][o.place] || o.place + 'th'; return '<p class="pb-po">Playoff for ' + nth + ' (tied at ' + PM.pts[o.order[0]] + '): ' + o.order.map(function (k) { return 'Post ' + (k + 1); }).join(' beats ') + '</p>'; }).join('') +
-        '<p class="pb-next">' + (PM.champ === 0 ? 'You win the game!' : 'Post ' + (PM.champ + 1) + ' wins: ' + esc(pmPostName(PM.champ))) + '</p><div class="pb-go"><button type="button" data-pm="again">Play Again</button><button type="button" data-pm="menu">New Team</button></div>'
+        '<p class="pb-next">' + (PM.champ === 0 ? 'You win the game!' : 'Post ' + (PM.champ + 1) + ' wins: ' + esc(pmPostName(PM.champ))) + '</p><div class="pb-go"><button type="button" data-pm="again">Play Again</button><button type="button" data-pm="menu">New Team</button><button type="button" data-pm="home">Home</button></div>'
         : last ? '<p class="pb-next">You are up: Post 1 vs Post ' + (other(g.court) + 1) + ' \u00b7 ' + PMC[other(g.court)][0] + '</p><div class="pb-go"><button type="button" data-pm="go">Continue</button></div>'
         : '<p class="pb-next">On the court: Post ' + (g.court[0] + 1) + ' vs Post ' + (g.court[1] + 1) + '</p><div class="pb-go"><button type="button" disabled>Waiting for your turn\u2026</button></div>');
     if (!last) setTimeout(function () { if (PM.open && $('pmBoard') && !$('pmBoard').hidden) { PM.step++; pmShow(); } }, 1000);
@@ -4872,6 +4884,7 @@ window.FLFeedback = (function () {
   function pmNext(what) {
     var el = $('pmBoard'), tb = window.Table && window.Table.isOpen(), g = tb ? window.Table.game() : game;
     if (el) el.hidden = true;
+    if (what === 'home') { goHome(); return; }
     if (what === 'menu') { PM.open = false; PM.on = false; if (tb) window.Table.close(); startDemo(); return; }
     if (what === 'again') { pmReset(); setTimeout(pmRules, 400); } else PM.opp = PM.court[0] === 0 ? PM.court[1] : PM.court[0];
     cfg.pick = [14, 14 + PM.opp]; dRecalc(); applyTeams();
@@ -4964,7 +4977,7 @@ window.FLFeedback = (function () {
       '#pmBoard .pb-pts{margin-left:auto;font:900 16px/1 ' + F + ';min-width:18px;text-align:right}' +
       '#pmBoard .pb-ord{margin:2px 0 0;text-align:center;font:700 12px/1.2 ' + F + ';letter-spacing:.08em;text-transform:uppercase;color:#a9adba}#pmBoard .pb-ord b{font-size:17px;letter-spacing:.06em;color:#fff;margin-left:6px}#pmBoard .pb-po{margin:0;text-align:center;font:600 11.5px/1.25 ' + F + ';color:' + OR + '}' +
       '#pmBoard .pb-next{margin:2px 0 0;text-align:center;font:700 12.5px/1.2 ' + F + ';color:#fff}' +
-      '#pmBoard .pb-go{display:flex;gap:8px}#pmBoard .pb-go button{flex:1 1 0;min-height:44px;border-radius:12px;border:2px solid ' + OR + ';background:' + OR + ';color:#0b0c0f;font:800 14px/1 ' + F + ';letter-spacing:.06em;text-transform:uppercase;cursor:pointer}#pmBoard .pb-go button + button{background:transparent;color:#fff}' +
+      '#pmBoard .pb-go{display:flex;gap:8px;flex-wrap:wrap}#pmBoard .pb-go button{flex:1 1 0;min-height:44px;border-radius:12px;border:2px solid ' + OR + ';background:' + OR + ';color:#0b0c0f;font:800 14px/1 ' + F + ';letter-spacing:.06em;text-transform:uppercase;cursor:pointer}#pmBoard .pb-go button + button{background:transparent;color:#fff}' +
       '#pmBoard button:focus-visible{outline:3px solid #fff;outline-offset:2px}' +
       '@media (orientation:landscape) and (max-height:560px){#pmBoard .pb-in{width:min(100%,640px);padding:8px 10px}#pmBoard .pb-list{display:grid;grid-template-columns:1fr 1fr;grid-auto-flow:column;grid-template-rows:repeat(4,auto);gap:3px 8px}#pmBoard .pb-list li{min-height:24px;font-size:12px}#pmBoard h3{font-size:15px}#pmBoard .pb-go button{min-height:38px}}';
     document.head.appendChild(st);
@@ -5787,6 +5800,7 @@ window.Table = (function () {
     if (!running) return; e.preventDefault(); audio(); if (ac && ac.state === 'suspended') ac.resume();
     var p = toLogical(e), t = topAt(p);
     if (t >= 0) { topDown = t; topHit = t; topT = T; return; }
+    if (mode === 'over' && homeR && p.x >= homeR.x && p.x <= homeR.x + homeR.w && p.y >= homeR.y - 6 && p.y <= homeR.y + homeR.h + 6) { var hk = O.hooks || {}; if (hk.home) hk.home(); else if (hk.menu) hk.menu(); return; }
     if (mode !== 'play') { newMatch(); return; }
     if (tip) { tip = false; return; }
     if (adv.on) { if (adv.t > 0.3) adv.t = 0.3; return; }                    // a tap sends the sponsor card back to the floor
@@ -5922,11 +5936,14 @@ window.Table = (function () {
     ctx.fillStyle = '#23262e'; ctx.fillRect(-cw * 0.44, chh * 0.455, cw * 0.88, Math.max(2, chh * 0.012)); ctx.fillStyle = GOLD; ctx.fillRect(-cw * 0.44, chh * 0.455, cw * 0.88 * Math.max(0, adv.t / AD_SECS), Math.max(2, chh * 0.012));
     ctx.restore();
   }
-  function panel(lines, sub) {
+  var homeR = null;                                                 // the Home button on the end-of-match panel
+  function panel(lines, sub, home) {
     ctx.fillStyle = 'rgba(5,6,10,.8)'; ctx.fillRect(0, L.wallH, W, H - L.wallH); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     var y = H * 0.3; if (ok(img['brand.png'])) { var s = W * 0.3; ctx.drawImage(img['brand.png'], W / 2 - s / 2, H * 0.12, s, s * img['brand.png'].naturalHeight / img['brand.png'].naturalWidth); y = H * 0.36; }
     lines.forEach(function (l, i) { var fs = i ? Math.min(W * 0.043, W * 0.92 / (l.length * 0.5)) : Math.min(W * 0.1, W * 0.9 / (l.length * 0.62)); ctx.font = (i ? '600 ' : '900 ') + fs + 'px system-ui,Arial,sans-serif'; ctx.fillStyle = i ? '#f2efe6' : GOLD; ctx.fillText(l, W / 2, y); y += i ? W * 0.07 : W * 0.13; });
+    homeR = null;
     if (!sub) return; var bw2 = Math.min(W * 0.6, 280), bh = Math.max(48, W * 0.13); ctx.fillStyle = GOLD; rr(ctx, W / 2 - bw2 / 2, H * 0.72 - bh / 2, bw2, bh, bh / 2); ctx.fill(); ctx.fillStyle = '#0b0c0f'; ctx.font = '900 ' + bh * 0.36 + 'px system-ui,Arial,sans-serif'; ctx.fillText(sub, W / 2, H * 0.72 + 1);
+    if (home) { var hh = bh * 0.82, hy = H * 0.72 + bh / 2 + 14; ctx.strokeStyle = '#f2efe6'; ctx.lineWidth = 2; rr(ctx, W / 2 - bw2 / 2, hy, bw2, hh, hh / 2); ctx.stroke(); ctx.fillStyle = '#f2efe6'; ctx.font = '800 ' + hh * 0.38 + 'px system-ui,Arial,sans-serif'; ctx.fillText('HOME', W / 2, hy + hh / 2); homeR = { x: W / 2 - bw2 / 2, y: hy, w: bw2, h: hh }; }
   }
 
   var last = 0;
@@ -5958,7 +5975,7 @@ window.Table = (function () {
     if (game) { ctx.save(); ctx.beginPath(); ctx.rect(0, L.wallH, W, L.barY - L.wallH); ctx.clip(); drawGuides(dt); var me2 = mine(), P = game.players.filter(function (p) { return !p.out; }).sort(function (a, b) { return b.x - a.x; }); P.forEach(function (p) { drawPlayer(p, p === me2); }); drawBall(); ctx.restore(); }
     drawControls(); drawFx(dt);
     if (mode === 'intro') panel(['COCKTAIL TABLE', 'Lay your phone flat and play from this end.', 'Move with the stick, or touch the court.', 'Serve when lines 4 and 7 flash red.', 'Throw with the colored buttons.'], 'TAP TO PLAY');
-    else if (mode === 'over') panel([O.teams[game.winner].n.toUpperCase() + (O.teams[game.winner].one ? ' WINS' : ' WIN'), game.score[0] + ' – ' + game.score[1]], 'PLAY AGAIN');
+    else if (mode === 'over') panel([O.teams[game.winner].n.toUpperCase() + (O.teams[game.winner].one ? ' WINS' : ' WIN'), game.score[0] + ' – ' + game.score[1]], 'PLAY AGAIN', true);
     else if (tip) panel(['HOW TO PLAY', 'Lay your phone flat and play from this end.', 'Move: push the red stick, or touch the court.', 'Serve: tap SERVE when lines 4 and 7 flash red.', 'Throw: tap a colored button once you catch it.', 'Rebound call: it is going to the back wall. Get behind it.'], 'GOT IT');   // the match waits behind this card until it is closed
     else if (paused) panel(['PAUSED'], 'TAP TO PLAY ON');
     else if (adv.on) drawAd();

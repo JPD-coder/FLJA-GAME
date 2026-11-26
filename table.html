@@ -671,6 +671,7 @@ window.Table = (function () {
     if (!running) return; e.preventDefault(); audio(); if (ac && ac.state === 'suspended') ac.resume();
     var p = toLogical(e), t = topAt(p);
     if (t >= 0) { topDown = t; topHit = t; topT = T; return; }
+    if (mode === 'over' && homeR && p.x >= homeR.x && p.x <= homeR.x + homeR.w && p.y >= homeR.y - 6 && p.y <= homeR.y + homeR.h + 6) { var hk = O.hooks || {}; if (hk.home) hk.home(); else if (hk.menu) hk.menu(); return; }
     if (mode !== 'play') { newMatch(); return; }
     if (tip) { tip = false; return; }
     if (adv.on) { if (adv.t > 0.3) adv.t = 0.3; return; }                    // a tap sends the sponsor card back to the floor
@@ -806,11 +807,14 @@ window.Table = (function () {
     ctx.fillStyle = '#23262e'; ctx.fillRect(-cw * 0.44, chh * 0.455, cw * 0.88, Math.max(2, chh * 0.012)); ctx.fillStyle = GOLD; ctx.fillRect(-cw * 0.44, chh * 0.455, cw * 0.88 * Math.max(0, adv.t / AD_SECS), Math.max(2, chh * 0.012));
     ctx.restore();
   }
-  function panel(lines, sub) {
+  var homeR = null;                                                 // the Home button on the end-of-match panel
+  function panel(lines, sub, home) {
     ctx.fillStyle = 'rgba(5,6,10,.8)'; ctx.fillRect(0, L.wallH, W, H - L.wallH); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     var y = H * 0.3; if (ok(img['brand.png'])) { var s = W * 0.3; ctx.drawImage(img['brand.png'], W / 2 - s / 2, H * 0.12, s, s * img['brand.png'].naturalHeight / img['brand.png'].naturalWidth); y = H * 0.36; }
     lines.forEach(function (l, i) { var fs = i ? Math.min(W * 0.043, W * 0.92 / (l.length * 0.5)) : Math.min(W * 0.1, W * 0.9 / (l.length * 0.62)); ctx.font = (i ? '600 ' : '900 ') + fs + 'px system-ui,Arial,sans-serif'; ctx.fillStyle = i ? '#f2efe6' : GOLD; ctx.fillText(l, W / 2, y); y += i ? W * 0.07 : W * 0.13; });
+    homeR = null;
     if (!sub) return; var bw2 = Math.min(W * 0.6, 280), bh = Math.max(48, W * 0.13); ctx.fillStyle = GOLD; rr(ctx, W / 2 - bw2 / 2, H * 0.72 - bh / 2, bw2, bh, bh / 2); ctx.fill(); ctx.fillStyle = '#0b0c0f'; ctx.font = '900 ' + bh * 0.36 + 'px system-ui,Arial,sans-serif'; ctx.fillText(sub, W / 2, H * 0.72 + 1);
+    if (home) { var hh = bh * 0.82, hy = H * 0.72 + bh / 2 + 14; ctx.strokeStyle = '#f2efe6'; ctx.lineWidth = 2; rr(ctx, W / 2 - bw2 / 2, hy, bw2, hh, hh / 2); ctx.stroke(); ctx.fillStyle = '#f2efe6'; ctx.font = '800 ' + hh * 0.38 + 'px system-ui,Arial,sans-serif'; ctx.fillText('HOME', W / 2, hy + hh / 2); homeR = { x: W / 2 - bw2 / 2, y: hy, w: bw2, h: hh }; }
   }
 
   var last = 0;
@@ -842,7 +846,7 @@ window.Table = (function () {
     if (game) { ctx.save(); ctx.beginPath(); ctx.rect(0, L.wallH, W, L.barY - L.wallH); ctx.clip(); drawGuides(dt); var me2 = mine(), P = game.players.filter(function (p) { return !p.out; }).sort(function (a, b) { return b.x - a.x; }); P.forEach(function (p) { drawPlayer(p, p === me2); }); drawBall(); ctx.restore(); }
     drawControls(); drawFx(dt);
     if (mode === 'intro') panel(['COCKTAIL TABLE', 'Lay your phone flat and play from this end.', 'Move with the stick, or touch the court.', 'Serve when lines 4 and 7 flash red.', 'Throw with the colored buttons.'], 'TAP TO PLAY');
-    else if (mode === 'over') panel([O.teams[game.winner].n.toUpperCase() + (O.teams[game.winner].one ? ' WINS' : ' WIN'), game.score[0] + ' – ' + game.score[1]], 'PLAY AGAIN');
+    else if (mode === 'over') panel([O.teams[game.winner].n.toUpperCase() + (O.teams[game.winner].one ? ' WINS' : ' WIN'), game.score[0] + ' – ' + game.score[1]], 'PLAY AGAIN', true);
     else if (tip) panel(['HOW TO PLAY', 'Lay your phone flat and play from this end.', 'Move: push the red stick, or touch the court.', 'Serve: tap SERVE when lines 4 and 7 flash red.', 'Throw: tap a colored button once you catch it.', 'Rebound call: it is going to the back wall. Get behind it.'], 'GOT IT');   // the match waits behind this card until it is closed
     else if (paused) panel(['PAUSED'], 'TAP TO PLAY ON');
     else if (adv.on) drawAd();
