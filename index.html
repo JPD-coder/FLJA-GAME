@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126164402";
+window.FL_BUILD = "20261126190359";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -3888,9 +3888,9 @@ window.FLFeedback = (function () {
       else if (!wallUp && p._wj) p._wj = 0;
     }
     if (VIEW3) { drawBack(p, { arc: arc, hop: arc > 0 ? arc * (wallUp ? 128 : 88) : 0, wall: !!wallUp, throwing: throwing, u: u, holding: holding, mv: mv, ph: ph, receiving: receiving, won: won,
-      mine: mode === 'match' && Core.ctl(game, p) && (!net.role || p.team === solo), tag: solo >= 0 ? 'YOU' : 'P' + humanNo[p.i] }); return; }
+      mine: mode === 'match' && Core.ctl(game, p) && (!net.role || p.team === solo), tag: solo >= 0 ? '' : 'P' + humanNo[p.i] }); return; }
     if (LOOK2 && drawSprite(p, refl, { arc: arc, hop: arc > 0 ? arc * (wallUp ? 128 : 88) : 0, wall: !!wallUp, throwing: throwing, u: u, holding: holding, mv: mv, ph: ph, receiving: receiving, won: won,
-      mine: mode === 'match' && Core.ctl(game, p) && (!net.role || p.team === solo), tag: solo >= 0 ? 'YOU' : 'P' + humanNo[p.i] })) return;
+      mine: mode === 'match' && Core.ctl(game, p) && (!net.role || p.team === solo), tag: solo >= 0 ? '' : 'P' + humanNo[p.i] })) return;
     // skeleton
     var bob = mv < 0.1 ? Math.sin(t * 2.4 + p.i * 1.7) * 1.2 : 0, bounce = Math.abs(Math.sin(ph)) * 4 * mv;
     var hipx = 0, hipy = -72 + r.cr - bounce + bob * 0.4;
@@ -3916,7 +3916,7 @@ window.FLFeedback = (function () {
         trim: [[sx + ux * 0.8, sy + uy * 0.8, k[0], k[1], 11.4, 11, kit.sash], [k[0] + fx2 * 0.72, k[1] + fy2 * 0.72, k[0] + fx2 * 0.9, k[1] + fy2 * 0.9, 9.4, 9, '#f1efe8']] };
     }
 
-    var mine = mode === 'match' && Core.ctl(game, p) && (!net.role || p.team === solo), tag = solo >= 0 ? 'YOU' : 'P' + humanNo[p.i];
+    var mine = mode === 'match' && Core.ctl(game, p) && (!net.role || p.team === solo), tag = solo >= 0 ? '' : 'P' + humanNo[p.i];
     ctx.save(); ctx.translate(p.x, C.FEET);
     if (mine && !refl) {
       ctx.strokeStyle = TEAM[p.team].ui; ctx.lineWidth = Math.max(5, 2 / cssScale); ctx.globalAlpha = 0.65 + 0.35 * Math.sin(t * 6);
@@ -4385,7 +4385,7 @@ window.FLFeedback = (function () {
       var px0 = q(p.x), fy = FL - Math.round(ju * 21), mine = mode === 'match' && Core.ctl(game, p) && (!net.role || p.team === solo);
       rc.fillStyle = '#000'; rc.fillRect(px0 - 8, FL - 1, 16, 1);
       rSprite(name, px0, fy, p.face, kit, false, isWoman(p));
-      if (mine) { rc.fillStyle = blink ? TEAM[p.team].ui : '#ffffff'; rc.fillRect(px0 - 2, fy - 47, 5, 1); rc.fillRect(px0 - 1, fy - 46, 3, 1); rc.fillRect(px0, fy - 45, 1, 1); rText(solo >= 0 ? 'YOU' : 'P' + humanNo[i], px0 + 1, fy - 54, TEAM[p.team].ui, 1, true); }
+      if (mine) { rc.fillStyle = blink ? TEAM[p.team].ui : '#ffffff'; rc.fillRect(px0 - 2, fy - 47, 5, 1); rc.fillRect(px0 - 1, fy - 46, 3, 1); rc.fillRect(px0, fy - 45, 1, 1); rText(solo >= 0 ? '' : 'P' + humanNo[i], px0 + 1, fy - 54, TEAM[p.team].ui, 1, true); }
       if (holding) { p._tip = { x: p.x + p.face * 55, y: C.FEET - (name === 'reach' ? 190 : 110) - ju * 105 }; }
       if (holding && game.reb && mine) { var left = Math.max(0, 1 - p.holdT / (game.cfg.rebHold || C.REBOTE_HOLD)); rc.fillStyle = '#000'; rc.fillRect(px0 - 13, fy - 62, 26, 4); rc.fillStyle = left < 0.4 ? '#ff2e4d' : '#ffd21f'; rc.fillRect(px0 - 12, fy - 61, Math.round(24 * left), 2); }
     }
@@ -4459,7 +4459,7 @@ window.FLFeedback = (function () {
       else { R(4, -37, 2, 3); R(6, -40, 2, 3); R(8, -43, 2, 3); R(10, -47, 2, 4); R(8, -49, 2, 2); tipx = 11; tipy = -50; } // flung forward
       R(-7, -30, 4, 2); R(-9, -33, 3, 5); R(-8, -32, 1, 2, '#000');                                                       // free hand, with a drink in it
       R(3, -37, 3, 1); for (k = 0; k < 3; k++) { var pa = (t * 0.7 + k / 3 + i * 0.21) % 1; R(6 + Math.round(Math.sin(pa * 8 + k) * 2) - (moving ? Math.round(pa * 8) : 0), -39 - Math.round(pa * 14), 1, 1); }   // a smoke on the lip
-      if (mine) { rc.fillStyle = W; if (blink) { rc.fillRect(x - 2, fy - 58, 5, 1); rc.fillRect(x - 1, fy - 57, 3, 1); rc.fillRect(x, fy - 56, 1, 1); } rText(solo >= 0 ? 'YOU' : 'P' + humanNo[i], x + 1, fy - 66, W, 1, true); }
+      if (mine) { rc.fillStyle = W; if (blink) { rc.fillRect(x - 2, fy - 58, 5, 1); rc.fillRect(x - 1, fy - 57, 3, 1); rc.fillRect(x, fy - 56, 1, 1); } rText(solo >= 0 ? '' : 'P' + humanNo[i], x + 1, fy - 66, W, 1, true); }
       if (holding) p._tip = { x: p.x + fc * tipx * 5, y: (fy + tipy) * 5 };
       if (holding && game.reb && mine) { var left = Math.max(0, 1 - p.holdT / (game.cfg.rebHold || C.REBOTE_HOLD)); rc.fillStyle = W; rc.fillRect(x - 13, fy - 74, 26, 1); rc.fillRect(x - 13, fy - 70, 26, 1); rc.fillRect(x - 12, fy - 73, Math.round(24 * left), 3); }
     }
