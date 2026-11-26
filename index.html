@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126094638";
+window.FL_BUILD = "20261126102702";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2331,7 +2331,7 @@ window.FLFeedback = (function () {
         '<button type="button" class="wz-next" data-wz="next">Next</button></section>' +
       '<section class="wz-step" id="wz3" hidden>' + wzTop(3, 'Choose Where to Play') + '<div class="wz-tiles">' +
         '<button type="button" class="wz-tile" data-wz="league"><img src="brand.png" alt=""><span><b>League Play</b><i>Six Club Teams</i></span></button>' +
-        '<button type="button" class="wz-tile" data-wz="champ"><span class="wz-cup" aria-hidden="true">\ud83c\udfc6</span><span><b>Fantasy League Championship</b><i>Win Three to Lift the Trophy</i></span></button>' +
+        '<button type="button" class="wz-tile" data-wz="champ"><span class="wz-cup" aria-hidden="true">\ud83c\udfc6</span><span><b>Fantasy League Championship</b><i>League or World Cup &middot; Win Three to Lift the Trophy</i></span></button>' +
         '<button type="button" class="wz-tile" data-wz="world"><img src="usa-crest.png" alt=""><span><b>World Cup Play</b><i>Six National Teams</i></span></button>' +
         '<button type="button" class="wz-tile" data-wz="dania"><img src="db-crest.png" alt="" style="border-radius:50%"><span><b>Dania Invitational</b><i>5th Annual Dania Beach &middot; 22 Man Roster</i></span></button>' +
         '<button type="button" class="wz-tile" data-wz="allstar">' + wzStar('#e11d2e', '#ff5a66', 'usa-crest.png') + '<span><b>All Star Players</b><i>Past &amp; Present All Star Roster</i></span></button>' +
@@ -2347,7 +2347,8 @@ window.FLFeedback = (function () {
         '<p class="wz-msg" id="wzMsg" role="status"></p>' +
       '</section>' +
       '<section class="wz-step" id="wz7" hidden>' + wzTop(4, 'Fantasy League Championship') +
-        '<div class="wz-sels"><select class="wz-sel" id="chTeam" aria-label="Your team"></select><select class="wz-sel" id="chView" aria-label="Select view or era"></select></div>' +
+        '<select class="wz-sel wz-wide" id="chComp" aria-label="League or World Cup"><option value="league">League Play \u00b7 Six Club Teams</option><option value="world">World Cup \u00b7 Six National Teams</option></select>' +
+        '<div class="wz-sels" style="margin-top:10px"><select class="wz-sel" id="chTeam" aria-label="Your team"></select><select class="wz-sel" id="chView" aria-label="Select view or era"></select></div>' +
         '<div id="chBr"></div>' +
         '<div class="wz-play"><button type="button" class="wz-go" data-wz="ch-play">Play Free Now<small>With Ads</small></button><button type="button" class="wz-go alt" data-wz="ch-play">Play Ad Free Now<small>$0.99 per month</small></button></div>' +
         '<p class="wz-msg" id="chMsg" role="status"></p>' +
@@ -2388,6 +2389,7 @@ window.FLFeedback = (function () {
     var fc = $('faceClear'); fc.classList.add('wz-clear'); $('wzSelfie').parentNode.insertBefore(fc, $('wzSelfie').nextSibling);
     if ($('online')) $('wzOnline').appendChild($('online'));
     $('wzView').addEventListener('change', function () { changeView(this.value); });
+    $('chComp').addEventListener('change', function () { CH.g = this.value; CH.me = -1; CH.m = null; setComp(CH.g); chPaint(); });
     $('chTeam').addEventListener('change', function () { if (this.value === '') { CH.me = -1; CH.m = null; } else chDraw(+this.value); chPaint(); });
     wzDialogs();
     if ($('fbLink')) { $('fbLink').className = 'wz-link'; $('wzLinks').insertBefore($('fbLink'), $('wzLinks').firstChild); }
@@ -2553,7 +2555,7 @@ window.FLFeedback = (function () {
     if (a === 'p2online') { WZ.p2 = 'online'; renderOnline(); wzPaint(); return true; }
     if (a === 'lang-en' || a === 'lang-es') { cfg.lang = a === 'lang-en' ? 'en' : 'es'; save(); wzPaint(); return true; }
     if (a === 'league' || a === 'world') { CH.on = false; WZ.champ = false; if (CH.m) { cfg.level = 'normal'; cfg.pace = 'standard'; } setComp(a); picked = [false, false]; wzShow(4); return true; }
-    if (a === 'champ') { WZ.champ = true; setComp('league'); wzShow(7); return true; }
+    if (a === 'champ') { WZ.champ = true; setComp(CH.g); wzShow(7); return true; }
     if (a === 'ch-play') { if (CH.me < 0) { $('chMsg').textContent = 'Pick your team.'; return true; } var cv = $('chView').value; if (cv === 'table') cfg.table = true; else { cfg.table = false; setView(cv); cfg.view = view; } if (!CH.m) chDraw(CH.me); CH.round = 0; CH.out = false; CH.champ = false; chStart(); return true; }
     if (a === 'hvp') { WZ.hvp = true; hvpAsk(); return true; }
     if (a === 'dania') { if (window.FL_NAV) window.FL_NAV('dania' + (cfg.singles ? 'S' : 'D') + (cfg.seats[0] ? 1 : 0) + (cfg.seats[1] ? 1 : 0)); return true; }
@@ -2568,10 +2570,10 @@ window.FLFeedback = (function () {
   function wzHvpGo() { if (WZ) { WZ.hvp = false; wzShow(5); } }   // Hoots vs Peaks from the step menu: straight into the match
   /* ---------- Fantasy League Championship: pick a club and win three in a row (Quarterfinal on Easy, Semifinal on Normal, Championship on Hard).
      Six clubs, so two start with a bye; your club never does. The bracket shows after every match: a screenshot of it is the road to the final. ---------- */
-  var CH = { on: false, me: -1, t: [], m: null, round: 0, out: false, champ: false, busy: false };
+  var CH = { g: 'league', on: false, me: -1, t: [], m: null, round: 0, out: false, champ: false, busy: false };
   var CH_RND = ['Quarterfinal', 'Semifinal', 'Championship'], CH_LVL = [['easy', 'relaxed', 'Easy'], ['normal', 'standard', 'Normal'], ['hard', 'pro', 'Hard']];
   function chDraw(me) {                                             // your club meets a random club first; two of the others wait in the semifinals
-    var rest = [0, 1, 2, 3, 4, 5].filter(function (k) { return k !== me; }), i, j, x;
+    var rest = groupList(CH.g).filter(function (k) { return k !== me; }), i, j, x;
     for (i = rest.length - 1; i > 0; i--) { j = Math.floor(Math.random() * (i + 1)); x = rest[i]; rest[i] = rest[j]; rest[j] = x; }
     CH.me = me; CH.t = [me].concat(rest); CH.round = 0; CH.out = false; CH.champ = false;
     CH.m = { q1: { a: me, b: rest[0] }, q2: { a: rest[2], b: rest[3] }, s1: { a: null, b: rest[1] }, s2: { a: null, b: rest[4] }, f: { a: null, b: null } };
@@ -2596,9 +2598,11 @@ window.FLFeedback = (function () {
     track('champ', (CH.champ ? 'won' : CH.out ? 'out' : 'advance') + '.' + CH.round);
     setTimeout(function () { chBoard(); }, 2400);                  // the winning call is seen first
   }
+  function chName(k) { var n = ROSTER[k].name; return n === 'USA' ? 'Team USA' : n; }
+  function chTitle() { return CH.g === 'world' ? 'World Cup Championship' : 'Fantasy League Championship'; }
   function chLogo(k) { var r = ROSTER[k]; return '<img src="' + r.logo + '" alt="">'; }
   function chBracket() {
-    var M = CH.m, nm = function (k) { return k == null ? '<span class="cb-tbd">To be decided</span>' : chLogo(k) + '<span>' + esc(ROSTER[k].name) + '</span>'; };
+    var M = CH.m, nm = function (k) { return k == null ? '<span class="cb-tbd">To be decided</span>' : chLogo(k) + '<span>' + esc(chName(k)) + '</span>'; };
     var row = function (m, side) { var k = side ? m.b : m.a, s = side ? m.sb : m.sa, done = m.w != null;
       return '<div class="cb-t' + (k === CH.me ? ' cb-me' : '') + (done && m.w === k ? ' cb-w' : done ? ' cb-l' : '') + '">' + nm(k) + (done ? '<b>' + s + '</b>' : '') + '</div>'; };
     var box = function (m, lab) { return '<div class="cb-m"><i>' + lab + '</i>' + row(m, 0) + row(m, 1) + '</div>'; };
@@ -2606,25 +2610,25 @@ window.FLFeedback = (function () {
     var cw = M.f.w;
     return '<div class="cb" role="img" aria-label="Championship bracket"><div class="cb-c"><h4>Quarterfinals</h4>' + box(M.q1, 'Game 1') + bye(M.s1.b) + box(M.q2, 'Game 2') + bye(M.s2.b) + '</div>' +
       '<div class="cb-c"><h4>Semifinals</h4>' + box(M.s1, 'Game 3') + box(M.s2, 'Game 4') + '</div>' +
-      '<div class="cb-c"><h4>Championship</h4>' + box(M.f, 'Final') + '<div class="cb-ch' + (cw != null ? ' on' : '') + '"><span aria-hidden="true">\ud83c\udfc6</span>' + (cw != null ? chLogo(cw) + '<b>' + esc(ROSTER[cw].name) + '</b>' : '<b>Champion</b>') + '</div></div></div>';
+      '<div class="cb-c"><h4>Championship</h4>' + box(M.f, 'Final') + '<div class="cb-ch' + (cw != null ? ' on' : '') + '"><span aria-hidden="true">\ud83c\udfc6</span>' + (cw != null ? chLogo(cw) + '<b>' + esc(chName(cw)) + '</b>' : '<b>Champion</b>') + '</div></div></div>';
   }
   function chBoard() {
     var el = $('chBoard');
-    if (!el) { el = document.createElement('div'); el.id = 'chBoard'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', 'Fantasy League Championship bracket'); document.body.appendChild(el);
+    if (!el) { el = document.createElement('div'); el.id = 'chBoard'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', 'Championship bracket'); document.body.appendChild(el);
       el.addEventListener('click', function (e) { var b = e.target.closest('button[data-ch]'); if (b) chNext(b.getAttribute('data-ch')); }); }
     var me = ROSTER[CH.me], who = whoOf(0) === 'women' ? 'w' : 'm', pic = POSTERS[CH.me + who] || POSTERS[CH.me + 'm'], head, go;
-    if (CH.champ) { head = '<div class="cw"><div class="cw-pic" style="background-image:url(' + pic + ')"><span class="cw-cup" aria-hidden="true">\ud83c\udfc6</span><span class="cw-conf" aria-hidden="true"></span></div><h3>Champions!</h3><p>' + esc(me.name) + ' win the Fantasy League Championship</p></div>';
+    if (CH.champ) { head = '<div class="cw"><div class="cw-pic" style="background-image:url(' + pic + ')"><span class="cw-cup" aria-hidden="true">\ud83c\udfc6</span><span class="cw-conf" aria-hidden="true"></span></div><h3>Champions!</h3><p>' + esc(chName(CH.me)) + ' win the ' + chTitle() + '</p></div>';
       go = '<button type="button" data-ch="again">Play Again</button><button type="button" data-ch="menu">Menu</button>'; }
-    else if (CH.out) { head = '<h3>Eliminated</h3><p>' + esc(me.name) + ' go out in the ' + CH_RND[CH.round] + '. ' + esc(ROSTER[CH.m.f.w].name) + ' win the title.</p>';
+    else if (CH.out) { head = '<h3>Eliminated</h3><p>' + esc(chName(CH.me)) + ' go out in the ' + CH_RND[CH.round] + '. ' + esc(chName(CH.m.f.w)) + ' win the title.</p>';
       go = '<button type="button" data-ch="again">Try Again</button><button type="button" data-ch="menu">Menu</button>'; }
-    else { head = '<h3>You Advance!</h3><p>Next: ' + CH_RND[CH.round + 1] + ' vs ' + esc(ROSTER[CH.round === 0 ? CH.m.s1.b : CH.m.f.b].name) + ' \u00b7 ' + CH_LVL[CH.round + 1][2] + '</p>';
+    else { head = '<h3>You Advance!</h3><p>Next: ' + CH_RND[CH.round + 1] + ' vs ' + esc(chName(CH.round === 0 ? CH.m.s1.b : CH.m.f.b)) + ' \u00b7 ' + CH_LVL[CH.round + 1][2] + '</p>';
       go = '<button type="button" data-ch="next">Play ' + CH_RND[CH.round + 1] + '</button>'; }
-    el.innerHTML = '<div class="ch-in"><div class="ch-tag">Fantasy League Championship</div>' + head + chBracket() + '<div class="ch-go">' + go + '</div></div>';
+    el.innerHTML = '<div class="ch-in"><div class="ch-tag">' + chTitle() + '</div>' + head + chBracket() + '<div class="ch-go">' + go + '</div></div>';
     el.hidden = false; try { el.querySelector('button').focus(); } catch (e) { /* ignore */ }
   }
   function chStart() {                                              // play your next match: the level steps up each round
     var L = CH_LVL[CH.round];
-    cfg.comp = 'league'; cfg.pick = [CH.me, chOpp()]; picked = [true, true]; cfg.level = L[0]; cfg.pace = L[1]; CH.on = true; CH.busy = false;
+    cfg.comp = CH.g; cfg.pick = [CH.me, chOpp()]; picked = [true, true]; cfg.level = L[0]; cfg.pace = L[1]; CH.on = true; CH.busy = false;
     applyTeams(); posterGo();
   }
   function chNext(what) {
@@ -2636,11 +2640,12 @@ window.FLFeedback = (function () {
   }
   function chPaint() {                                              // the page where the club is picked: the bracket follows the pick
     var s = $('chTeam'); if (!s) return;
-    if (!s.options.length) s.innerHTML = '<option value="">Pick Your Team</option>' + [0, 1, 2, 3, 4, 5].map(function (k) { return '<option value="' + k + '">' + esc(ROSTER[k].name) + '</option>'; }).join('');
+    $('chComp').value = CH.g;
+    s.innerHTML = '<option value="">Pick Your Team</option>' + groupList(CH.g).map(function (k) { return '<option value="' + k + '">' + esc(chName(k)) + '</option>'; }).join('');
     s.value = CH.me >= 0 ? String(CH.me) : '';
     var curV = cfg.table ? 'table' : view;
     $('chView').innerHTML = [['aerial', 'Professional'], ['side', 'Amateur'], ['table', 'Cocktail Table'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', 'Vintage']].filter(function (m) { return m[0] === 'table' || viewOK(m[0]); }).map(function (m) { return '<option value="' + m[0] + '"' + (m[0] === curV ? ' selected' : '') + '>' + m[1] + '</option>'; }).join('');
-    $('chBr').innerHTML = CH.me >= 0 ? chBracket() : '<p class="ch-empty">Pick your team to draw the bracket. Win three in a row: Quarterfinal on Easy, Semifinal on Normal, Championship on Hard.</p>';
+    $('chBr').innerHTML = CH.me >= 0 ? chBracket() : '<p class="ch-empty">Pick League or World Cup, then your team, to draw the bracket. Win three in a row: Quarterfinal on Easy, Semifinal on Normal, Championship on Hard.</p>';
     $('chMsg').textContent = '';
   }
   function wzHome() { if (WZ) wzShow(cfg.comp === 'hvp' ? 5 : WZ.champ ? 7 : 4); }   // back from a match (Menu, New match, Change setup): the page they started it from
