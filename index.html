@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126210631";
+window.FL_BUILD = "20261126211432";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -476,6 +476,7 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
 .after .start { margin: 0; }
 .after .ghost { padding: 10px 18px; font-size: 14px; }
 .hint { margin: 0; text-align: center; color: var(--muted); font-size: 13px; }
+@media (orientation: landscape) { #btnBack { display: none !important; } }
 .hint.rotate { font-size: 16px; font-weight: 800; color: #f2efe6; letter-spacing: .02em; padding: 4px 0; }
 .rotate { display: none; }
 
@@ -926,6 +927,7 @@ body.wiz.pv-setup #bar, body.wiz .app:has(#setup:not([hidden])) #bar { display: 
   <header class="bar" id="bar">
     <h1><img src="brand.png" alt=""><b>Fantasy League <span>Jai Alai</span></b></h1>
     <div class="bar-actions">
+      <button class="ghost" id="btnBack" type="button" hidden>&#8249; Back</button>
       <button class="ghost" id="btnView" type="button" hidden>Mode</button>
       <button class="ghost" id="btnPause" type="button" hidden>Pause</button>
       <button class="ghost" id="btnSetup" type="button" hidden>New match</button>
@@ -2722,8 +2724,8 @@ window.FLFeedback = (function () {
     mt: {slL: 234, lgL: 9, fx: 347.0, fy: 34.2, fh: 96.6, skinL: 155, hairL: 49, fabL: 46, ceL: 35, btL: 44, lobe: [281, 81], chain: [[270, 116], [327, 113], [299, 153]], wrist: [427, 384, 0.26, 33], hr: 1.0}, m0: {slL: 198, lgL: 19, fx: 347.5, fy: 34.7, fh: 90.7, skinL: 130, hairL: 51, fabL: 54, ceL: 54, btL: 30, lobe: [282, 76], chain: [[257, 122], [312, 118], [288, 160]], wrist: [401, 376, 0.45, 18], hr: 1.0}, m1: {slL: 212, lgL: 12, fx: 348.0, fy: 34.2, fh: 91.8, skinL: 148, hairL: 49, fabL: 49, ceL: 43, btL: 29, lobe: [282, 76], chain: [[259, 122], [312, 118], [288, 160]], wrist: [400, 389, 0.35, 18], hr: 1.0}, m2: {slL: 223, lgL: 11, fx: 346.4, fy: 35.8, fh: 92.9, skinL: 158, hairL: 50, fabL: 55, ceL: 48, btL: 42, lobe: [282, 76], chain: [[259, 118], [314, 115], [288, 157]], wrist: [401, 384, 0.38, 19], hr: 1.0}, m3: {slL: 219, lgL: 12, fx: 347.0, fy: 34.7, fh: 94.5, skinL: 148, hairL: 51, fabL: 57, ceL: 43, btL: 43, lobe: [282, 76], chain: [[257, 113], [316, 111], [288, 155]], wrist: [410, 383, 0.3, 21], hr: 1.0}, m5: {slL: 216, lgL: 17, fx: 348.6, fy: 34.2, fh: 96.1, skinL: 147, hairL: 49, fabL: 57, ceL: 31, btL: 22, lobe: [282, 80], chain: [[254, 113], [323, 111], [291, 157]], wrist: [438, 383, 0.3, 27], hr: 1.08}, m6: {slL: 224, lgL: 12, fx: 348.6, fy: 35.4, fh: 92.7, skinL: 148, hairL: 49, fabL: 57, ceL: 25, btL: 16, lobe: [282, 84], chain: [[256, 115], [328, 112], [294, 160]], wrist: [449, 374, 0.25, 30], hr: 1.12}, m7: {slL: 214, lgL: 62, fx: 351.8, fy: 36.8, fh: 95.5, skinL: 114, hairL: 51, fabL: 59, ceL: 34, btL: 47, lobe: [278, 77], chain: [[251, 141], [342, 133], [302, 179]], wrist: [523, 374, 0.15, 32], hr: 1.16},
     fk: { fabL: 55, ceL: 168, ceOrig: 1, btL: 16 }, mk: { slL: 224, lgL: 12, fabL: 58, ceL: 45, ceOrig: 0, btL: 40 }
   };
-  var AV = { view: 'kit', g: 'm', bm: 4, bf: 3, skin: 1, hair: 1, ht: -1, shirt: '#0b0b0b', shorts: '#0b0b0b', shoes: '#0b0b0b', belt: '#0b0b0b', slc: '#f2f2f2', lgc: '#0b0b0b', slv: true, leg: true, top: 'shirt', shoe: 'low', cesta: '#26262b', hat: 0, ear: 0, chain: false, brace: false, watch: false };
-  try { var avS = JSON.parse(localStorage.getItem(AVKEY) || 'null'); if (avS && avS.v === 6) for (var avk in avS) if (avk in AV) AV[avk] = avS[avk]; } catch (e) { /* ignore */ }
+  var AV = { view: 'kit', g: 'm', bm: 4, bf: 3, skc: '#d09468', hrc: '#4a2f1f', ht: -1, shirt: '#0b0b0b', shorts: '#0b0b0b', shoes: '#0b0b0b', belt: '#0b0b0b', slc: '#f2f2f2', lgc: '#0b0b0b', slv: true, leg: true, top: 'shirt', shoe: 'low', cesta: '#26262b', hat: 0, ear: 0, chain: false, brace: false, watch: false };
+  try { var avS = JSON.parse(localStorage.getItem(AVKEY) || 'null'); if (avS && avS.v === 7) for (var avk in avS) if (avk in AV) AV[avk] = avS[avk]; } catch (e) { /* ignore */ }
   AV.view = 'player'; AV.hat = 0; AV.ear = 0; AV.chain = AV.brace = AV.watch = false;   // the player shows from the start; hats, shoes and jewelry are off the builder
   var AVC = {};                                                     // loaded pictures per base
   function avHex(h) { h = String(h || '#000').replace('#', ''); if (h.length === 3) h = h.replace(/./g, '$&$&'); var n = parseInt(h, 16) || 0; return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
@@ -2748,7 +2750,7 @@ window.FLFeedback = (function () {
   function avShade(rgb, k) { return 'rgb(' + rgb.map(function (v) { return Math.max(0, Math.min(255, Math.round(v * k))); }).join(',') + ')'; }
   function avHT() { return AV.g === 'm' ? AV.ht : -1; }          // -1: the photo's own hair; the male styles are layers cut from the hair pictures (female styles wait on her pictures)
   function avHair(x, G) {                                           // a drawn hair style, painted behind the face and body (destination-over), then a scalp under it
-    var t = avHT(), H = avHex(AV_HR[AV.hair][1]), S = avHex(AV_SK[AV.skin][1]), h = G.head, cx = h[0], cy = h[1], rx = h[2], ry = h[3], R = avRnd(7 + t * 13);
+    var t = avHT(), H = avHex(AV.hrc), S = avHex(AV.skc), h = G.head, cx = h[0], cy = h[1], rx = h[2], ry = h[3], R = avRnd(7 + t * 13);
     var col = function (k) { return avShade(H, k); };
     x.save(); x.globalCompositeOperation = 'destination-over';
     var cap = function (v) { x.beginPath(); x.ellipse(cx, cy, rx * (1 + v), ry * (1 + v), 0, -0.42, 2.25, true); x.quadraticCurveTo(cx - rx * 0.35, cy + ry * 0.45, cx - rx * 0.05, cy + ry * 0.3); x.quadraticCurveTo(cx + rx * 0.5, cy - ry * 0.05, cx + rx * 0.92, cy - ry * 0.4); x.closePath(); };
@@ -2792,7 +2794,7 @@ window.FLFeedback = (function () {
     x.restore();
   }
   function avChin(x, G, k) {                                        // a double chin under the jaw for the bigger bodies
-    if (k <= 0) return; var S = avHex(AV_SK[AV.skin][1]), c = G.chin, rx = 13 + 12 * k, ry = 7 + 7 * k, gx = c[0] - 6 - 4 * k, gy = c[1] + 7 + 5 * k;
+    if (k <= 0) return; var S = avHex(AV.skc), c = G.chin, rx = 13 + 12 * k, ry = 7 + 7 * k, gx = c[0] - 6 - 4 * k, gy = c[1] + 7 + 5 * k;
     var gr = x.createRadialGradient(gx + rx * 0.2, gy - ry * 0.4, 1, gx, gy, rx); gr.addColorStop(0, avShade(S, 1.08)); gr.addColorStop(0.7, avShade(S, 0.92)); gr.addColorStop(1, avShade(S, 0.62));
     x.save(); x.fillStyle = gr; x.beginPath(); x.ellipse(gx, gy, rx, ry, 0.25, 0, 6.3); x.fill(); x.strokeStyle = avShade(S, 0.55); x.lineWidth = 1; x.beginPath(); x.ellipse(gx, gy, rx, ry, 0.25, 0.2, 2.6); x.stroke(); x.restore();
   }
@@ -2870,7 +2872,7 @@ window.FLFeedback = (function () {
         }
         fx.putImageData(id, 0, 0); x.clearRect(0, 0, AVW, AVH); x.drawImage(f, 0, 0); return;
       }
-      var S0 = o.px[0], m1 = o.px[1], m2 = o.px[2], ce = o.px[3], xb = o.px[5], SK = avHex(AV_SK[AV.skin][1]), HR = avHex(AV_HR[AV.hair][1]), ht = avHT(), own = ht < 0;
+      var S0 = o.px[0], m1 = o.px[1], m2 = o.px[2], ce = o.px[3], xb = o.px[5], SK = avHex(AV.skc), HR = avHex(AV.hrc), ht = avHT(), own = ht < 0;
       for (p = 0; p < d.length; p += 4) {
         var a = m1[p]; d[p] = S0[p]; d[p + 1] = S0[p + 1]; d[p + 2] = S0[p + 2]; d[p + 3] = a; if (!a) continue;
         var sk = m1[p + 1] / 255, hr = m1[p + 2] / 255, sh = m2[p] / 255, so = m2[p + 1] / 255, sl2 = tank ? m2[p + 2] / 255 : 0;
@@ -2912,7 +2914,7 @@ window.FLFeedback = (function () {
       x.clearRect(0, 0, AVW, AVH); x.drawImage(o.im[4], 0, 0, AVW, AVH); x.drawImage(bc, 0, 0);
     }
   }
-  function avSave() { try { AV.v = 6; localStorage.setItem(AVKEY, JSON.stringify(AV)); } catch (e) { /* ignore */ } }
+  function avSave() { try { AV.v = 7; localStorage.setItem(AVKEY, JSON.stringify(AV)); } catch (e) { /* ignore */ } }
   function avOpen() {
     var el = $('avBox');
     if (!el) { el = document.createElement('div'); el.id = 'avBox'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'avH'); document.body.appendChild(el); }
@@ -2925,14 +2927,13 @@ window.FLFeedback = (function () {
       '<div class="av-stage"><canvas id="avCv" width="' + AVW + '" height="' + AVH + '" role="img" aria-label="Your avatar preview"></canvas></div>' +
       '<div class="av-ctl">' +
       '<div class="av-l">Player</div>' + pair('g', [['m', 'male'], ['f', 'female']], 'Player') +
-      '<div class="av-l">Uniform Color</div><div class="av-cols"><label><input type="color" id="avAll" value="' + AV.shirt + '">all</label><label><input type="color" id="avShirt" value="' + AV.shirt + '">shirt</label><label><input type="color" id="avShorts" value="' + AV.shorts + '">shorts</label><label><input type="color" id="avBelt" value="' + AV.belt + '">belt</label><label><input type="color" id="avCesta" value="' + AV.cesta + '">cesta</label><label class="av-mo"><input type="color" id="avSlc" value="' + AV.slc + '">sleeves</label><label class="av-mo"><input type="color" id="avLgc" value="' + AV.lgc + '">leggings</label></div>' +
+      '<div class="av-l">Uniform Color</div><div class="av-cols"><label><input type="color" id="avShirt" value="' + AV.shirt + '">shirt</label><label><input type="color" id="avShorts" value="' + AV.shorts + '">shorts</label><label><input type="color" id="avBelt" value="' + AV.belt + '">belt</label><label><input type="color" id="avCesta" value="' + AV.cesta + '">cesta</label><label class="av-mo"><input type="color" id="avSlc" value="' + AV.slc + '">sleeves</label><label class="av-mo"><input type="color" id="avLgc" value="' + AV.lgc + '">leggings</label></div>' +
       '<div class="av-mo"><div class="av-l">Sleeves &amp; Leggings</div><div class="av-row" role="group" aria-label="Arm sleeves and leggings">' + tog('slv', 'arm sleeves') + tog('leg', 'leggings') + '</div></div>' +
       '<div class="av-l">Top</div>' + pair('top', [['tank', 'tank top'], ['shirt', 'shirt']], 'Top') +
       '<div class="av-l">Shorts</div><div class="av-row"><button type="button" aria-pressed="true" disabled>standard</button></div>' +
       '<div class="av-l">Body Style</div><div class="av-bm">' + chips('bm', AV_BDM, 'Body style') + '</div><div class="av-bf">' + chips('bf', AV_BD, 'Body style') + '</div>' +
-      '<div class="av-l">Skin Color</div>' + sw('skin', AV_SK, 'Skin color') +
+      '<div class="av-l">Skin &amp; Hair Color</div><div class="av-cols"><label><input type="color" id="avSkc" value="' + AV.skc + '">skin</label><label><input type="color" id="avHrc" value="' + AV.hrc + '">hair</label></div>' +
       '<div class="av-ht"><div class="av-l">Hair Type</div>' + chips('ht', AV_HT, 'Hair type') + '</div>' +
-      '<div class="av-l">Hair Color</div>' + sw('hair', AV_HR, 'Hair color') +
       '</div><button type="button" class="av-go" data-av="use">Use This Avatar<small>$0.99 per month</small></button>' +
       '<button type="button" class="av-link" data-av="photos">Or send us two photos and we custom build you</button></div>';
     el.hidden = false; var cv = $('avCv'), q = 0;
@@ -2940,14 +2941,14 @@ window.FLFeedback = (function () {
     var sync = function () { el.querySelector('.av-bm').hidden = AV.g !== 'm'; el.querySelector('.av-bf').hidden = AV.g === 'm'; el.querySelector('.av-ht').hidden = AV.g !== 'm'; [].forEach.call(el.querySelectorAll('.av-mo'), function (n) { n.hidden = AV.g !== 'm'; }); [].forEach.call(el.querySelectorAll('button[data-av]'), function (b) { var k = b.getAttribute('data-av'), v = b.getAttribute('data-v'), s = b.getAttribute('data-s');
       if (v != null) b.setAttribute('aria-pressed', String((k === 'ht' ? avHT() : AV[k]) === +v)); else if (s != null) b.setAttribute('aria-pressed', String(AV[k] === s)); else if (k === 'tog') b.setAttribute('aria-pressed', String(!!AV[b.getAttribute('data-k')])); }); };
     var col = function (id, keys) { $(id).addEventListener('input', function () { var v = this.value, me = this; keys.forEach(function (k) { AV[k] = v; var t = $('av' + k.charAt(0).toUpperCase() + k.slice(1)); if (t && t !== me) t.value = v; }); avSave(); redraw(); }); };
-    col('avAll', ['shirt', 'shorts', 'belt']); col('avShirt', ['shirt']); col('avShorts', ['shorts']); col('avBelt', ['belt']); col('avCesta', ['cesta']); col('avSlc', ['slc']); col('avLgc', ['lgc']);
+    col('avSkc', ['skc']); col('avHrc', ['hrc']); col('avShirt', ['shirt']); col('avShorts', ['shorts']); col('avBelt', ['belt']); col('avCesta', ['cesta']); col('avSlc', ['slc']); col('avLgc', ['lgc']);
     var BODYK = { bm: 1, bf: 1, skin: 1, hair: 1, ht: 1, hat: 1, ear: 1, tog: 1 };
     el.onclick = function (e) {
       var b = e.target.closest('button[data-av]'); if (!b) return; var k = b.getAttribute('data-av');
       if (k === 'close') { el.hidden = true; return; }
       if (k === 'photos') { el.hidden = true; $('wzANote').textContent = ''; $('wzAvatar').hidden = false; return; }
       if (k === 'use') { avSave(); el.hidden = true; exTermsBack(); WZ.skin = 'Your Avatar';
-        WZ.ref = [AV.g, AV.g === 'm' ? AV.bm : AV.bf, AV.skin, AV.hair, avHT(), AV.shirt.slice(1), AV.shorts.slice(1), AV.shoes.slice(1), AV.belt.slice(1), AV.top.charAt(0), AV.shoe.charAt(0), AV.cesta.slice(1), AV.hat, AV.ear, (AV.chain ? 'c' : '') + (AV.brace ? 'b' : '') + (AV.watch ? 'w' : ''), AV.slv ? AV.slc.slice(1) : 'x', AV.leg ? AV.lgc.slice(1) : 'x'].join('-');
+        WZ.ref = [AV.g, AV.g === 'm' ? AV.bm : AV.bf, AV.skc.slice(1), AV.hrc.slice(1), avHT(), AV.shirt.slice(1), AV.shorts.slice(1), AV.shoes.slice(1), AV.belt.slice(1), AV.top.charAt(0), AV.shoe.charAt(0), AV.cesta.slice(1), AV.hat, AV.ear, (AV.chain ? 'c' : '') + (AV.brace ? 'b' : '') + (AV.watch ? 'w' : ''), AV.slv ? AV.slc.slice(1) : 'x', AV.leg ? AV.lgc.slice(1) : 'x'].join('-');
         $('wzTFor').textContent = 'Skin: Your Avatar \u2022 $0.99 per month'; $('wzTNote').textContent = 'Your avatar is saved on this phone.'; $('wzTerms').hidden = false; var tb = $('wzTerms').querySelector('.wz-tbody'); if (tb) tb.scrollTop = 0; return; }
       if (k === 'tog') AV[b.getAttribute('data-k')] = !AV[b.getAttribute('data-k')];
       else if (b.hasAttribute('data-v')) AV[k] = +b.getAttribute('data-v');
@@ -3591,7 +3592,7 @@ window.FLFeedback = (function () {
     var m = mode === 'match', over = m && game.phase === 'over';
     if (wantSides() !== sidesOn) buildPads();
     elSetup.hidden = m; elPads.hidden = !m || over || !humans().length; elAfter.hidden = !over || net.role === 'guest';
-    $('btnPause').hidden = !m || over || net.role === 'guest'; $('btnSetup').hidden = !m;
+    $('btnPause').hidden = !m || over || net.role === 'guest'; $('btnSetup').hidden = !m; $('btnBack').hidden = !m;
     $('btnPause').textContent = paused ? 'Resume' : 'Pause';
     $('btnPause').classList.toggle('hot', paused);                // while the match is held, the way back is the brightest thing on screen
     $('btnView').hidden = !MULTI || !!window.FL_VIEW3 || $('btnPause').hidden;
@@ -3805,6 +3806,7 @@ window.FLFeedback = (function () {
   $('btnChange').addEventListener('click', function () { startDemo(); wzHome(); });
   if ($('btnHome')) $('btnHome').addEventListener('click', goHome);
   $('btnSetup').addEventListener('click', function () { startDemo(); wzHome(); });
+  $('btnBack').addEventListener('click', goHome);   // upright phones: straight back to Choose Where to Play
   $('btnPause').addEventListener('click', togglePause);
   $('btnView').addEventListener('click', function () { changeView(); });
   elApp.addEventListener('click', function (e) {
@@ -6125,7 +6127,7 @@ window.Table = (function () {
   var DEF = { teams: [{ n: 'Square Groupers', logo: 'team-a.png', c1: '#c6ee32', c2: '#fcfc04' }, { n: 'Peloteros', logo: 'team-b.png', c1: '#f52f9b', c2: '#3cb5e4' }], singles: true, target: 15, level: 'normal', pace: 0.88, rebHold: 2, sound: true, score: null, intro: true, ads: 0, hooks: {}, names: ['Serve', 'Throw', 'Rebound', 'Cut', 'Two-Wall', 'Side Wall'] };   // names[0] is the serve, then the five shots in core order; English unless the game hands over others
   /* six buttons: three to the left of the stick, three to the right. s = core shot index, -1 = the serve */
   var BTNS = [{ s: -1 }, { s: 0 }, { s: 1 }, { s: 3 }, { s: 2 }, { s: 4 }, { s: 'F', side: -1 }, { s: 'Z', side: 1 }];   // the last two are Fight: one beside Rebound, one beside Side Wall
-  var TOP = [{ k: 'menu', n: 'MENU' }, { k: 'mode', n: 'MODE' }, { k: 'music', n: '\u266a' }, { k: 'pause', n: 'PAUSE' }];
+  var TOP = [{ k: 'back', n: 'BACK' }, { k: 'menu', n: 'MENU' }, { k: 'mode', n: 'MODE' }, { k: 'music', n: '\u266a' }, { k: 'pause', n: 'PAUSE' }];
   var SHOTCOL = ['#f52f9b', '#3cb5e4', '#fcfc04', '#c6ee32', '#8f0bcd'];
   /* painted on the floor: three club logos in a line between lines 1 and 3, three between 12 and 14, all one size, and the Fantasy League mark in the middle */
   var FLOOR = [];                                                  // the floor carries only the Fantasy League mark, in the middle
@@ -6155,7 +6157,7 @@ window.Table = (function () {
     L = { wallH: wallH, barH: barH, backH: backH, side: side, cx: side, cw: W - side * 2, cy: wallH, ch: H - wallH - barH - backH };
     L.u = L.ch / (C.FRONT - C.BACK); L.barY = H - barH; L.jr = Math.min(barH * 0.36, W * 0.135); L.jx = W / 2; L.jy = L.barY + barH / 2 + 2;
     var sw = W / 2 - L.jr - 10; L.br = Math.min(barH * 0.215, sw * 0.24);
-    L.tw = Math.max(34, Math.min(58, W * 0.108)); L.th = wallH * 0.6;
+    L.tw = Math.max(30, Math.min(52, W * 0.086)); L.th = wallH * 0.6;
     bg = null; tune();
   }
   function Y(x) { return L.cy + (C.FRONT - x) * L.u; }                 // up the phone is up the court
@@ -6170,7 +6172,7 @@ window.Table = (function () {
     }
     var left = i < 3, k = i % 3, sw = W / 2 - L.jr - 10, r = L.br, cxs = left ? sw / 2 + 2 : W - sw / 2 - 2, y1 = L.barY + L.barH * 0.3, y2 = L.barY + L.barH * 0.74;
     return k === 0 ? { x: cxs - r * 1.12, y: y1, r: r } : k === 1 ? { x: cxs + r * 1.12, y: y1, r: r } : { x: cxs, y: y2, r: r }; }
-  function topPos(i) { var g = 4, x = i < 2 ? 4 + i * (L.tw + g) : W - 4 - (4 - i) * L.tw - (3 - i) * g; return { x: x, y: (L.wallH - L.th) / 2 - 1, w: L.tw, h: L.th }; }   // Menu and Mode far left, Music and Pause far right
+  function topPos(i) { var g = 4, x = i < 3 ? 4 + i * (L.tw + g) : W - 4 - (5 - i) * L.tw - (4 - i) * g; return { x: x, y: (L.wallH - L.th) / 2 - 1, w: L.tw, h: L.th }; }   // Menu and Mode far left, Music and Pause far right
 
   /* ---- the table itself, painted once per layout ---- */
   function paintBg() {
@@ -6269,7 +6271,7 @@ window.Table = (function () {
   function fightOK() { if (window.FL_FIGHT_ON) return true; try { return localStorage.getItem('flja-fight') === '1' || sessionStorage.getItem('flja-fight') === '1'; } catch (e) { return false; } }   // Fight is a secret: it exists only after the code has been entered
   function cheatOK(n) { if (window['FL_' + n.toUpperCase() + '_ON']) return true; try { return localStorage.getItem('flja-' + n) === '1' || sessionStorage.getItem('flja-' + n) === '1'; } catch (e) { return false; } }
   function btnAt(p) { for (var i = 0; i < BTNS.length; i++) { if ((BTNS[i].s === 'F' && !fightOK()) || (BTNS[i].s === 'Z' && !cheatOK('speed'))) continue; var b = btnPos(i); if (Math.hypot(p.x - b.x, p.y - b.y) < b.r + 5) return i; } return -1; }
-  function topAt(p) { if (p.y > L.wallH + 6) return -1; for (var i = 0; i < 4; i++) { var b = topPos(i); if (p.x >= b.x - 3 && p.x <= b.x + b.w + 3) return i; } return -1; }
+  function topAt(p) { if (p.y > L.wallH + 6) return -1; for (var i = 0; i < TOP.length; i++) { var b = topPos(i); if (p.x >= b.x - 3 && p.x <= b.x + b.w + 3) return i; } return -1; }
   function courtPt(p) { return { x: Math.max(C.PMIN, Math.min(C.PMAX, C.FRONT - (p.y - L.cy) / L.u)), z: Math.max(0.08, Math.min(0.92, (p.x - L.cx) / L.cw)) }; }
   function setJoy(p) { var dx = (p.x - joy.ox) / L.jr, dy = (p.y - joy.oy) / L.jr, m = Math.hypot(dx, dy); if (m > 1) { joy.ox += (dx - dx / m) * L.jr; joy.oy += (dy - dy / m) * L.jr; dx /= m; dy /= m; } joy.x = dx; joy.y = dy; }   // the stick's centre is wherever the thumb came down, and it follows a thumb that drags past the rim, so the thumb never loses it
   function fire(i) { pressed = i; pressT = T; if (BTNS[i].s === 'Z') { if (!paused && !tip && mode === 'play') speedReq = true; return; } if (BTNS[i].s === 'F') { if (!paused && !tip && mode === 'play') fightReq = true; return; } if (!holding() || paused) { tone(120, 0.05, 'sine', 0.05); return; } var s = BTNS[i].s, serve = game.flags.serve; if (serve ? s === -1 : s >= 0) throwReq = serve ? 0 : s; else tone(120, 0.05, 'sine', 0.05); }
@@ -6277,6 +6279,7 @@ window.Table = (function () {
     if (k === 'pause') { if (mode === 'play') paused = !paused; }
     else if (k === 'music') { if (h.music) h.music(); }
     else if (k === 'mode') { if (h.mode) h.mode(game ? game.score.slice() : null); }
+    else if (k === 'back') { if (h.home) h.home(); else if (h.menu) h.menu(); else location.href = './'; }
     else if (k === 'menu') { if (h.menu) h.menu(); else location.href = './#setup'; } }
   function down(e) {
     if (!running) return; e.preventDefault(); audio(); if (ac && ac.state === 'suspended') ac.resume();
@@ -6349,7 +6352,7 @@ window.Table = (function () {
       ctx.fillStyle = '#f2efe6'; ctx.textAlign = i ? 'left' : 'right'; ctx.fillText(sc, sx, y + 2); logoDisc(O.teams[i].face || O.teams[i].logo, lx, y, s / 2, O.teams[i].c1);
       if (game && game.server === i && game.phase !== 'over') { ctx.fillStyle = GOLD; ctx.beginPath(); ctx.arc(lx, y + s / 2 + 2.5, 2.4, 0, 6.3); ctx.fill(); } }
     ctx.fillStyle = 'rgba(242,239,230,.45)'; ctx.fillRect(mid - 0.75, y - s * 0.3, 1.5, s * 0.6);
-    for (i = 0; i < 4; i++) { var b = topPos(i), k = TOP[i].k, on = (k === 'pause' && paused) || (k === 'music' && h.musicOn && h.musicOn()), hit = topHit === i && T - topT < 0.18;
+    for (i = 0; i < TOP.length; i++) { var b = topPos(i), k = TOP[i].k, on = (k === 'pause' && paused) || (k === 'music' && h.musicOn && h.musicOn()), hit = topHit === i && T - topT < 0.18;
       ctx.globalAlpha = k === 'music' && !h.music ? 0.35 : 1; ctx.fillStyle = on ? GOLD : hit ? '#2a2c36' : '#15161c'; rr(ctx, b.x, b.y, b.w, b.h, b.h * 0.3); ctx.fill(); ctx.strokeStyle = GOLD; ctx.lineWidth = 1; ctx.stroke();
       ctx.fillStyle = on ? '#0b0c0f' : '#f2efe6'; var nm = k === 'pause' && paused ? 'PLAY' : TOP[i].n; ctx.font = '800 ' + (nm.length === 1 ? b.h * 0.78 : Math.max(6.5, Math.min(b.h * 0.36, (b.w - 6) / (nm.length * 0.66)))) + 'px system-ui,Arial,sans-serif'; ctx.textAlign = 'center'; ctx.fillText(nm, b.x + b.w / 2, b.y + b.h / 2 + 0.5); ctx.globalAlpha = 1; }
   }
