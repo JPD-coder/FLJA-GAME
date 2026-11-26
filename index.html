@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126205356";
+window.FL_BUILD = "20261126210631";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2724,6 +2724,7 @@ window.FLFeedback = (function () {
   };
   var AV = { view: 'kit', g: 'm', bm: 4, bf: 3, skin: 1, hair: 1, ht: -1, shirt: '#0b0b0b', shorts: '#0b0b0b', shoes: '#0b0b0b', belt: '#0b0b0b', slc: '#f2f2f2', lgc: '#0b0b0b', slv: true, leg: true, top: 'shirt', shoe: 'low', cesta: '#26262b', hat: 0, ear: 0, chain: false, brace: false, watch: false };
   try { var avS = JSON.parse(localStorage.getItem(AVKEY) || 'null'); if (avS && avS.v === 6) for (var avk in avS) if (avk in AV) AV[avk] = avS[avk]; } catch (e) { /* ignore */ }
+  AV.view = 'player'; AV.hat = 0; AV.ear = 0; AV.chain = AV.brace = AV.watch = false;   // the player shows from the start; hats, shoes and jewelry are off the builder
   var AVC = {};                                                     // loaded pictures per base
   function avHex(h) { h = String(h || '#000').replace('#', ''); if (h.length === 3) h = h.replace(/./g, '$&$&'); var n = parseInt(h, 16) || 0; return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
   function avLoad(key, cb) {
@@ -2867,7 +2868,7 @@ window.FLFeedback = (function () {
             if ((w = xk[p] / 255) > 0) { if (!AV.slv) { d[p] += (kb2[p] - d[p]) * w; d[p + 1] += (kb2[p + 1] - d[p + 1]) * w; d[p + 2] += (kb2[p + 2] - d[p + 2]) * w; } else if (!keepS) avTint(d, s, p, w, SL, GK.slL, 0.3, 0.7); }
             if ((w = xk[p + 1] / 255) > 0) { if (!AV.leg) { d[p] += (kb2[p] - d[p]) * w; d[p + 1] += (kb2[p + 1] - d[p + 1]) * w; d[p + 2] += (kb2[p + 2] - d[p + 2]) * w; } else if (!keepL) avTint(d, s, p, w, LG, GK.lgL * 4, 0.36, 0.92); } }
         }
-        fx.putImageData(id, 0, 0); x.clearRect(0, 0, AVW, AVH); x.drawImage(f, 0, 0); avShoe(x, AVW - 186, AVH - 118); return;
+        fx.putImageData(id, 0, 0); x.clearRect(0, 0, AVW, AVH); x.drawImage(f, 0, 0); return;
       }
       var S0 = o.px[0], m1 = o.px[1], m2 = o.px[2], ce = o.px[3], xb = o.px[5], SK = avHex(AV_SK[AV.skin][1]), HR = avHex(AV_HR[AV.hair][1]), ht = avHT(), own = ht < 0;
       for (p = 0; p < d.length; p += 4) {
@@ -2908,7 +2909,7 @@ window.FLFeedback = (function () {
         var hl = bx.createRadialGradient(bxp - 10, byp - 30, 4, bxp - 10, byp - 20, 90 + 60 * belly); hl.addColorStop(0, 'rgba(255,255,255,' + (0.1 + 0.06 * belly) + ')'); hl.addColorStop(1, 'rgba(255,255,255,0)'); bx.fillStyle = hl; bx.fillRect(0, 0, AVW, AVH);
         var dk = bx.createRadialGradient(bxp - 30, byp + 70 + 30 * belly, 4, bxp - 30, byp + 60 + 30 * belly, 80 + 50 * belly); dk.addColorStop(0, 'rgba(0,0,0,' + (0.25 + 0.15 * belly) + ')'); dk.addColorStop(1, 'rgba(0,0,0,0)'); bx.fillStyle = dk; bx.fillRect(0, 0, AVW, AVH); bx.restore();
       }
-      x.clearRect(0, 0, AVW, AVH); x.drawImage(o.im[4], 0, 0, AVW, AVH); x.drawImage(bc, 0, 0); avShoe(x, AVW - 186, AVH - 118);
+      x.clearRect(0, 0, AVW, AVH); x.drawImage(o.im[4], 0, 0, AVW, AVH); x.drawImage(bc, 0, 0);
     }
   }
   function avSave() { try { AV.v = 6; localStorage.setItem(AVKEY, JSON.stringify(AV)); } catch (e) { /* ignore */ } }
@@ -2921,21 +2922,17 @@ window.FLFeedback = (function () {
     var pair = function (key, opts, label) { return '<div class="av-row" role="group" aria-label="' + label + '">' + opts.map(function (o) { return '<button type="button" data-av="' + key + '" data-s="' + o[0] + '" aria-pressed="false">' + o[1] + '</button>'; }).join('') + '</div>'; };
     var tog = function (key, label) { return '<button type="button" data-av="tog" data-k="' + key + '" aria-pressed="false">' + label + '</button>'; };
     el.innerHTML = '<div class="av-in"><button type="button" class="df-back" data-av="close">\u2039 Back</button><div class="df-tag">Limited Edition Skins</div><h3 id="avH" tabindex="-1">Build Your Avatar</h3>' +
-      '<div class="av-stage"><canvas id="avCv" width="' + AVW + '" height="' + AVH + '" role="img" aria-label="Your avatar preview"></canvas>' + pair('view', [['kit', 'uniform'], ['player', 'player']], 'Show') + '</div>' +
+      '<div class="av-stage"><canvas id="avCv" width="' + AVW + '" height="' + AVH + '" role="img" aria-label="Your avatar preview"></canvas></div>' +
       '<div class="av-ctl">' +
       '<div class="av-l">Player</div>' + pair('g', [['m', 'male'], ['f', 'female']], 'Player') +
-      '<div class="av-l">Uniform Color</div><div class="av-cols"><label><input type="color" id="avAll" value="' + AV.shirt + '">all</label><label><input type="color" id="avShirt" value="' + AV.shirt + '">shirt</label><label><input type="color" id="avShorts" value="' + AV.shorts + '">shorts</label><label><input type="color" id="avShoes" value="' + AV.shoes + '">shoes</label><label><input type="color" id="avBelt" value="' + AV.belt + '">belt</label><label><input type="color" id="avCesta" value="' + AV.cesta + '">cesta</label><label class="av-mo"><input type="color" id="avSlc" value="' + AV.slc + '">sleeves</label><label class="av-mo"><input type="color" id="avLgc" value="' + AV.lgc + '">leggings</label></div>' +
+      '<div class="av-l">Uniform Color</div><div class="av-cols"><label><input type="color" id="avAll" value="' + AV.shirt + '">all</label><label><input type="color" id="avShirt" value="' + AV.shirt + '">shirt</label><label><input type="color" id="avShorts" value="' + AV.shorts + '">shorts</label><label><input type="color" id="avBelt" value="' + AV.belt + '">belt</label><label><input type="color" id="avCesta" value="' + AV.cesta + '">cesta</label><label class="av-mo"><input type="color" id="avSlc" value="' + AV.slc + '">sleeves</label><label class="av-mo"><input type="color" id="avLgc" value="' + AV.lgc + '">leggings</label></div>' +
       '<div class="av-mo"><div class="av-l">Sleeves &amp; Leggings</div><div class="av-row" role="group" aria-label="Arm sleeves and leggings">' + tog('slv', 'arm sleeves') + tog('leg', 'leggings') + '</div></div>' +
       '<div class="av-l">Top</div>' + pair('top', [['tank', 'tank top'], ['shirt', 'shirt']], 'Top') +
       '<div class="av-l">Shorts</div><div class="av-row"><button type="button" aria-pressed="true" disabled>standard</button></div>' +
-      '<div class="av-l">Shoes</div>' + pair('shoe', [['low', 'low top'], ['high', 'high top']], 'Shoes') +
       '<div class="av-l">Body Style</div><div class="av-bm">' + chips('bm', AV_BDM, 'Body style') + '</div><div class="av-bf">' + chips('bf', AV_BD, 'Body style') + '</div>' +
       '<div class="av-l">Skin Color</div>' + sw('skin', AV_SK, 'Skin color') +
       '<div class="av-ht"><div class="av-l">Hair Type</div>' + chips('ht', AV_HT, 'Hair type') + '</div>' +
       '<div class="av-l">Hair Color</div>' + sw('hair', AV_HR, 'Hair color') +
-      '<div class="av-l">Hat</div>' + chips('hat', AV_HAT, 'Hat') +
-      '<div class="av-l">Earrings</div>' + chips('ear', AV_EAR, 'Earrings') +
-      '<div class="av-l">Jewelry</div><div class="av-row" role="group" aria-label="Jewelry">' + tog('chain', 'gold chains') + tog('brace', 'gold bracelets') + tog('watch', 'fancy watch') + '</div>' +
       '</div><button type="button" class="av-go" data-av="use">Use This Avatar<small>$0.99 per month</small></button>' +
       '<button type="button" class="av-link" data-av="photos">Or send us two photos and we custom build you</button></div>';
     el.hidden = false; var cv = $('avCv'), q = 0;
@@ -2943,7 +2940,7 @@ window.FLFeedback = (function () {
     var sync = function () { el.querySelector('.av-bm').hidden = AV.g !== 'm'; el.querySelector('.av-bf').hidden = AV.g === 'm'; el.querySelector('.av-ht').hidden = AV.g !== 'm'; [].forEach.call(el.querySelectorAll('.av-mo'), function (n) { n.hidden = AV.g !== 'm'; }); [].forEach.call(el.querySelectorAll('button[data-av]'), function (b) { var k = b.getAttribute('data-av'), v = b.getAttribute('data-v'), s = b.getAttribute('data-s');
       if (v != null) b.setAttribute('aria-pressed', String((k === 'ht' ? avHT() : AV[k]) === +v)); else if (s != null) b.setAttribute('aria-pressed', String(AV[k] === s)); else if (k === 'tog') b.setAttribute('aria-pressed', String(!!AV[b.getAttribute('data-k')])); }); };
     var col = function (id, keys) { $(id).addEventListener('input', function () { var v = this.value, me = this; keys.forEach(function (k) { AV[k] = v; var t = $('av' + k.charAt(0).toUpperCase() + k.slice(1)); if (t && t !== me) t.value = v; }); avSave(); redraw(); }); };
-    col('avAll', ['shirt', 'shorts', 'shoes', 'belt']); col('avShirt', ['shirt']); col('avShorts', ['shorts']); col('avShoes', ['shoes']); col('avBelt', ['belt']); col('avCesta', ['cesta']); col('avSlc', ['slc']); col('avLgc', ['lgc']);
+    col('avAll', ['shirt', 'shorts', 'belt']); col('avShirt', ['shirt']); col('avShorts', ['shorts']); col('avBelt', ['belt']); col('avCesta', ['cesta']); col('avSlc', ['slc']); col('avLgc', ['lgc']);
     var BODYK = { bm: 1, bf: 1, skin: 1, hair: 1, ht: 1, hat: 1, ear: 1, tog: 1 };
     el.onclick = function (e) {
       var b = e.target.closest('button[data-av]'); if (!b) return; var k = b.getAttribute('data-av');
