@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126092010";
+window.FL_BUILD = "20261126092452";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -648,7 +648,7 @@ body.wiz #setup { padding-top: 0; }
 #wiz .wz-seg button[aria-pressed="true"] { background: #1fe0d6; color: #111; font-weight: 800; }
 #wiz .wz-seg.wz-small button { font-size: 12px; letter-spacing: .05em; }
 #wiz .wz-card .wz-seg + .wz-seg { margin-top: 9px; }
-#wiz .wz-only { margin: 0 0 5px; text-align: center; font: 600 10.5px/1.2 var(--body, system-ui, sans-serif); letter-spacing: .1em; text-transform: uppercase; color: #a9adba; }
+#wiz .wz-only { margin: 5px 0 0; text-align: center; font: 600 10.5px/1.2 var(--body, system-ui, sans-serif); letter-spacing: .1em; text-transform: uppercase; color: #a9adba; }
 #wiz .wz-selfie { display: block; margin-top: 12px; border: 1.5px solid #1fe0d6; border-radius: 14px; padding: 12px; background: #121318; color: #f2efe6; font: 600 12.5px/1.4 var(--display); letter-spacing: .1em; text-transform: uppercase; text-align: center; cursor: pointer; position: relative; }
 #wiz .wz-selfie .face-prev { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 50%; background-size: cover; background-position: center; display: none; }
 #wiz .wz-selfie .face-prev.has { display: block; }
@@ -2281,10 +2281,10 @@ window.FLFeedback = (function () {
         '<p class="wz-legal">\u00a9 2026 Fantasy League Jai Alai Game, LLC. All rights reserved.</p>' +
         '<button type="button" class="wz-next" data-wz="next">Next</button></section>' +
       '<section class="wz-step" id="wz2" hidden>' + wzTop(2, 'Who\u2019s Playing') +
-        '<p class="wz-only">League, World &amp; Dania Beach Game Only</p><div class="seg wz-seg" id="wzType"></div>' +
+        '<div class="seg wz-seg" id="wzType"></div><p class="wz-only">League, World &amp; Dania Beach Game Only</p>' +
         '<label class="wz-selfie" id="wzSelfie"><span id="wzSelfieTxt">Take a Selfie or Upload a Picture<br>to Star in Your Own Game</span></label>' +
         '<div class="wz-fine">*Images are never stored or shared.</div>' +
-        '<div class="wz-card"><h3>Player 1</h3><p class="wz-only">League &amp; World Game Only</p><div class="seg wz-seg" id="wzWho"></div><div class="wz-court" id="wzCourt" hidden></div></div>' +
+        '<div class="wz-card"><h3>Player 1</h3><div class="seg wz-seg" id="wzWho"></div><p class="wz-only">League &amp; World Game Only</p><div class="wz-court" id="wzCourt" hidden></div></div>' +
         '<div class="wz-card"><h3>Player 2</h3><div class="seg wz-seg" id="wzP2"></div><div id="wzOnline" hidden></div></div>' +
         '<div class="wz-card"><h3>Shot Buttons</h3><div class="seg wz-seg" id="wzLang"></div></div>' +
         '<button type="button" class="wz-next" data-wz="next">Next</button></section>' +
@@ -4576,7 +4576,7 @@ window.FLFeedback = (function () {
       '#promo .db-art{position:relative;align-self:center;width:min(100%,440px);display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1fr);gap:0 10px}' +
       '#promo .db-col{display:flex;flex-direction:column;gap:6px;min-width:0}' +
       '#promo .db-me{min-height:24px;border-radius:999px;background:' + OR + ';color:#0b0c0f;font:700 11px/1 ' + F + ';letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:7px}' +
-      '#promo button.db-me{border:0;cursor:pointer;width:100%}#promo button.db-me:after{content:"\\203A";font-size:15px;line-height:.6}#promo.db-one .db-card{height:calc(var(--ch) * 2 + 6px)}#promo.db-one .db-ph{height:calc(var(--ch) * 1.25)}' +
+      '#promo button.db-me{border:0;cursor:pointer;width:100%}#promo button.db-me:after{content:"\\203A";font-size:15px;line-height:.6}#promo.db-one .db-card{height:calc(var(--ch) * 2 + 6px)}#promo.db-one .db-ph{height:auto;width:min(72%,calc(var(--ch) * 1.05))}' +
       '#dbStats{position:fixed;inset:0;z-index:2147482500;background:rgba(4,5,10,.86);display:flex;align-items:center;justify-content:center;padding:10px;font-family:' + F + ';color:#f2efe6}#dbStats[hidden]{display:none}' +
       '#dbStats .ds-in{width:min(100%,460px);max-height:100%;overflow:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;background:#0b0e1c;border:2px solid ' + OR + ';border-radius:16px;padding:12px}' +
       '#dbStats .ds-top{display:flex;align-items:center;justify-content:space-between;gap:8px}#dbStats h3{margin:0;font:900 17px/1 ' + F + ';letter-spacing:.12em;text-transform:uppercase;color:' + OR + '}' +
