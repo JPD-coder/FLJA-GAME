@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126155026";
+window.FL_BUILD = "20261126155257";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2550,10 +2550,11 @@ window.FLFeedback = (function () {
     if (a === 'next') { wzShow(WZ.step + 1); return true; }
     if (a.indexOf('hvmode-') === 0) { changeView(a.slice(7)); return true; }
     if (a === 'skins') { wzShow(6); return true; }
-    if (a === 'skin') { WZ.skin = b.dataset.skin; WZ.ref = ''; $('wzTFor').textContent = 'Skin: ' + WZ.skin + ' \u2022 $0.99 per month'; $('wzTNote').textContent = ''; $('wzTerms').hidden = false; var tb = $('wzTerms').querySelector('.wz-tbody'); if (tb) tb.scrollTop = 0; return true; }
-    if (a === 'skin-cancel') { $('wzTerms').hidden = true; return true; }
+    if (a === 'skin') { exTermsBack(); WZ.skin = b.dataset.skin; WZ.ref = ''; $('wzTFor').textContent = 'Skin: ' + WZ.skin + ' \u2022 $0.99 per month'; $('wzTNote').textContent = ''; $('wzTerms').hidden = false; var tb = $('wzTerms').querySelector('.wz-tbody'); if (tb) tb.scrollTop = 0; return true; }
+    if (a === 'skin-cancel') { $('wzTerms').hidden = true; exTermsBack(); return true; }
     if (a === 'avatar') { $('wzANote').textContent = ''; $('wzAvatar').hidden = false; return true; }
     if (a === 'avatar-close') { $('wzAvatar').hidden = true; return true; }
+    if (a === 'skin-agree' && WZ.skin === 'Expansion Team') { exAgree(); return true; }
     if (a === 'skin-agree') {                                      // agreement accepted: on to the Stripe checkout page (set window.FL_STRIPE to its address)
       var su = window.FL_STRIPE; if (!su) { $('wzTNote').textContent = 'Checkout is not open yet. Please check back soon.'; return true; }
       try { window.open(su + (su.indexOf('?') < 0 ? '?' : '&') + 'client_reference_id=' + encodeURIComponent(String(WZ.skin).replace(/[^A-Za-z0-9]/g, '_') + (WZ.ref ? '_' + WZ.ref : '')), '_blank', 'noopener'); } catch (e) { location.href = su; }
@@ -2572,7 +2573,7 @@ window.FLFeedback = (function () {
     if (a === 'league' || a === 'world') { CH.on = false; WZ.champ = false; cfg.youK = cfg.cpuK = 1; if (CH.m) { cfg.level = 'normal'; cfg.pace = 'standard'; } setComp(a); picked = [false, false]; wzShow(4); return true; }
     if (a === 'champ' || a === 'cup') { var g = a === 'cup' ? 'world' : 'league'; if (g !== CH.g) { CH.g = g; CH.me = -1; CH.m = null; } WZ.champ = true; setComp(CH.g); wzShow(7); return true; }
     if (a === 'ex-open') { exOpen(); return true; }
-    if (a === 'ch-play') { if (CH.me < 0) { $('chMsg').textContent = 'Pick your team.'; return true; } var cv = $('chView').value; if (cv === 'table') cfg.table = true; else { cfg.table = false; setView(cv); cfg.view = view; } if (CH.g === 'league') { dfStart($('chDraft').value); return true; } if (!CH.m) chDraw(CH.me); CH.round = 0; CH.out = false; CH.champ = false; chStart(); return true; }
+    if (a === 'ch-play') { if (CH.me < 0) { $('chMsg').textContent = 'Pick your team.'; return true; } var cv = $('chView').value; if (cv === 'table') cfg.table = true; else { cfg.table = false; setView(cv); cfg.view = view; } if (CH.g === 'league') { if (EXI >= 0 && EX && !EX.paid && !exPass) { exTerms(); return true; } dfStart($('chDraft').value); return true; } if (!CH.m) chDraw(CH.me); CH.round = 0; CH.out = false; CH.champ = false; chStart(); return true; }
     if (a === 'hvp') { WZ.hvp = true; hvpAsk(); return true; }
     if (a === 'dania') { if (window.FL_NAV) window.FL_NAV('dania' + (cfg.singles ? 'S' : 'D') + (cfg.seats[0] ? 1 : 0) + (cfg.seats[1] ? 1 : 0)); return true; }
     if (a === 'celeb' || a === 'allstar') { if (window.FL_NAV) window.FL_NAV(a); else window.open(a === 'celeb' ? CELEB_URL : ALLSTAR_URL, '_blank'); return true; }
@@ -2603,6 +2604,32 @@ window.FLFeedback = (function () {
   function exKit(x) { var dark = function (h) { var n = parseInt(h.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 < 140; };
     return { name: x.name, logo: x.logo, ui: dark(x.c1) && !dark(x.c2) ? x.c2 : x.c1, ex: true, kit: { jersey: x.c1, sash: x.c2, helm: x.c2, num: dark(x.c1) ? '#ffffff' : '#141416', nk: { helm: x.c1, belt: x.c2 } } }; }
   if (EX && EX.name && EX.logo && !PROMO) { ROSTER.push(exKit(EX)); EXI = ROSTER.length - 1; }
+  var exPass = false, exOrig = null;                               // exPass: played free this visit because checkout is not open yet
+  function exTerms() {                                            // the same agreement pop-up as the skins, with the expansion team's own terms
+    var tp = $('wzTerms'), tb = tp.querySelector('.wz-tbody'), h = tp.querySelector('h3');
+    if (!exOrig) exOrig = { h: h.innerHTML, b: tb.innerHTML };
+    h.textContent = 'Purchase Terms';
+    tb.innerHTML = '<p><b>Please read before you continue. This is a one-time purchase of $9.99, and charges are not refunded.</b></p>' +
+      '<h4>1. What you are buying</h4><p>An Expansion Team is a custom seventh club for the Fantasy League Championship in Fantasy League Jai Alai: the team name, logo and colors you create, a place in the bracket and the league draft, and four added players in the draft pool. It is a digital item for use inside the game only.</p>' +
+      '<h4>2. Your name and logo</h4><p>You confirm that you have the right to use the team name and any logo you upload, and that they do not copy anyone else\u2019s name, logo or trademark or contain offensive material. We may remove a team that breaks these terms.</p>' +
+      '<h4>3. Where it is kept</h4><p>Your expansion team is saved on this device and browser. Clearing your browser data, or playing on another device, will not carry it over.</p>' +
+      '<h4>4. Payment</h4><p>Payment is taken by our payment processor, Stripe, on its secure checkout page. We do not see or store your card details.</p>' +
+      '<h4>5. No refunds</h4><p>Because the team is made and delivered at once, the purchase is final and not refunded, except where the law requires otherwise.</p>' +
+      '<h4>6. Changes</h4><p>We may update the game, the Championship and these terms. The Legal section in Step 1 has our full terms and privacy notice.</p>' +
+      '<p class="wz-tco">Fantasy League Jai Alai Game, LLC</p>';
+    WZ.skin = 'Expansion Team'; WZ.ref = ''; $('wzTFor').textContent = 'Expansion Team: ' + EX.name + ' \u2022 $9.99 one-time'; $('wzTNote').textContent = '';
+    tp.hidden = false; tb.scrollTop = 0;
+  }
+  function exTermsBack() { if (!exOrig) return; var tp = $('wzTerms'); tp.querySelector('h3').innerHTML = exOrig.h; tp.querySelector('.wz-tbody').innerHTML = exOrig.b; }
+  function exAgree() {                                            // on to checkout (set window.FL_STRIPE_EXP to the $9.99 payment link), then the game
+    var su = window.FL_STRIPE_EXP;
+    if (su) { try { window.open(su + (su.indexOf('?') < 0 ? '?' : '&') + 'client_reference_id=' + encodeURIComponent('Expansion_' + EX.name.replace(/[^A-Za-z0-9]/g, '_')), '_blank', 'noopener'); } catch (e) { location.href = su; }
+      EX.paid = true; try { localStorage.setItem(EXKEY, JSON.stringify(EX)); } catch (e) { /* ignore */ } }
+    else exPass = true;                                            // checkout is not open yet: this visit plays free
+    $('wzTerms').hidden = true; exTermsBack(); track('champ', 'expansion-agree');
+    dfStart($('chDraft').value);
+    if (!su) { var n = $('dfBox') && $('dfBox').querySelector('.df-sub'); if (n) n.textContent = 'Checkout is not open yet, so your expansion team plays free during this test.'; }
+  }
   function chTeams() { return CH.g === 'league' && EXI >= 0 ? groupList('league').concat([EXI]) : groupList(CH.g); }
   function exLogo(desc, name, c1, c2) {                             // a crest from the description: a shield in the two colors, the closest emblem to the words, and the initials
     var cv = document.createElement('canvas'); cv.width = cv.height = 256; var x = cv.getContext('2d'), d = (desc || '').toLowerCase(), emo = '';
@@ -2622,7 +2649,7 @@ window.FLFeedback = (function () {
   function exOpen() {
     var el = $('exBox'), d = EX || { name: '', logo: '', c1: '#14b8a6', c2: '#0f172a', desc: '', how: 'desc' };
     if (!el) { el = document.createElement('div'); el.id = 'exBox'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'exH'); document.body.appendChild(el); }
-    el.innerHTML = '<div class="df-in ex-in"><div class="df-tag">Fantasy League Championship</div><h3 id="exH">Buy an Expansion Team</h3>' +
+    el.innerHTML = '<div class="df-in ex-in"><button type="button" class="df-back" data-ex="cancel">\u2039 Back</button><div class="df-tag">Fantasy League Championship</div><h3 id="exH">Buy an Expansion Team</h3>' +
       '<label class="ex-l">Team name<input id="exName" maxlength="22" autocomplete="off" placeholder="e.g. Miami Hammerheads" value="' + esc(d.name) + '"></label>' +
       '<div class="ex-l">Team colors<span class="ex-cols"><label><input type="color" id="exC1" value="' + d.c1 + '">Primary</label><label><input type="color" id="exC2" value="' + d.c2 + '">Secondary</label></span></div>' +
       '<div class="ex-l">Logo<span class="ex-tabs" role="group" aria-label="Logo"><button type="button" data-ex="desc" aria-pressed="' + (d.how !== 'up') + '">Describe It</button><button type="button" data-ex="up" aria-pressed="' + (d.how === 'up') + '">Upload One</button></span></div>' +
@@ -2632,7 +2659,7 @@ window.FLFeedback = (function () {
       '<p class="ex-msg" id="exMsg" role="status"></p>' +
       '<div class="df-go"><button type="button" class="df-alt" data-ex="cancel">Cancel</button><button type="button" data-ex="build">' + (EX ? 'Save Expansion Team' : 'Build Expansion Team') + '</button></div>' +
       (EX ? '<button type="button" class="ex-rm" data-ex="remove">Remove expansion team</button>' : '') +
-      '<p class="df-note">Preview: expansion teams are free during this test. Your team is kept on this phone.</p></div>';
+      '<p class="df-note">$9.99. You agree to the purchase terms and pay when you tap Play. Your team is kept on this phone.</p></div>';
     el.hidden = false; var st = { logo: d.logo, how: d.how || 'desc', emo: '' };
     var paint = function () { var pv = el.querySelector('.ex-logo'); pv.innerHTML = st.logo ? '<img src="' + st.logo + '" alt="Logo preview">' : '<i>Logo preview</i>'; $('exPn').textContent = $('exName').value.trim() || 'Your Team'; $('exPn').style.color = $('exC1').value; };
     paint();
@@ -2783,7 +2810,7 @@ window.FLFeedback = (function () {
       else if (a === 'auto') { if (DF.seq[DF.k] === CH.me) dfTake(dfBest(DF.k)); }
       else if (a === 'save') { if (dfSave()) { DF.saved = true; b.textContent = 'Saved \u2713'; b.disabled = true; } }
       else if (a === 'play') { el.hidden = true; DF.on = false; if (!CH.m || CH.m.q1.a !== CH.me) chDraw(CH.me); CH.round = 0; CH.out = false; CH.champ = false; chStart(); }
-      else if (a === 'close') { el.hidden = true; }
+      else if (a === 'close' || a === 'back') { clearInterval(DF.timer); if (a === 'back' && DF.on) { DF.on = false; } el.hidden = true; }
     });
     return el;
   }
@@ -2805,7 +2832,7 @@ window.FLFeedback = (function () {
   }
   function dfLottery() {
     var el = dfEl(), T = dfTeams();
-    el.innerHTML = '<div class="df-in"><div class="df-tag">League Draft</div><h3>Draft Lottery</h3><p class="df-sub">Drawing the order for round 1. The order snakes back each round.</p>' + dfHow() + '<ol class="df-lot">' +
+    el.innerHTML = '<div class="df-in"><button type="button" class="df-back" data-df="back">\u2039 Back</button><div class="df-tag">League Draft</div><h3>Draft Lottery</h3><p class="df-sub">Drawing the order for round 1. The order snakes back each round.</p>' + dfHow() + '<ol class="df-lot">' +
       T.map(function (t) { return '<li data-t="' + t + '">' + chLogo(t) + '<span>' + esc(ROSTER[t].name) + '</span></li>'; }).join('') + '</ol><div class="df-go"><button type="button" data-df="go" disabled>Start Draft</button></div></div>';
     el.hidden = false;
     var n = 0, spin = setInterval(function () {                     // a quick shuffle, then the real order
@@ -2828,7 +2855,7 @@ window.FLFeedback = (function () {
     var t = DF.seq[DF.k], rd = Math.floor(DF.k / dfN()) + 1, mine = t === CH.me, me = DF.ros[CH.me];
     var pool = DRp().filter(function (p) { return p.tier === rd; });
     var bar = function (l, v) { return '<span class="df-bar"><i>' + l + '</i><s style="width:' + Math.round((v - 50) * 2) + '%"></s><b>' + v + '</b></span>'; };
-    el.innerHTML = '<div class="df-in df-room"><div class="df-tag">League Draft \u00b7 Round ' + rd + ' of 4</div>' +
+    el.innerHTML = '<div class="df-in df-room"><button type="button" class="df-back" data-df="back">\u2039 Back</button><div class="df-tag">League Draft \u00b7 Round ' + rd + ' of 4</div>' +
       '<div class="df-clock' + (mine ? ' df-you' : '') + '">' + chLogo(t) + '<span><i>Pick ' + (DF.k + 1) + ' of ' + 4 * dfN() + ' \u00b7 On the clock</i><b>' + esc(ROSTER[t].name) + (mine ? ' (You)' : '') + '</b></span>' + (mine ? '<em id="dfSec">30</em>' : '') + '</div>' +
       (DF.last ? '<p class="df-last">' + esc(ROSTER[DF.last.t].name) + ' select <b>#' + DR[DF.last.i].num + ' ' + esc(DR[DF.last.i].name) + '</b> (' + (DR[DF.last.i].pos === 'F' ? 'Front' : 'Back') + ')</p>' : '<p class="df-last">Round 1 opens with Tier 1 Elite</p>') +
       '<h4 style="color:' + DTC[rd] + '">Tier ' + rd + ' \u00b7 ' + DT[rd] + '</h4><div class="df-pool">' +
@@ -2845,7 +2872,7 @@ window.FLFeedback = (function () {
   }
   function dfRecap(fromSave) {                                      // every roster with a grade; screenshot-ready
     var el = dfEl(), T = dfTeams().slice().sort(function (a, b) { return a === CH.me ? -1 : b === CH.me ? 1 : dfAvg(b) - dfAvg(a); });
-    el.innerHTML = '<div class="df-in"><div class="df-tag">League Draft</div><h3>' + (fromSave ? 'Your Saved Draft' : 'Draft Recap') + '</h3><div class="df-rec">' +
+    el.innerHTML = '<div class="df-in"><button type="button" class="df-back" data-df="back">\u2039 Back</button><div class="df-tag">League Draft</div><h3>' + (fromSave ? 'Your Saved Draft' : 'Draft Recap') + '</h3><div class="df-rec">' +
       T.map(function (t) { var r = DF.ros[t].slice().sort(function (a, b) { return DR[a].pos === DR[b].pos ? DR[a].tier - DR[b].tier : DR[a].pos === 'F' ? -1 : 1; });
         return '<div class="df-team' + (t === CH.me ? ' df-me' : '') + '"><div class="df-th">' + chLogo(t) + '<b>' + esc(ROSTER[t].name) + '</b><em class="df-g df-g' + dfGrade(t) + '">' + dfGrade(t) + '</em></div>' +
           r.map(function (i) { var p = DR[i]; return '<p><span style="color:' + DTC[p.tier] + '">T' + p.tier + '</span> ' + p.pos + ' #' + p.num + ' ' + esc(p.name) + '<b>' + p.ovr + '</b></p>'; }).join('') + '</div>'; }).join('') + '</div>' +
@@ -2861,6 +2888,7 @@ window.FLFeedback = (function () {
     var st = document.createElement('style'), F = 'var(--body,system-ui,sans-serif)', P = '#ff2d95', A = '#1fe0d6';
     st.textContent = '#dfBox{position:fixed;inset:0;z-index:2147482300;background:rgba(4,5,10,.94);display:flex;align-items:center;justify-content:center;padding:8px;font-family:' + F + ';color:#f2efe6}#dfBox[hidden]{display:none}' +
       '#dfBox .df-in{width:min(100%,480px);max-height:100%;overflow:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;background:#0a0c12;border:2px solid ' + A + ';border-radius:16px;padding:12px 10px;display:flex;flex-direction:column;gap:8px}' +
+      '#dfBox .df-in,#exBox .df-in{position:relative}#dfBox .df-back,#exBox .df-back{position:absolute;left:10px;top:9px;background:none;border:0;padding:4px 2px;color:' + A + ';font:700 12px/1 ' + F + ';letter-spacing:.12em;text-transform:uppercase;cursor:pointer;z-index:1}' +
       '#dfBox .df-tag{text-align:center;font:700 10.5px/1 ' + F + ';letter-spacing:.16em;text-transform:uppercase;color:' + A + '}#dfBox h3{margin:0;text-align:center;font:900 21px/1 var(--display,' + F + ');letter-spacing:.08em;text-transform:uppercase;color:' + P + '}' +
       '#dfBox h4{margin:2px 0 0;font:800 11.5px/1 ' + F + ';letter-spacing:.14em;text-transform:uppercase}#dfBox .df-sub,#dfBox .df-note{margin:0;text-align:center;font:500 12px/1.35 ' + F + ';color:#a9adba}' +
       '#dfBox .df-how{border:1px solid #232a44;border-radius:10px;background:#0f1220;padding:0 10px}#dfBox .df-how summary{cursor:pointer;min-height:38px;display:flex;align-items:center;font:800 12.5px/1 ' + F + ';letter-spacing:.1em;text-transform:uppercase;color:' + A + '}#dfBox .df-how summary{list-style:none;justify-content:space-between}#dfBox .df-how summary::-webkit-details-marker{display:none}#dfBox .df-plus:before{content:"+";font:900 22px/1 ' + F + ';color:' + A + '}#dfBox .df-how[open] .df-plus:before{content:"\\2212"}' +
