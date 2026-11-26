@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126142839";
+window.FL_BUILD = "20261126143507";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -882,6 +882,7 @@ body.wiz.pv-setup #bar, body.wiz .app:has(#setup:not([hidden])) #bar { display: 
 #wz3 .wz-h { margin-bottom: 10px; }
 #wiz .wz-badge { position: relative; } #wiz .wz-badge img { width: 100% !important; height: 100% !important; }
 #wiz .wz-badge em { position: absolute; left: 50%; top: 56%; transform: translate(-50%, -50%); font-style: normal; font-size: 17px; line-height: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,.85)); }
+#wiz .wz-trophy > span { font-size: 34px; line-height: 1; } #wiz .wz-trophy img { position: absolute; left: 50%; top: 33%; width: 15px !important; height: 15px !important; transform: translate(-50%, -50%); filter: drop-shadow(0 0 1.5px #000); }
 #wiz .wz-globe > span { font-size: 33px; line-height: 1; } #wiz .wz-globe em { top: 50%; font-size: 16px; }
 #wiz .wz-sub { margin: 0 0 8px; text-align: center; color: #9a9da6; font: 500 13px/1.3 var(--body); }
 #wiz .wz-skins { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: 1fr 1fr; gap: 8px; }
@@ -2341,7 +2342,7 @@ window.FLFeedback = (function () {
         '<button type="button" class="wz-next" data-wz="next">Next</button></section>' +
       '<section class="wz-step" id="wz3" hidden>' + wzTop(3, 'Choose Where to Play') + '<div class="wz-tiles">' +
         '<button type="button" class="wz-tile" data-wz="league"><img src="brand.png" alt=""><span><b>League Play</b><i>Six Club Teams</i></span></button>' +
-        '<button type="button" class="wz-tile" data-wz="champ"><span class="wz-cup wz-badge" aria-hidden="true"><img src="brand.png" alt=""><em>\ud83c\udfc6</em></span><span><b>Fantasy League Championship</b><i>Six Club Teams &middot; Bring Home the \ud83c\udfc6</i></span></button>' +
+        '<button type="button" class="wz-tile" data-wz="champ"><span class="wz-cup wz-badge wz-trophy" aria-hidden="true"><span>\ud83c\udfc6</span><img src="brand.png" alt=""></span><span><b>Fantasy League Championship</b><i>Six Club Teams &middot; Bring Home the \ud83c\udfc6</i></span></button>' +
         '<button type="button" class="wz-tile" data-wz="world"><img src="usa-crest.png" alt=""><span><b>World Cup Play</b><i>Six National Teams</i></span></button>' +
         '<button type="button" class="wz-tile" data-wz="cup"><span class="wz-cup wz-badge wz-globe" aria-hidden="true"><span>\ud83c\udf0e</span><em>\ud83e\udd47</em></span><span><b>World Cup Championships</b><i>Six National Teams &middot; Bring Home the \ud83e\udd47</i></span></button>' +
         '<button type="button" class="wz-tile" data-wz="dania"><img src="db-crest.png?v=2" alt=""><span><b>Dania Beach Invitational</b><i>5th Annual Tournament &middot; Pari&#8209;mutuel Action</i></span></button>' +
