@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126155257";
+window.FL_BUILD = "20261126161000";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2405,7 +2405,7 @@ window.FLFeedback = (function () {
     if ($('online')) $('wzOnline').appendChild($('online'));
     $('wzView').addEventListener('change', function () { changeView(this.value); });
     dfCss();
-    $('chTeam').addEventListener('change', function () { if (this.value === '') { CH.me = -1; CH.m = null; } else chDraw(+this.value); chPaint(); });
+    $('chTeam').addEventListener('change', function () { if (this.value === 'code') { exCodeAsk(); return; } if (this.value === '') { CH.me = -1; CH.m = null; } else chDraw(+this.value); chPaint(); });
     wzDialogs();
     if ($('fbLink')) { $('fbLink').className = 'wz-link'; $('wzLinks').insertBefore($('fbLink'), $('wzLinks').firstChild); }
     $('whatToggle').addEventListener('click', function () { var o = $('whatBox').hidden; $('whatBox').hidden = !o; this.textContent = 'What is Jai Alai ' + (o ? '\u2212' : '+'); this.setAttribute('aria-expanded', String(o)); });
@@ -2573,7 +2573,7 @@ window.FLFeedback = (function () {
     if (a === 'league' || a === 'world') { CH.on = false; WZ.champ = false; cfg.youK = cfg.cpuK = 1; if (CH.m) { cfg.level = 'normal'; cfg.pace = 'standard'; } setComp(a); picked = [false, false]; wzShow(4); return true; }
     if (a === 'champ' || a === 'cup') { var g = a === 'cup' ? 'world' : 'league'; if (g !== CH.g) { CH.g = g; CH.me = -1; CH.m = null; } WZ.champ = true; setComp(CH.g); wzShow(7); return true; }
     if (a === 'ex-open') { exOpen(); return true; }
-    if (a === 'ch-play') { if (CH.me < 0) { $('chMsg').textContent = 'Pick your team.'; return true; } var cv = $('chView').value; if (cv === 'table') cfg.table = true; else { cfg.table = false; setView(cv); cfg.view = view; } if (CH.g === 'league') { if (EXI >= 0 && EX && !EX.paid && !exPass) { exTerms(); return true; } dfStart($('chDraft').value); return true; } if (!CH.m) chDraw(CH.me); CH.round = 0; CH.out = false; CH.champ = false; chStart(); return true; }
+    if (a === 'ch-play') { if (CH.me < 0) { $('chMsg').textContent = 'Pick your team.'; return true; } var cv = $('chView').value; if (cv === 'table') cfg.table = true; else { cfg.table = false; setView(cv); cfg.view = view; } if (CH.g === 'league') { if (EXI >= 0 && CH.me === EXI && EXG) { exUse(); dfStart($('chDraft').value); return true; } if (EXI >= 0 && EX && !EXG && !EX.paid && !exPass) { exTerms(); return true; } dfStart($('chDraft').value); return true; } if (!CH.m) chDraw(CH.me); CH.round = 0; CH.out = false; CH.champ = false; chStart(); return true; }
     if (a === 'hvp') { WZ.hvp = true; hvpAsk(); return true; }
     if (a === 'dania') { if (window.FL_NAV) window.FL_NAV('dania' + (cfg.singles ? 'S' : 'D') + (cfg.seats[0] ? 1 : 0) + (cfg.seats[1] ? 1 : 0)); return true; }
     if (a === 'celeb' || a === 'allstar') { if (window.FL_NAV) window.FL_NAV(a); else window.open(a === 'celeb' ? CELEB_URL : ALLSTAR_URL, '_blank'); return true; }
@@ -2604,33 +2604,90 @@ window.FLFeedback = (function () {
   function exKit(x) { var dark = function (h) { var n = parseInt(h.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 < 140; };
     return { name: x.name, logo: x.logo, ui: dark(x.c1) && !dark(x.c2) ? x.c2 : x.c1, ex: true, kit: { jersey: x.c1, sash: x.c2, helm: x.c2, num: dark(x.c1) ? '#ffffff' : '#141416', nk: { helm: x.c1, belt: x.c2 } } }; }
   if (EX && EX.name && EX.logo && !PROMO) { ROSTER.push(exKit(EX)); EXI = ROSTER.length - 1; }
+  if (EX && !EX.code) { EX.code = (function (n) { var w = String(n).toUpperCase().replace(/[^A-Z0-9 ]/g, '').trim().split(/\s+/).filter(Boolean); return ((w.length ? w[w.length - 1] : 'TEAM').slice(0, 12) || 'TEAM') + '-' + (1000 + Math.floor(Math.random() * 9000)); })(EX.name); try { localStorage.setItem(EXKEY, JSON.stringify(EX)); } catch (e) { /* ignore */ } }
   var exPass = false, exOrig = null;                               // exPass: played free this visit because checkout is not open yet
   function exTerms() {                                            // the same agreement pop-up as the skins, with the expansion team's own terms
     var tp = $('wzTerms'), tb = tp.querySelector('.wz-tbody'), h = tp.querySelector('h3');
     if (!exOrig) exOrig = { h: h.innerHTML, b: tb.innerHTML };
-    h.textContent = 'Purchase Terms';
-    tb.innerHTML = '<p><b>Please read before you continue. This is a one-time purchase of $9.99, and charges are not refunded.</b></p>' +
-      '<h4>1. What you are buying</h4><p>An Expansion Team is a custom seventh club for the Fantasy League Championship in Fantasy League Jai Alai: the team name, logo and colors you create, a place in the bracket and the league draft, and four added players in the draft pool. It is a digital item for use inside the game only.</p>' +
-      '<h4>2. Your name and logo</h4><p>You confirm that you have the right to use the team name and any logo you upload, and that they do not copy anyone else\u2019s name, logo or trademark or contain offensive material. We may remove a team that breaks these terms.</p>' +
-      '<h4>3. Where it is kept</h4><p>Your expansion team is saved on this device and browser. Clearing your browser data, or playing on another device, will not carry it over.</p>' +
-      '<h4>4. Payment</h4><p>Payment is taken by our payment processor, Stripe, on its secure checkout page. We do not see or store your card details.</p>' +
-      '<h4>5. No refunds</h4><p>Because the team is made and delivered at once, the purchase is final and not refunded, except where the law requires otherwise.</p>' +
-      '<h4>6. Changes</h4><p>We may update the game, the Championship and these terms. The Legal section in Step 1 has our full terms and privacy notice.</p>' +
+    h.textContent = 'Ownership Terms';
+    tb.innerHTML = '<p><b>Please read before you continue. This is a $49.99 annual license that renews automatically every 12 months until you cancel. Charges are not refunded.</b></p>' +
+      '<h4>1. What you are getting</h4><p>An Expansion Team is a custom club for the Fantasy League Championship in Fantasy League Jai Alai: the team name, logo and colors you create, a place in the bracket and the league draft, and four added players in the draft pool. You are leasing the right to operate this team inside the game. It is not a sale of the team.</p>' +
+      '<h4>2. Price and renewal</h4><p>The first payment of $49.99 covers 12 months from the day you pay. Unless you cancel before the renewal date, the license renews automatically for another 12 months and is charged again at the then-current price. You can cancel at any time; your team stays active until the end of the paid year.</p>' +
+      '<h4>3. Who owns the team</h4><p>Fantasy League Jai Alai Game, LLC owns the team and everything connected to it, including its name, logo, colors, likeness (name, image and likeness), players, merchandise designs and any other assets, whether you created them or we did. You grant us a permanent, worldwide, royalty-free right to use anything you submit for the team. You confirm you have the right to submit any name or logo you provide and that it does not copy anyone else\u2019s name, logo or trademark or contain offensive material.</p>' +
+      '<h4>4. When payments stop</h4><p>If your annual payment stops, fails or is canceled, your license ends at the end of the paid period. You lose control of the team and access to it as its owner-operator, your team code stops earning, and we may keep, retire, reassign or relaunch the team.</p>' +
+      '<h4>5. Owner-operator profit share</h4><p>While your license is active: (a) each time a player uses your team code to play in tournament mode, you earn 25% of the net profit from that player\u2019s $0.99 monthly subscription; and (b) you may order custom merchandise for your team at our team store at 50% off, and you earn 35% of the net profit when others buy your team\u2019s merchandise at our store. Net profit means revenue received after payment processing fees, platform and app store fees, refunds and chargebacks, taxes, and the cost of making and shipping goods. Amounts are calculated by us from our records.</p>' +
+      '<h4>6. Reports and payment</h4><p>We will send a quarterly report of your earnings. To be paid, you must complete our online owner form, including a W-9 and your bank details. We may hold payments until the form is complete, and we may set a minimum payout amount.</p>' +
+      '<h4>7. Where the team is kept</h4><p>Your team is saved on this device and with the league under your team code. Clearing your browser data or changing devices may require us to restore your ownership.</p>' +
+      '<h4>8. Payment</h4><p>Payment is taken by our payment processor, Stripe, on its secure checkout page. We do not see or store your card details.</p>' +
+      '<h4>9. Changes</h4><p>We may update the game, the Championship, the profit share and these terms. The Legal section in Step 1 has our full terms and privacy notice.</p>' +
       '<p class="wz-tco">Fantasy League Jai Alai Game, LLC</p>';
-    WZ.skin = 'Expansion Team'; WZ.ref = ''; $('wzTFor').textContent = 'Expansion Team: ' + EX.name + ' \u2022 $9.99 one-time'; $('wzTNote').textContent = '';
+    WZ.skin = 'Expansion Team'; WZ.ref = ''; $('wzTFor').textContent = 'Expansion Team: ' + EX.name + ' \u2022 $49.99 per year, renews automatically'; $('wzTNote').textContent = '';
     tp.hidden = false; tb.scrollTop = 0;
   }
   function exTermsBack() { if (!exOrig) return; var tp = $('wzTerms'); tp.querySelector('h3').innerHTML = exOrig.h; tp.querySelector('.wz-tbody').innerHTML = exOrig.b; }
   function exAgree() {                                            // on to checkout (set window.FL_STRIPE_EXP to the $9.99 payment link), then the game
     var su = window.FL_STRIPE_EXP;
-    if (su) { try { window.open(su + (su.indexOf('?') < 0 ? '?' : '&') + 'client_reference_id=' + encodeURIComponent('Expansion_' + EX.name.replace(/[^A-Za-z0-9]/g, '_')), '_blank', 'noopener'); } catch (e) { location.href = su; }
+    if (su) { try { window.open(su + (su.indexOf('?') < 0 ? '?' : '&') + 'client_reference_id=' + encodeURIComponent('Expansion_' + String(EX.code || EX.name).replace(/[^A-Za-z0-9]/g, '_')), '_blank', 'noopener'); } catch (e) { location.href = su; }
       EX.paid = true; try { localStorage.setItem(EXKEY, JSON.stringify(EX)); } catch (e) { /* ignore */ } }
     else exPass = true;                                            // checkout is not open yet: this visit plays free
     $('wzTerms').hidden = true; exTermsBack(); track('champ', 'expansion-agree');
     dfStart($('chDraft').value);
     if (!su) { var n = $('dfBox') && $('dfBox').querySelector('.df-sub'); if (n) n.textContent = 'Checkout is not open yet, so your expansion team plays free during this test.'; }
   }
-  function chTeams() { return CH.g === 'league' && EXI >= 0 ? groupList('league').concat([EXI]) : groupList(CH.g); }
+  /* ---------- Owner-operator: the share code, the welcome, and playing someone else's expansion team by its code ---------- */
+  var EXG = null;                                                   // a team entered by its code (this visit only)
+  function relayBase() { var u = String(window.FL_FEEDBACK || ''); return u ? u.replace(/\/feedback$/, '') : ''; }
+  function myId() { var id = ''; try { id = localStorage.getItem('flja-id') || ''; if (!id) { id = Math.random().toString(36).slice(2, 10) + Date.now().toString(36); localStorage.setItem('flja-id', id); } } catch (e) { id = myId.t || (myId.t = Math.random().toString(36).slice(2, 12) + 'tmp'); } return id.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 30); }
+  function exCodeFor(name) { var w = String(name).toUpperCase().replace(/[^A-Z0-9 ]/g, '').trim().split(/\s+/).filter(Boolean), base = (w.length ? w[w.length - 1] : 'TEAM').slice(0, 12); if (base.length < 2) base = (w.join('') + 'TEAM').slice(0, 12); return base + '-' + (1000 + Math.floor(Math.random() * 9000)); }
+  function exPublish() {                                            // the team is stored with the league under its code, so others can play it
+    var b = relayBase(); if (!b || !EX || !EX.code) return;
+    try { fetch(b + '/team', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ code: EX.code, owner: EX.owner, name: EX.name, logo: EX.logo, c1: EX.c1, c2: EX.c2 }) }).catch(function () { /* try again next save */ }); } catch (e) { /* ignore */ }
+  }
+  function exWelcome() {
+    var el = $('exWel');
+    if (!el) { el = document.createElement('div'); el.id = 'exWel'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'exWelH'); document.body.appendChild(el); }
+    el.innerHTML = '<div class="df-in ex-in"><div class="df-tag">Fantasy League Championship</div><span class="ex-wl"><img src="' + EX.logo + '" alt=""></span>' +
+      '<h3 id="exWelH">Congratulations!</h3><p class="ex-wt">You built the <b>' + esc(EX.name) + '</b>. Welcome to the Fantasy League family.</p>' +
+      '<p class="ex-wt">As an owner-operator, you share in the profits of the league two ways:</p>' +
+      '<ol class="ex-wo"><li><b>Share your team.</b> Give other players your team code. Every time someone uses it to play in tournament mode, you earn 25% of the net profit from the $0.99 per month that player pays.' +
+        '<span class="ex-code"><code id="exCodeTxt">' + esc(EX.code) + '</code><button type="button" data-w="copy">Copy</button></span><i>Players pick \u201cExpansion Team Code\u201d under Pick Your Team and enter it.</i></li>' +
+      '<li><b>Sell your merch.</b> Order custom merch for your team at our team store at a 50% discount. When people buy your team\u2019s merch at our store, you earn 35% of the net profit.</li></ol>' +
+      '<p class="ex-wt">You\u2019ll get a quarterly report with your numbers. To be paid, you\u2019ll fill out a short online owner form with your W-9 and bank details; we\u2019ll send you the link.</p>' +
+      '<p class="ex-msg" id="exWelMsg" role="status"></p>' +
+      '<div class="df-go"><a class="ex-store" href="https://usjaialai.com" target="_blank" rel="noopener">Team Store</a><button type="button" data-w="ok">Let\u2019s Play</button></div></div>';
+    el.hidden = false;
+    el.onclick = function (e) { var b = e.target.closest('button[data-w]'); if (!b) return;
+      if (b.getAttribute('data-w') === 'ok') { el.hidden = true; return; }
+      try { navigator.clipboard.writeText(EX.code).then(function () { $('exWelMsg').textContent = 'Code copied.'; }, function () { exSel(); }); } catch (er) { exSel(); } };
+    function exSel() { var c = $('exCodeTxt'), r = document.createRange(); r.selectNodeContents(c); var s = getSelection(); s.removeAllRanges(); s.addRange(r); $('exWelMsg').textContent = 'Press and hold to copy the code.'; }
+    try { el.querySelector('[data-w="ok"]').focus(); } catch (e) { /* ignore */ }
+  }
+  function exCodeAsk() {                                            // play another owner's expansion team by its code
+    var el = $('exCodeBox');
+    if (!el) { el = document.createElement('div'); el.id = 'exCodeBox'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'exCodeH'); document.body.appendChild(el); }
+    el.innerHTML = '<div class="df-in ex-in"><button type="button" class="df-back" data-c="x">\u2039 Back</button><div class="df-tag">Fantasy League Championship</div><h3 id="exCodeH">Expansion Team Code</h3>' +
+      '<p class="df-sub">Enter the code an owner shared with you to play as their team.</p>' +
+      '<label class="ex-l">Team code<input id="exCodeIn" maxlength="17" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. HAMMERHEADS-4821"></label>' +
+      '<p class="ex-msg" id="exCodeMsg" role="status"></p><div class="df-go"><button type="button" class="df-alt" data-c="x">Cancel</button><button type="button" data-c="go">Get Team</button></div></div>';
+    el.hidden = false; try { $('exCodeIn').focus(); } catch (e) { /* ignore */ }
+    var close = function () { el.hidden = true; chPaint(); };
+    var go = function () {
+      var c = $('exCodeIn').value.toUpperCase().replace(/\s+/g, ''), m = $('exCodeMsg'), b = relayBase();
+      if (!/^[A-Z0-9]{2,12}-[0-9]{4}$/.test(c)) { m.textContent = 'Codes look like HAMMERHEADS-4821.'; return; }
+      if (EX && EX.code === c) { EXG = null; exSet(exKit(EX)); el.hidden = true; chDraw(EXI); chPaint(); return; }
+      if (!b) { m.textContent = 'Team codes work in the online version of the game.'; return; }
+      m.textContent = 'Looking up the team\u2026';
+      fetch(b + '/team?code=' + encodeURIComponent(c), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+        if (!j || !j.ok || !j.team) { m.textContent = 'No team has that code. Check it with the owner.'; return; }
+        EXG = j.team; exSet(exKit(EXG)); el.hidden = true; chDraw(EXI); chPaint();
+      }).catch(function () { m.textContent = 'Could not reach the league just now. Try again.'; });
+    };
+    el.onclick = function (e) { var b = e.target.closest('button[data-c]'); if (!b) return; if (b.getAttribute('data-c') === 'go') go(); else close(); };
+    $('exCodeIn').onkeydown = function (e) { if (e.key === 'Enter') go(); };
+  }
+  function exSet(kit) { if (EXI >= 0) ROSTER[EXI] = kit; else { ROSTER.push(kit); EXI = ROSTER.length - 1; } }
+  function exUse() { var b = relayBase(); if (!b || !EXG || CH.me !== EXI) return; try { fetch(b + '/team-use?code=' + encodeURIComponent(EXG.code) + '&d=' + myId(), { method: 'POST', keepalive: true }).catch(function () { /* ignore */ }); } catch (e) { /* ignore */ } }
+  function chTeams() { return CH.g === 'league' && EXI >= 0 ? groupList('league').concat([EXI]) : groupList(CH.g); }   // EXI: your expansion team, or the one entered by code
   function exLogo(desc, name, c1, c2) {                             // a crest from the description: a shield in the two colors, the closest emblem to the words, and the initials
     var cv = document.createElement('canvas'); cv.width = cv.height = 256; var x = cv.getContext('2d'), d = (desc || '').toLowerCase(), emo = '';
     EX_EMO.forEach(function (e) { if (!emo && d.indexOf(e[0]) >= 0) emo = e[1]; });
@@ -2655,11 +2712,11 @@ window.FLFeedback = (function () {
       '<div class="ex-l">Logo<span class="ex-tabs" role="group" aria-label="Logo"><button type="button" data-ex="desc" aria-pressed="' + (d.how !== 'up') + '">Describe It</button><button type="button" data-ex="up" aria-pressed="' + (d.how === 'up') + '">Upload One</button></span></div>' +
       '<div class="ex-desc"' + (d.how === 'up' ? ' hidden' : '') + '><textarea id="exDesc" rows="2" maxlength="140" placeholder="Describe it: a hammerhead shark over a palm tree">' + esc(d.desc || '') + '</textarea><button type="button" class="ex-mk" data-ex="make">Make Logo</button></div>' +
       '<div class="ex-up"' + (d.how === 'up' ? '' : ' hidden') + '><input type="file" id="exFile" accept="image/*"><p class="df-sub">PNG with a clear background looks best.</p></div>' +
-      '<div class="ex-prev"><span class="ex-logo">' + (d.logo ? '<img src="' + d.logo + '" alt="Logo preview">' : '<i>Logo preview</i>') + '</span><span class="ex-pn"><b id="exPn">' + esc(d.name || 'Your Team') + '</b><i>Expansion \u00b7 7th club</i></span></div>' +
+      '<div class="ex-prev"><span class="ex-logo">' + (d.logo ? '<img src="' + d.logo + '" alt="Logo preview">' : '<i>Logo preview</i>') + '</span><span class="ex-pn"><b id="exPn">' + esc(d.name || 'Your Team') + '</b><i>' + (EX && EX.code ? 'Team code ' + esc(EX.code) : 'Expansion Team') + '</i></span></div>' +
       '<p class="ex-msg" id="exMsg" role="status"></p>' +
       '<div class="df-go"><button type="button" class="df-alt" data-ex="cancel">Cancel</button><button type="button" data-ex="build">' + (EX ? 'Save Expansion Team' : 'Build Expansion Team') + '</button></div>' +
       (EX ? '<button type="button" class="ex-rm" data-ex="remove">Remove expansion team</button>' : '') +
-      '<p class="df-note">$9.99. You agree to the purchase terms and pay when you tap Play. Your team is kept on this phone.</p></div>';
+      '<p class="df-note">$49.99 for 12 months, then renews each year. You agree to the ownership terms and pay when you tap Play.</p></div>';
     el.hidden = false; var st = { logo: d.logo, how: d.how || 'desc', emo: '' };
     var paint = function () { var pv = el.querySelector('.ex-logo'); pv.innerHTML = st.logo ? '<img src="' + st.logo + '" alt="Logo preview">' : '<i>Logo preview</i>'; $('exPn').textContent = $('exName').value.trim() || 'Your Team'; $('exPn').style.color = $('exC1').value; };
     paint();
@@ -2671,17 +2728,17 @@ window.FLFeedback = (function () {
       else if (a === 'make') { var nm = $('exName').value.trim(); if (!$('exDesc').value.trim()) { $('exMsg').textContent = 'Describe the logo first.'; return; } var lg = exLogo($('exDesc').value, nm, $('exC1').value, $('exC2').value); st.logo = lg.url; st.how = 'desc';
         $('exMsg').textContent = lg.emo ? '' : 'No emblem matched those words, so the logo shows your initials. Try an animal or object (shark, eagle, lightning).'; paint(); }
       else if (a === 'cancel') el.hidden = true;
-      else if (a === 'remove') { try { localStorage.removeItem(EXKEY); localStorage.removeItem(DKEY); } catch (er) { /* ignore */ } EX = null; if (CH.me === EXI) CH.me = -1; CH.m = null; EXI = -1; el.hidden = true; chPaint(); }
+      else if (a === 'remove') { try { localStorage.removeItem(EXKEY); localStorage.removeItem(DKEY); } catch (er) { /* ignore */ } EX = null; if (CH.me === EXI) CH.me = -1; CH.m = null; if (EXG) exSet(exKit(EXG)); else { ROSTER.splice(EXI, 1); EXI = -1; } el.hidden = true; chPaint(); }
       else if (a === 'build') {
         var name = $('exName').value.trim();
         if (!name) { $('exMsg').textContent = 'Give your team a name.'; return; }
         if (!st.logo) { $('exMsg').textContent = st.how === 'up' ? 'Upload a logo.' : 'Describe your logo and tap Make Logo.'; return; }
         if (groupList('league').some(function (k) { return ROSTER[k].name.toLowerCase() === name.toLowerCase(); })) { $('exMsg').textContent = 'That name is taken by a League club.'; return; }
-        EX = { name: name, logo: st.logo, c1: $('exC1').value, c2: $('exC2').value, desc: $('exDesc').value.trim(), how: st.how };
+        var first = !EX; EX = { name: name, logo: st.logo, c1: $('exC1').value, c2: $('exC2').value, desc: $('exDesc').value.trim(), how: st.how, code: EX && EX.code ? EX.code : exCodeFor(name), owner: EX && EX.owner ? EX.owner : myId(), paid: EX ? EX.paid : false, at: EX && EX.at ? EX.at : new Date().toISOString() }; EXG = null;
         try { localStorage.setItem(EXKEY, JSON.stringify(EX)); } catch (er) { /* kept for this visit */ }
-        if (EXI >= 0) ROSTER[EXI] = exKit(EX); else { ROSTER.push(exKit(EX)); EXI = ROSTER.length - 1; }
+        exSet(exKit(EX)); exPublish();
         try { localStorage.removeItem(DKEY); } catch (er) { /* ignore */ }   // an old six-club draft no longer fits
-        el.hidden = true; chDraw(EXI); chPaint(); track('champ', 'expansion');
+        el.hidden = true; chDraw(EXI); chPaint(); if (first) exWelcome();
       }
     };
     try { $('exName').focus(); } catch (e) { /* ignore */ }
@@ -2924,6 +2981,14 @@ window.FLFeedback = (function () {
       '#exBox .ex-pn{display:flex;flex-direction:column;gap:4px;min-width:0}#exBox .ex-pn b{font:900 18px/1.1 ' + F + ';letter-spacing:.04em;text-transform:uppercase;overflow-wrap:anywhere}#exBox .ex-pn i{font:700 10px/1 ' + F + ';font-style:normal;letter-spacing:.14em;text-transform:uppercase;color:#a9adba}' +
       '#exBox .ex-msg{margin:0;min-height:1em;text-align:center;font:600 12px/1.3 ' + F + ';color:#ffb3d1}#exBox .ex-rm{align-self:center;background:none;border:0;color:#a9adba;font:600 12px/1 ' + F + ';text-decoration:underline;padding:6px}' +
       '#exBox .df-go{display:flex;gap:8px}#exBox .df-go button{flex:1 1 0;min-height:46px;border-radius:12px;border:2px solid #de0a7b;background:#de0a7b;color:#fff;font:800 14px/1.05 ' + F + ';letter-spacing:.06em;text-transform:uppercase}#exBox .df-go button.df-alt{background:transparent;border-color:' + A + '}#exBox .df-note{margin:0;text-align:center;font:500 11px/1.35 ' + F + ';color:#a9adba}#exBox button:focus-visible{outline:3px solid #fff;outline-offset:2px}' +
+      '#exWel,#exCodeBox{position:fixed;inset:0;z-index:2147482400;background:rgba(4,5,10,.94);display:flex;align-items:center;justify-content:center;padding:8px;font-family:' + F + ';color:#f2efe6}#exWel[hidden],#exCodeBox[hidden]{display:none}' +
+      '#exWel .df-in,#exCodeBox .df-in{position:relative;width:min(100%,440px);max-height:100%;overflow:auto;box-sizing:border-box;background:#0a0c12;border:2px solid ' + A + ';border-radius:16px;padding:14px 14px;display:flex;flex-direction:column;gap:9px}#exWel .df-tag,#exCodeBox .df-tag{text-align:center;font:700 10.5px/1 ' + F + ';letter-spacing:.16em;text-transform:uppercase;color:' + A + '}' +
+      '#exWel h3,#exCodeBox h3{margin:0;text-align:center;font:900 22px/1.1 var(--display,' + F + ');letter-spacing:.06em;text-transform:uppercase;color:' + P + '}#exWel .ex-wl{align-self:center;width:96px;height:96px}#exWel .ex-wl img{width:100%;height:100%;object-fit:contain}' +
+      '#exWel .ex-wt{margin:0;font:500 13.5px/1.45 ' + F + ';color:#e6e7ec;text-align:center}#exWel .ex-wt b{color:#fff}#exWel .ex-wo{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font:500 13px/1.45 ' + F + ';color:#d7d9e0}#exWel .ex-wo b{color:#fff}#exWel .ex-wo i{display:block;font-style:normal;font-size:11.5px;color:#a9adba}' +
+      '#exWel .ex-code{display:flex;align-items:center;gap:8px;margin:6px 0 3px}#exWel code{flex:1;font:800 16px/1 ui-monospace,Menlo,monospace;letter-spacing:.06em;color:' + A + ';background:#121627;border:1.5px dashed ' + A + ';border-radius:8px;padding:9px 10px;text-align:center;user-select:all}#exWel .ex-code button{min-height:38px;padding:0 14px;border-radius:8px;border:1.5px solid ' + A + ';background:transparent;color:#fff;font:800 12px/1 ' + F + ';letter-spacing:.08em;text-transform:uppercase}' +
+      '#exWel .df-go,#exCodeBox .df-go{display:flex;gap:8px}#exWel .df-go button,#exWel .ex-store,#exCodeBox .df-go button{flex:1 1 0;min-height:46px;border-radius:12px;border:2px solid #de0a7b;background:#de0a7b;color:#fff;font:800 14px/1 ' + F + ';letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer}#exWel .ex-store,#exCodeBox .df-go button.df-alt{background:transparent;border-color:' + A + '}' +
+      '#exWel .ex-msg,#exCodeBox .ex-msg{margin:0;min-height:1em;text-align:center;font:600 12px/1.3 ' + F + ';color:#ffb3d1}#exCodeBox .df-sub{margin:0;text-align:center;font:500 12.5px/1.4 ' + F + ';color:#a9adba}#exCodeBox .ex-l{display:flex;flex-direction:column;gap:5px;font:700 10.5px/1 ' + F + ';letter-spacing:.14em;text-transform:uppercase;color:#a9adba}' +
+      '#exCodeBox input{font:800 17px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:#121627;border:1.5px solid #2b3352;border-radius:10px;padding:11px;box-sizing:border-box;width:100%}#exCodeBox .df-back{position:absolute;left:10px;top:9px;background:none;border:0;color:' + A + ';font:700 12px/1 ' + F + ';letter-spacing:.12em;text-transform:uppercase}#exWel button:focus-visible,#exWel a:focus-visible,#exCodeBox button:focus-visible{outline:3px solid #fff;outline-offset:2px}' +
       '#wiz .ch-exp{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;margin-top:10px;min-height:52px;padding:8px}#wiz .ch-exp small{font:700 10px/1 var(--body);letter-spacing:.08em}#wiz .ch-exp[hidden]{display:none}#chBoard .cw-crest{position:absolute;left:50%;top:58%;width:62%;transform:translate(-50%,-50%)}';
     document.head.appendChild(st);
   }
@@ -2943,11 +3008,11 @@ window.FLFeedback = (function () {
   function chPaint() {                                              // the page where the club is picked: the bracket follows the pick
     var s = $('chTeam'); if (!s) return;
     var hh = $('wz7').querySelector('.wz-h'); hh.lastChild.textContent = CH.g === 'world' ? 'World Cup Championships' : 'Fantasy League Championship';
-    s.innerHTML = '<option value="">Pick Your Team</option>' + chTeams().map(function (k) { return '<option value="' + k + '">' + esc(chName(k)) + '</option>'; }).join('');
+    s.innerHTML = '<option value="">Pick Your Team</option>' + chTeams().map(function (k) { return '<option value="' + k + '">' + esc(chName(k)) + (k === EXI && EXG ? ' (code ' + esc(EXG.code) + ')' : '') + '</option>'; }).join('') + (CH.g === 'league' ? '<option value="code">Expansion Team Code\u2026</option>' : '');
     s.value = CH.me >= 0 ? String(CH.me) : '';
     var curV = cfg.table ? 'table' : view;
     $('chView').innerHTML = [['aerial', 'Professional'], ['side', 'Amateur'], ['table', 'Cocktail Table'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', 'Vintage']].filter(function (m) { return m[0] === 'table' || viewOK(m[0]); }).map(function (m) { return '<option value="' + m[0] + '"' + (m[0] === curV ? ' selected' : '') + '>' + m[1] + '</option>'; }).join('');
-    var xb = $('chExp'); xb.hidden = CH.g !== 'league'; xb.innerHTML = EXI >= 0 ? 'Edit Expansion Team<small>' + esc(ROSTER[EXI].name) + '</small>' : 'Buy an Expansion Team<small>Add a 7th club</small>';
+    var xb = $('chExp'); xb.hidden = CH.g !== 'league'; xb.innerHTML = EX ? 'Edit Expansion Team<small>' + esc(EX.name) + ' \u00b7 ' + esc(EX.code || '') + '</small>' : 'Buy an Expansion Team<small>$49.99 per year</small>';
     var dd = $('chDraft'), sv = dfLoad(); dd.hidden = CH.g !== 'league';
     dd.innerHTML = '<option value="live">Live Draft \u00b7 You Pick Your Roster</option><option value="skip">Skip Draft \u00b7 CPU Picks All Rosters</option>' + (sv ? '<option value="saved">My Saved Team \u00b7 ' + esc(ROSTER[sv.me] ? ROSTER[sv.me].name : '') + ' (' + esc(sv.at || '') + ')</option>' : '');
     $('chBr').innerHTML = CH.me >= 0 ? chBracket() : '';
