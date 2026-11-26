@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126091131";
+window.FL_BUILD = "20261126092010";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -4487,10 +4487,10 @@ window.FLFeedback = (function () {
     if (a[0] != null && a[1] != null) for (k = 0; k < 7; k++) PM.posts.push({ f: F[k], b: B[k] });
     else { var all = mix(F.slice(0, 4).map(function (i) { return { f: i, b: null }; }).concat(B.slice(0, 4).map(function (i) { return { f: null, b: i }; }))); for (k = 0; k < 7; k++) PM.posts.push(all[k]); }   // singles: seven single players
   }
-  function pmReset() { PM.pts = [0, 0, 0, 0, 0, 0, 0, 0]; PM.line = [2, 3, 4, 5, 6, 7]; PM.opp = 1; PM.n = 0; PM.over = false; PM.log = []; dRecalc(); }
+  function pmReset() { PM.pts = [0, 0, 0, 0, 0, 0, 0, 0]; PM.line = [2, 3, 4, 5, 6, 7]; PM.opp = 1; PM.n = 0; PM.over = false; PM.log = []; PM.lastW = -1; PM.run = 0; dRecalc(); }
   function pmPostName(k) { return pmPair(PM.posts[k]).name; }
   function pmScore(w, l) {                                          // one point played: the winner stays, the loser goes to the back of the line
-    var val = PM.n < 7 ? 1 : 2; PM.n++; PM.pts[w] += val;
+    var val = PM.n < 7 ? 1 : 2; PM.n++; PM.pts[w] += val; if (PM.lastW === w) PM.run++; else { PM.lastW = w; PM.run = 1; }
     if (PM.pts[w] >= 9) { PM.over = true; PM.champ = w; }
     else { PM.line.push(l); PM.court = [w, PM.line.shift()]; }
     PM.log.push({ w: w, l: l, v: val, pts: PM.pts.slice(), court: PM.over ? [] : PM.court.slice(), n: PM.n });   // how the board stood after this point
@@ -4498,7 +4498,7 @@ window.FLFeedback = (function () {
   function pmPoint(side) {                                          // your point ended: side 0 is your post, side 1 the post you were playing
     if (!PM.on || PM.open) return;
     PM.log = []; pmScore(side === 0 ? 0 : PM.opp, side === 0 ? PM.opp : 0);
-    while (!PM.over && PM.court[0] !== 0 && PM.court[1] !== 0) { var r = Math.random() < 0.5 ? 0 : 1; pmScore(PM.court[r], PM.court[1 - r]); }   // the points between two CPU posts, shown on the board one at a time
+    while (!PM.over && PM.court[0] !== 0 && PM.court[1] !== 0) { var hold = Math.max(0.1, Math.min(0.55, 0.5 - 0.14 * (PM.lastW === PM.court[0] ? PM.run : 0) - 0.07 * (PM.pts[PM.court[0]] - PM.pts[PM.court[1]]))), r = Math.random() < hold ? 0 : 1; pmScore(PM.court[r], PM.court[1 - r]); }   // the points between two CPU posts, shown on the board one at a time
     PM.open = true;
     setTimeout(pmBoard, 1300);                                      // let the call of the point be seen first
   }
@@ -4535,19 +4535,36 @@ window.FLFeedback = (function () {
     if (tb) { window.Table.setTeam(1, window.__tblTeam(1)); window.Table.resume(); }
     PM.open = false;
   }
+  /* Live Player Stats: the Dania stat sheet (games played, wins, seconds, thirds, win % and in-the-money %). Read from dania-stats.json, which is replaced nightly; zeros until then */
+  var dStats = { updated: '', players: {} };
+  function dStatsLoad() { try { fetch('dania-stats.json?t=' + Math.floor(Date.now() / 3600000)).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { if (j && j.players) { dStats = j; if ($('dbStats') && !$('dbStats').hidden) dStatsShow(); } }).catch(function () { /* zeros stay */ }); } catch (e) { /* zeros stay */ } }
+  function dStatsShow() {
+    var el = $('dbStats'), P = PROMO.people, pct = function (n, g) { return g ? (n / g).toFixed(3).replace(/^0/, '') : '.000'; };
+    if (!el) { el = document.createElement('div'); el.id = 'dbStats'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', 'Live player stats'); document.body.appendChild(el);
+      el.addEventListener('click', function (e) { if (e.target === el || e.target.closest('[data-close]')) { el.hidden = true; var b = promoEl && promoEl.querySelector('.db-stats'); if (b) try { b.focus(); } catch (er) { /* ignore */ } } });
+      el.addEventListener('keydown', function (e) { if (e.key === 'Escape') { el.hidden = true; } }); }
+    var tbl = function (pos, title) { return '<h4>' + title + '</h4><table><thead><tr><th scope="col">#</th><th scope="col" class="ds-n">Player</th><th scope="col"><abbr title="Games played">GP</abbr></th><th scope="col"><abbr title="Wins">W</abbr></th><th scope="col"><abbr title="Second place">2</abbr></th><th scope="col"><abbr title="Third place">3</abbr></th><th scope="col"><abbr title="Win percentage">W%</abbr></th><th scope="col"><abbr title="In the money percentage">ITM%</abbr></th></tr></thead><tbody>' +
+      P.filter(function (w) { return w.pos === pos; }).map(function (w) { var s = dStats.players[w.num + ' ' + w.name] || dStats.players[w.name] || {}, g = +s.gp || 0, a = +s.w || 0, b = +s.p || 0, c = +s.s || 0;
+        return '<tr><td>' + w.num + '</td><th scope="row" class="ds-n">' + esc(w.name) + '</th><td>' + g + '</td><td>' + a + '</td><td>' + b + '</td><td>' + c + '</td><td>' + pct(a, g) + '</td><td>' + pct(a + b + c, g) + '</td></tr>'; }).join('') + '</tbody></table>'; };
+    el.innerHTML = '<div class="ds-in"><div class="ds-top"><h3>Live Player Stats</h3><button type="button" data-close aria-label="Close">\u2715</button></div>' +
+      '<p class="ds-sub">5th Annual Dania Beach Invitational \u00b7 ' + (dStats.updated ? 'Updated ' + esc(dStats.updated) : 'Updated nightly') + '</p>' +
+      tbl('F', 'Front Courters') + tbl('B', 'Back Courters') +
+      '<p class="ds-key">GP games played \u00b7 W wins \u00b7 2 seconds \u00b7 3 thirds \u00b7 W% win rate \u00b7 ITM% finished in the money (first, second or third)</p></div>';
+    el.hidden = false; try { el.querySelector('[data-close]').focus(); } catch (e) { /* ignore */ }
+  }
   function dPaint() {
     var P = PROMO, el = promoEl, n0 = dCount(0), one = dFmt === 'singles', ready = n0 === (one ? 1 : 2);
     dRecalc();
     [0, 1].forEach(function (k) {
       var i = dSel[0][k], w = i == null ? null : P.people[i], c = el.querySelector('.db-card[data-k="' + k + '"]');
-      c.className = 'db-card' + (w ? '' : ' db-empty');
+      c.className = 'db-card' + (w ? '' : ' db-empty'); c.hidden = one && (dSel[0][1 - k] != null || (k === 1 && i == null));   // singles: one box, for whichever player is picked
       c.innerHTML = w ? '<b class="db-num">' + w.num + '</b><span class="db-ph">' + (w.photo ? '<img src="' + w.photo + '" alt="">' : '') + '</span><strong>' + esc(w.name) + '</strong><i>' + (w.pos === 'F' ? 'Frontcourt' : 'Backcourt') + '</i>'
-        : '<span class="db-ph db-q">?</span><i>' + (k ? 'Back Courter' : 'Front Courter') + '</i>';
+        : '<span class="db-ph db-q">?</span><i>' + (one ? 'Your Player' : k ? 'Back Courter' : 'Front Courter') + '</i>';
       el.querySelector('.db-sel[data-pos="' + (k ? 'B' : 'F') + '"]').value = i == null ? '' : String(i);
     });
     el.querySelector('.db-field').innerHTML = PMC.map(function (c, k) { var nm = PM.posts[k] ? pmPair(PM.posts[k]).name : '';
       return '<li class="' + (k === 0 ? 'pb-you' : '') + '"><span class="pb-chip" style="background:' + c[1] + ';color:' + (k === 2 || k === 5 ? '#111' : '#fff') + '">' + (k + 1) + '</span><span class="pb-nm">' + (nm ? esc(nm) : k === 0 ? 'Pick your team' : 'CPU team') + '</span><em>' + (k === 0 ? 'You' : 'CPU') + '</em></li>'; }).join('');
-    $('pmAds').disabled = $('pmFree').disabled = !ready; el.classList.toggle('pm-ready', ready);
+    $('pmAds').disabled = $('pmFree').disabled = !ready; el.classList.toggle('pm-ready', ready); el.classList.toggle('db-one', one);
     el.querySelector('.db-hint').textContent = !ready ? (one ? 'Singles: pick one player, front court or back court. The CPU fills Posts 2 to 8.' : 'Doubles: pick a front courter and a back courter. The CPU fills Posts 2 to 8.') : (one ? 'Singles' : 'Doubles' + (dSeat[0] && dSeat[1] ? '' : dSeat[0] ? ' (CPU plays your back court)' : ' (CPU plays your front court)')) + ' \u00b7 Spectacular 9 \u00b7 You are Post 1 in red';
 
     el.querySelector('.db-art').setAttribute('aria-label', ready ? 'Post 1, ' + dT[0].name + ', against seven CPU teams' : 'Pick your team');
@@ -4559,6 +4576,14 @@ window.FLFeedback = (function () {
       '#promo .db-art{position:relative;align-self:center;width:min(100%,440px);display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1fr);gap:0 10px}' +
       '#promo .db-col{display:flex;flex-direction:column;gap:6px;min-width:0}' +
       '#promo .db-me{min-height:24px;border-radius:999px;background:' + OR + ';color:#0b0c0f;font:700 11px/1 ' + F + ';letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:7px}' +
+      '#promo button.db-me{border:0;cursor:pointer;width:100%}#promo button.db-me:after{content:"\\203A";font-size:15px;line-height:.6}#promo.db-one .db-card{height:calc(var(--ch) * 2 + 6px)}#promo.db-one .db-ph{height:calc(var(--ch) * 1.25)}' +
+      '#dbStats{position:fixed;inset:0;z-index:2147482500;background:rgba(4,5,10,.86);display:flex;align-items:center;justify-content:center;padding:10px;font-family:' + F + ';color:#f2efe6}#dbStats[hidden]{display:none}' +
+      '#dbStats .ds-in{width:min(100%,460px);max-height:100%;overflow:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;background:#0b0e1c;border:2px solid ' + OR + ';border-radius:16px;padding:12px}' +
+      '#dbStats .ds-top{display:flex;align-items:center;justify-content:space-between;gap:8px}#dbStats h3{margin:0;font:900 17px/1 ' + F + ';letter-spacing:.12em;text-transform:uppercase;color:' + OR + '}' +
+      '#dbStats [data-close]{width:36px;height:36px;border-radius:50%;border:1.5px solid #f2efe6;background:transparent;color:#f2efe6;font:700 15px/1 ' + F + ';cursor:pointer}#dbStats [data-close]:focus-visible{outline:3px solid #fff;outline-offset:2px}' +
+      '#dbStats .ds-sub{margin:4px 0 2px;font:600 11px/1.2 ' + F + ';color:#a9adba}#dbStats h4{margin:10px 0 4px;font:800 11.5px/1 ' + F + ';letter-spacing:.16em;text-transform:uppercase;color:#fff}' +
+      '#dbStats table{width:100%;border-collapse:collapse;font:600 12.5px/1.15 ' + F + ';font-variant-numeric:tabular-nums}#dbStats th,#dbStats td{padding:5px 3px;text-align:right;border-bottom:1px solid #1e2440}#dbStats thead th{font:800 10px/1 ' + F + ';letter-spacing:.08em;color:' + OR + ';background:' + NV + '}' +
+      '#dbStats .ds-n{text-align:left;font-weight:800;color:#fff}#dbStats thead .ds-n{color:' + OR + '}#dbStats td:first-child,#dbStats th:first-child{text-align:left;width:26px;color:#c9cbd4}#dbStats abbr{text-decoration:none}#dbStats .ds-key{margin:9px 0 0;font:500 10px/1.35 ' + F + ';color:#8d909a}' +
       '#promo .db-me.db-cpu{background:transparent;border:1.5px solid #f2efe6;color:#f2efe6;box-sizing:border-box}' +
       '#promo .db-card{position:relative;height:var(--ch);box-sizing:border-box;border-radius:12px;border:2px solid ' + OR + ';background:linear-gradient(135deg,' + OR + ' 0 30%,' + NV + ' 30.4% 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;overflow:hidden;color:#fff;text-align:center}' +
       '#promo .db-num{position:absolute;left:6px;top:5px;font:900 clamp(15px,5vw,22px)/1 ' + F + ';color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6)}' +
@@ -4600,7 +4625,7 @@ window.FLFeedback = (function () {
     el.className = 'pm-dania';
     el.innerHTML = '<div class="pm-in"><div class="pm-top">' + (window.FL_INGAME && window.FL_NAV ? '<button type="button" class="pm-back" id="pmBack">\u2039 Back</button><span>Step 4 of 4</span><span class="pm-dots"><i></i><i></i><i></i><i></i></span>' : '') + '</div>' +
       '<h2 class="pm-tag">' + esc(P.tag) + '</h2>' +
-      '<div class="db-art" role="group" aria-label=""><div class="db-col"><div class="db-me">Post 1 \u00b7 You</div><div class="db-card" data-k="0"></div><div class="db-card" data-k="1"></div></div>' +
+      '<div class="db-art" role="group" aria-label=""><div class="db-col"><button type="button" class="db-me db-stats">Live Player Stats</button><div class="db-card" data-k="0"></div><div class="db-card" data-k="1"></div></div>' +
       '<div class="db-col"><div class="db-me db-cpu">Pari-Mutuel \u00b7 8 Posts</div><ol class="db-field"></ol></div><span class="pm-vs" aria-hidden="true">VS</span></div>' +
       '<div class="pm-ctl"><div class="pm-lbl">' + (dFmt === 'singles' ? 'Pick Your Player' : 'Pick Your Team') + '</div><div class="pm-row pm-teams">' + sel('F') + sel('B') + '</div>' +
       
@@ -4616,6 +4641,7 @@ window.FLFeedback = (function () {
     $('pmAds').addEventListener('click', function () { promoGo(true); });
     $('pmFree').addEventListener('click', function () { promoGo(false); });
     P.people.forEach(function (w) { if (w.face) { var im = new Image(); im.src = w.face; w._img = im; } });
+    el.querySelector('.db-stats').addEventListener('click', dStatsShow); dStatsLoad();
     pmDraw(); dPaint();
   }
   function promoBuild() {
