@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126135733";
+window.FL_BUILD = "20261126135842";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -873,6 +873,13 @@ body.wiz.pv-setup #bar, body.wiz .app:has(#setup:not([hidden])) #bar { display: 
 /* Limited Edition Skins: the tile, the five-skin page and the subscription terms */
 #wiz .wz-dollar { width: 46px; height: 46px; flex: none; border-radius: 50%; border: 2px solid #ff2d95; color: #ff2d95; display: flex; align-items: center; justify-content: center; font: 900 26px/1 var(--display); }
 #wiz .wz-tiles { gap: 7px; } #wiz .wz-tile { padding: 8px 14px; }
+/* nine games on one phone screen: slimmer pills, one-line descriptions */
+#wz3 .wz-tiles { gap: 6px; } #wz3 .wz-tile { padding: 6px 12px; gap: 12px; border-radius: 12px; min-height: 0; }
+#wz3 .wz-tile img, #wz3 .wz-star, #wz3 .wz-cup, #wz3 .wz-dollar { width: 36px; height: 36px; } #wz3 .wz-dollar { font-size: 20px; box-sizing: border-box; } #wz3 .wz-cup { font-size: 27px; }
+#wz3 .wz-tile > span:last-child { min-width: 0; }
+#wz3 .wz-tile b { font-size: 14.5px; line-height: 1.15; letter-spacing: .045em; }
+#wz3 .wz-tile i { font-size: 11.5px; line-height: 1.25; margin-top: 1px; }
+#wz3 .wz-h { margin-bottom: 10px; }
 #wiz .wz-sub { margin: 0 0 8px; text-align: center; color: #9a9da6; font: 500 13px/1.3 var(--body); }
 #wiz .wz-skins { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: 1fr 1fr; gap: 8px; }
 #wiz .wz-skin { grid-column: span 2; min-height: 0; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 6px 4px 8px; border: 1.5px solid #14504d; border-radius: 12px; background: #000; color: #f2efe6; cursor: pointer; }
