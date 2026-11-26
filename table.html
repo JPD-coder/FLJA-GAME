@@ -142,7 +142,7 @@ var Core = (function () {
   }
 
   function reachOf(p) { return p.human ? C.REACH_H : C.REACH_C; }
-  function speedOf(g, p) { return C.SPEED * (p.human ? 1.12 : LV[g.cfg.level].speed) * (p.single ? 1.35 : 1); }   // alone on court, a player covers more ground
+  function speedOf(g, p) { return C.SPEED * (p.human ? 1.12 * (g.cfg.youK || 1) : LV[g.cfg.level].speed * (g.cfg.cpuK || 1)) * (p.single ? 1.35 : 1); }   // alone on court, a player covers more ground
   function allow(y, reach) {
     var dy = Math.abs(y - (C.FEET - 95));
     return dy < reach ? Math.sqrt(reach * reach - dy * dy) * 0.75 : -1;

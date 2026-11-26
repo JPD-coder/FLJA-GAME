@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126144541";
+window.FL_BUILD = "20261126151651";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -1140,7 +1140,7 @@ var Core = (function () {
   }
 
   function reachOf(p) { return p.human ? C.REACH_H : C.REACH_C; }
-  function speedOf(g, p) { return C.SPEED * (p.human ? 1.12 : LV[g.cfg.level].speed) * (p.single ? 1.35 : 1); }   // alone on court, a player covers more ground
+  function speedOf(g, p) { return C.SPEED * (p.human ? 1.12 * (g.cfg.youK || 1) : LV[g.cfg.level].speed * (g.cfg.cpuK || 1)) * (p.single ? 1.35 : 1); }   // alone on court, a player covers more ground
   function allow(y, reach) {
     var dy = Math.abs(y - (C.FEET - 95));
     return dy < reach ? Math.sqrt(reach * reach - dy * dy) * 0.75 : -1;
@@ -2360,6 +2360,7 @@ window.FLFeedback = (function () {
       '</section>' +
       '<section class="wz-step" id="wz7" hidden>' + wzTop(4, 'Fantasy League Championship') +
         '<div class="wz-sels"><select class="wz-sel" id="chTeam" aria-label="Your team"></select><select class="wz-sel" id="chView" aria-label="Select view or era"></select></div>' +
+        '<select class="wz-sel wz-wide" id="chDraft" aria-label="Draft" style="margin-top:10px"></select>' +
         '<div id="chBr"></div>' +
         '<div class="wz-play"><button type="button" class="wz-go" data-wz="ch-play">Play Free Now<small>With Ads</small></button><button type="button" class="wz-go alt" data-wz="ch-play">Play Ad Free Now<small>$0.99 per month</small></button></div>' +
         '<p class="wz-msg" id="chMsg" role="status"></p>' +
@@ -2400,6 +2401,7 @@ window.FLFeedback = (function () {
     var fc = $('faceClear'); fc.classList.add('wz-clear'); $('wzSelfie').parentNode.insertBefore(fc, $('wzSelfie').nextSibling);
     if ($('online')) $('wzOnline').appendChild($('online'));
     $('wzView').addEventListener('change', function () { changeView(this.value); });
+    dfCss();
     $('chTeam').addEventListener('change', function () { if (this.value === '') { CH.me = -1; CH.m = null; } else chDraw(+this.value); chPaint(); });
     wzDialogs();
     if ($('fbLink')) { $('fbLink').className = 'wz-link'; $('wzLinks').insertBefore($('fbLink'), $('wzLinks').firstChild); }
@@ -2564,9 +2566,9 @@ window.FLFeedback = (function () {
     if (a === 'p2cpu') { WZ.p2 = 'cpu'; if (net.role) netLeave(); wzPaint(); return true; }
     if (a === 'p2online') { WZ.p2 = 'online'; renderOnline(); wzPaint(); return true; }
     if (a === 'lang-en' || a === 'lang-es') { cfg.lang = a === 'lang-en' ? 'en' : 'es'; save(); wzPaint(); return true; }
-    if (a === 'league' || a === 'world') { CH.on = false; WZ.champ = false; if (CH.m) { cfg.level = 'normal'; cfg.pace = 'standard'; } setComp(a); picked = [false, false]; wzShow(4); return true; }
+    if (a === 'league' || a === 'world') { CH.on = false; WZ.champ = false; cfg.youK = cfg.cpuK = 1; if (CH.m) { cfg.level = 'normal'; cfg.pace = 'standard'; } setComp(a); picked = [false, false]; wzShow(4); return true; }
     if (a === 'champ' || a === 'cup') { var g = a === 'cup' ? 'world' : 'league'; if (g !== CH.g) { CH.g = g; CH.me = -1; CH.m = null; } WZ.champ = true; setComp(CH.g); wzShow(7); return true; }
-    if (a === 'ch-play') { if (CH.me < 0) { $('chMsg').textContent = 'Pick your team.'; return true; } var cv = $('chView').value; if (cv === 'table') cfg.table = true; else { cfg.table = false; setView(cv); cfg.view = view; } if (!CH.m) chDraw(CH.me); CH.round = 0; CH.out = false; CH.champ = false; chStart(); return true; }
+    if (a === 'ch-play') { if (CH.me < 0) { $('chMsg').textContent = 'Pick your team.'; return true; } var cv = $('chView').value; if (cv === 'table') cfg.table = true; else { cfg.table = false; setView(cv); cfg.view = view; } if (CH.g === 'league') { dfStart($('chDraft').value); return true; } if (!CH.m) chDraw(CH.me); CH.round = 0; CH.out = false; CH.champ = false; chStart(); return true; }
     if (a === 'hvp') { WZ.hvp = true; hvpAsk(); return true; }
     if (a === 'dania') { if (window.FL_NAV) window.FL_NAV('dania' + (cfg.singles ? 'S' : 'D') + (cfg.seats[0] ? 1 : 0) + (cfg.seats[1] ? 1 : 0)); return true; }
     if (a === 'celeb' || a === 'allstar') { if (window.FL_NAV) window.FL_NAV(a); else window.open(a === 'celeb' ? CELEB_URL : ALLSTAR_URL, '_blank'); return true; }
@@ -2633,19 +2635,190 @@ window.FLFeedback = (function () {
       go = '<button type="button" data-ch="again">Try Again</button><button type="button" data-ch="menu">Menu</button>'; }
     else { head = '<h3>You Advance!</h3><p>Next: ' + CH_RND[CH.round + 1] + ' vs ' + esc(chName(CH.round === 0 ? CH.m.s1.b : CH.m.f.b)) + ' \u00b7 ' + CH_LVL[CH.round + 1][2] + '</p>';
       go = '<button type="button" data-ch="next">Play ' + CH_RND[CH.round + 1] + '</button>'; }
+    if (CH.g === 'league' && DF.ros[CH.me] && DF.ros[CH.me].length) go += '<button type="button" data-ch="ros">Rosters</button>';
     el.innerHTML = '<div class="ch-in"><div class="ch-tag">' + chTitle() + '</div>' + head + chBracket() + '<div class="ch-go">' + go + '</div></div>';
     el.hidden = false; try { el.querySelector('button').focus(); } catch (e) { /* ignore */ }
+  }
+  /* ---------- League draft for the Fantasy League Championship: the 24-man Dania roster (Gorka and Johan added), four tiers of six,
+     a lottery for the order, then four snake rounds locked to the tiers (round 1 from Tier 1 ...). Every club ends with two front and two back courters.
+     Skip Draft lets the CPU pick every roster; a finished draft can be saved on this phone. Ratings are game ratings, not real statistics. ---------- */
+  var DP = [   // number, name, position, height, tier, overall, hometown
+    [15, 'Javier', 'F', '5\'9"', 1, 93, 'Markina'], [27, 'Libois', 'F', '6\'1"', 1, 91, 'Bayonne'], [8, 'Gorka', 'F', '5\'10"', 1, 92, 'Donostia'],
+    [14, 'Oierdi', 'B', '6\'0"', 1, 92, 'Ondarroa'], [57, 'Zabala', 'B', '6\'2"', 1, 90, 'Bilbao'], [33, 'Johan', 'B', '6\'1"', 1, 91, 'Biarritz'],
+    [56, 'Aaron', 'F', '6\'2"', 2, 86, 'Miami'], [11, 'Arrasate', 'F', '5\'7"', 2, 87, 'Gernika'], [23, 'Astelarra', 'F', '5\'9"', 2, 83, 'Durango'],
+    [17, 'Kanpandegi', 'B', '6\'2"', 2, 86, 'Eibar'], [20, 'Bereau', 'B', '6\'0"', 2, 84, 'Hendaye'], [99, 'Delpuech', 'B', '6\'3"', 2, 87, 'Saint-Jean-de-Luz'],
+    [25, 'Txanika', 'F', '5\'9"', 3, 80, 'Lekeitio'], [68, 'Azpiroz', 'F', '5\'9"', 3, 78, 'Pamplona'], [52, 'Zamora', 'F', '5\'9"', 3, 77, 'Mexico City'],
+    [21, 'Danel', 'B', '5\'11"', 3, 80, 'Mutriku'], [26, 'Argoitia', 'B', '6\'0"', 3, 79, 'Azpeitia'], [67, 'Pierre', 'B', '6\'0"', 3, 76, 'Anglet'],
+    [99, 'Bixente', 'F', '5\'8"', 4, 74, 'Ustaritz'], [91, 'Amets', 'F', '5\'7"', 4, 72, 'Zarautz'], [58, 'Tambour', 'F', '5\'6"', 4, 70, 'Pau'],
+    [10, 'Aratz', 'B', '5\'8"', 4, 74, 'Tolosa'], [42, 'Montamat', 'B', '5\'9"', 4, 72, 'Mauleon'], [48, 'Ekhi', 'B', '5\'9"', 4, 70, 'Hernani']];
+  var DT = ['', 'Elite', 'Starter', 'Rotation', 'Prospect'], DTC = ['', '#e8c25a', '#c9ced6', '#d08a4e', '#7fb3c8'];
+  var DR = DP.map(function (p, i) {                                 // the five ratings follow the overall, steady for each player
+    var h = 0, n = p[1]; for (var k = 0; k < n.length; k++) h = (h * 31 + n.charCodeAt(k)) % 997;
+    var r = function (o, sp) { return Math.max(55, Math.min(99, p[5] + o + ((h >> sp) % 7) - 3)); };
+    var face = PROMO && PROMO.people ? PROMO.people.filter(function (w) { return w.name === p[1]; })[0] : null;
+    return { i: i, num: p[0], name: p[1], pos: p[2], ht: p[3], tier: p[4], ovr: p[5], home: p[6], age: 20 + (h % 13), photo: face && face.photo ? face.photo : (['Javier', 'Arrasate', 'Oierdi', 'Kanpandegi', 'Bereau', 'Aratz'].indexOf(p[1]) >= 0 ? 'db-' + p[0] + '.jpg' : ''),
+      spd: r(p[2] === 'F' ? 3 : -2, 1), pow: r(p[2] === 'B' ? 3 : -2, 2), ctl: r(1, 3), rea: r(p[2] === 'F' ? 2 : 0, 4), sta: r(0, 5) };
+  });
+  var DF = { on: false, order: [], seq: [], k: 0, ros: {}, auto: false, timer: 0, left: 0, saved: false };
+  var DKEY = 'flja-draft';
+  function dfLoad() { try { var j = JSON.parse(localStorage.getItem(DKEY) || 'null'); return j && j.ros ? j : null; } catch (e) { return null; } }
+  function dfSave() { try { localStorage.setItem(DKEY, JSON.stringify({ me: CH.me, ros: DF.ros, order: DF.order, at: new Date().toLocaleDateString() })); return true; } catch (e) { return false; } }
+  function dfTeams() { return groupList('league'); }
+  function dfAvg(t, key) { var r = DF.ros[t] || []; return r.length ? Math.round(r.reduce(function (s, i) { return s + DR[i][key || 'ovr']; }, 0) / r.length) : 0; }
+  function dfGrade(t) { var r = DF.ros[t] || [], a = r.length ? r.reduce(function (s, i) { return s + DR[i].ovr; }, 0) / r.length : 0, L = DR.reduce(function (s, p) { return s + p.ovr; }, 0) / DR.length;   // graded against the league average
+    return a >= L + 0.75 ? 'A' : a >= L ? 'B' : a >= L - 0.75 ? 'C' : 'D'; }
+  function dfTaken(i) { for (var t in DF.ros) if (DF.ros[t].indexOf(i) >= 0) return true; return false; }
+  function dfCount(t, pos) { return (DF.ros[t] || []).filter(function (i) { return DR[i].pos === pos; }).length; }
+  function dfCan(k, pos) {                                          // can pick k take this position and still leave every club two and two? (a small search over what is left)
+    var need = {}, sup = {}, T = dfTeams(), seen = {};
+    T.forEach(function (t) { need[t] = [2 - dfCount(t, 'F'), 2 - dfCount(t, 'B')]; });
+    for (var tr = 1; tr <= 4; tr++) sup[tr] = [0, 0];
+    DR.forEach(function (p) { if (!dfTaken(p.i)) sup[p.tier][p.pos === 'F' ? 0 : 1]++; });
+    var go = function (j, nd, sp) {
+      if (j >= DF.seq.length) return true;
+      var key = j + '|' + JSON.stringify(nd) + JSON.stringify(sp); if (seen[key] != null) return seen[key];
+      var t = DF.seq[j], tr = Math.floor(j / 6) + 1, ok = false;
+      [0, 1].forEach(function (q) { if (ok) return; if (j === k && q !== (pos === 'F' ? 0 : 1)) return; if (nd[t][q] <= 0 || sp[tr][q] <= 0) return;
+        var n2 = JSON.parse(JSON.stringify(nd)), s2 = JSON.parse(JSON.stringify(sp)); n2[t][q]--; s2[tr][q]--; if (go(j + 1, n2, s2)) ok = true; });
+      return (seen[key] = ok);
+    };
+    return go(k, need, sup);
+  }
+  function dfStart(mode) {                                          // mode: 'live', 'skip' or 'saved'
+    var T = dfTeams(), i, j, x;
+    if (mode === 'saved') { var sv = dfLoad(); if (sv) { DF.ros = sv.ros; DF.order = sv.order || T; DF.saved = true; if (sv.me != null && sv.me !== CH.me) { CH.me = sv.me; CH.m = null; } dfRecap(true); return; } }
+    DF.order = T.slice(); for (i = DF.order.length - 1; i > 0; i--) { j = Math.floor(Math.random() * (i + 1)); x = DF.order[i]; DF.order[i] = DF.order[j]; DF.order[j] = x; }
+    DF.seq = []; for (var rd = 0; rd < 4; rd++) DF.seq = DF.seq.concat(rd % 2 ? DF.order.slice().reverse() : DF.order);   // snake
+    DF.ros = {}; T.forEach(function (t) { DF.ros[t] = []; }); DF.k = 0; DF.saved = false; DF.on = true; DF.auto = mode === 'skip';
+    if (DF.auto) { while (DF.k < 24) dfCpu(); dfRecap(false); } else dfLottery();
+  }
+  function dfEl() {
+    var el = $('dfBox'); if (el) return el;
+    el = document.createElement('div'); el.id = 'dfBox'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', 'League draft'); document.body.appendChild(el);
+    el.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b || b.disabled) return;
+      var a = b.getAttribute('data-df');
+      if (a === 'go') dfBoard();
+      else if (a === 'pick') { var i = +b.getAttribute('data-i'); if (DF.seq[DF.k] === CH.me) dfTake(i); }
+      else if (a === 'auto') { if (DF.seq[DF.k] === CH.me) dfTake(dfBest(DF.k)); }
+      else if (a === 'save') { if (dfSave()) { DF.saved = true; b.textContent = 'Saved \u2713'; b.disabled = true; } }
+      else if (a === 'play') { el.hidden = true; DF.on = false; if (!CH.m || CH.m.q1.a !== CH.me) chDraw(CH.me); CH.round = 0; CH.out = false; CH.champ = false; chStart(); }
+      else if (a === 'close') { el.hidden = true; }
+    });
+    return el;
+  }
+  function dfHow() {                                              // How the Draft Works: the rules and every player's ratings, opened from the lottery screen
+    var rows = [1, 2, 3, 4].map(function (t) { var cell = function (pos) { return DR.filter(function (p) { return p.tier === t && p.pos === pos; }).sort(function (a, b) { return b.ovr - a.ovr; }).map(function (p) { return '#' + p.num + ' ' + esc(p.name) + ' <b>' + p.ovr + '</b>'; }).join('<br>'); };
+      return '<tr><th scope="row" style="color:' + DTC[t] + '">' + t + '<br><i>' + DT[t] + '</i></th><td>' + cell('F') + '</td><td>' + cell('B') + '</td></tr>'; }).join('');
+    return '<details class="df-how"><summary>How the Draft Works</summary><ul>' +
+      '<li><b>24 players, 6 clubs.</b> The Dania Beach roster plus Gorka and Johan: 12 front courters and 12 back courters.</li>' +
+      '<li><b>Four tiers of six.</b> Players are ranked by Overall into Tier 1 Elite, Tier 2 Starter, Tier 3 Rotation and Tier 4 Prospect, with three front and three back courters in each.</li>' +
+      '<li><b>Lottery.</b> A draw sets the order for round 1.</li>' +
+      '<li><b>Snake order, tier-locked rounds.</b> Round 1 picks from Tier 1, round 2 from Tier 2, and so on. The order reverses each round, so the last pick in one round is the first pick in the next.</li>' +
+      '<li><b>Two and two.</b> Every club ends with two front courters and two back courters; a player who would break that is greyed out on your turn.</li>' +
+      '<li><b>Your pick.</b> You have 30 seconds. Tap Draft on a player, or Auto Pick to take the best available. If the clock runs out, you get the best available.</li>' +
+      '<li><b>Grades.</b> Each roster is graded A to D against the league average Overall.</li>' +
+      '<li><b>On the court.</b> Your roster\u2019s Speed and your opponent\u2019s Overall nudge how fast each side runs, on top of Easy, Normal and Hard.</li>' +
+      '<li><b>Skip Draft</b> lets the CPU pick every roster. <b>Save My Team</b> keeps your draft on this phone for the next tournament.</li></ul>' +
+      '<p class="df-rk">Ratings: Speed, Power, Control, Reaction and Stamina, 1 to 99, averaged into Overall. Game ratings, not real statistics.</p>' +
+      '<table><thead><tr><th scope="col">Tier</th><th scope="col">Front Court</th><th scope="col">Back Court</th></tr></thead><tbody>' + rows + '</tbody></table></details>';
+  }
+  function dfLottery() {
+    var el = dfEl(), T = dfTeams();
+    el.innerHTML = '<div class="df-in"><div class="df-tag">League Draft</div><h3>Draft Lottery</h3><p class="df-sub">Drawing the order for round 1. The order snakes back each round.</p>' + dfHow() + '<ol class="df-lot">' +
+      T.map(function (t) { return '<li data-t="' + t + '">' + chLogo(t) + '<span>' + esc(ROSTER[t].name) + '</span></li>'; }).join('') + '</ol><div class="df-go"><button type="button" data-df="go" disabled>Start Draft</button></div></div>';
+    el.hidden = false;
+    var n = 0, spin = setInterval(function () {                     // a quick shuffle, then the real order
+      var ol = el.querySelector('.df-lot'), li = [].slice.call(ol.children); ol.appendChild(li[Math.floor(Math.random() * li.length)]);
+      if (++n > 14) { clearInterval(spin);
+        ol.innerHTML = DF.order.map(function (t, i) { return '<li class="' + (t === CH.me ? 'df-me' : '') + '"><b>' + (i + 1) + '</b>' + chLogo(t) + '<span>' + esc(ROSTER[t].name) + (t === CH.me ? ' <u>You</u>' : '') + '</span></li>'; }).join('');
+        var g = el.querySelector('[data-df="go"]'); g.disabled = false; try { g.focus(); } catch (e) { /* ignore */ } }
+    }, 110);
+  }
+  function dfBest(k) {                                              // CPU: the best player left in the round's tier that keeps every roster two and two (a little luck between close ratings)
+    var tr = Math.floor(k / 6) + 1, c = DR.filter(function (p) { return p.tier === tr && !dfTaken(p.i) && dfCan(k, p.pos); });
+    c.sort(function (a, b) { return (b.ovr + Math.random() * 2.5) - (a.ovr + Math.random() * 2.5); });
+    return c.length ? c[0].i : -1;
+  }
+  function dfCpu() { var i = dfBest(DF.k); if (i < 0) { DF.k = 24; return; } DF.ros[DF.seq[DF.k]].push(i); DF.k++; }
+  function dfTake(i) { clearInterval(DF.timer); DF.ros[CH.me].push(i); DF.last = { t: CH.me, i: i }; DF.k++; dfBoard(); }
+  function dfBoard() {                                              // the draft room: one pick at a time, the CPU a second apart, a 30-second clock on yours
+    var el = dfEl(); clearInterval(DF.timer);
+    if (DF.k >= 24) { dfRecap(false); return; }
+    var t = DF.seq[DF.k], rd = Math.floor(DF.k / 6) + 1, mine = t === CH.me, me = DF.ros[CH.me];
+    var pool = DR.filter(function (p) { return p.tier === rd; });
+    var bar = function (l, v) { return '<span class="df-bar"><i>' + l + '</i><s style="width:' + Math.round((v - 50) * 2) + '%"></s><b>' + v + '</b></span>'; };
+    el.innerHTML = '<div class="df-in df-room"><div class="df-tag">League Draft \u00b7 Round ' + rd + ' of 4</div>' +
+      '<div class="df-clock' + (mine ? ' df-you' : '') + '">' + chLogo(t) + '<span><i>Pick ' + (DF.k + 1) + ' of 24 \u00b7 On the clock</i><b>' + esc(ROSTER[t].name) + (mine ? ' (You)' : '') + '</b></span>' + (mine ? '<em id="dfSec">30</em>' : '') + '</div>' +
+      (DF.last ? '<p class="df-last">' + esc(ROSTER[DF.last.t].name) + ' select <b>#' + DR[DF.last.i].num + ' ' + esc(DR[DF.last.i].name) + '</b> (' + (DR[DF.last.i].pos === 'F' ? 'Front' : 'Back') + ')</p>' : '<p class="df-last">Round 1 opens with Tier 1 Elite</p>') +
+      '<h4 style="color:' + DTC[rd] + '">Tier ' + rd + ' \u00b7 ' + DT[rd] + '</h4><div class="df-pool">' +
+      pool.map(function (p) { var gone = dfTaken(p.i), ok = !gone && dfCan(DF.k, p.pos), who = ''; for (var tt in DF.ros) if (DF.ros[tt].indexOf(p.i) >= 0) who = ROSTER[tt].name;
+        return '<div class="df-card' + (gone ? ' df-gone' : '') + '" style="--tc:' + DTC[p.tier] + '"><div class="df-top"><span class="df-ph">' + (p.photo ? '<img src="' + p.photo + '" alt="">' : '') + '</span><span class="df-id"><b>#' + p.num + ' ' + esc(p.name) + '</b><i>' + (p.pos === 'F' ? 'Front Court' : 'Back Court') + ' \u00b7 ' + p.ht + ' \u00b7 ' + esc(p.home) + '</i></span><em>' + p.ovr + '</em></div>' +
+          '<div class="df-bars">' + bar('SPD', p.spd) + bar('PWR', p.pow) + bar('CTL', p.ctl) + bar('REA', p.rea) + bar('STA', p.sta) + '</div>' +
+          (gone ? '<p class="df-by">Drafted by ' + esc(who) + '</p>' : mine ? '<button type="button" data-df="pick" data-i="' + p.i + '"' + (ok ? '' : ' disabled') + '>' + (ok ? 'Draft ' + esc(p.name) : 'Need a ' + (p.pos === 'F' ? 'back' : 'front') + ' courter') + '</button>' : '') + '</div>'; }).join('') + '</div>' +
+      '<div class="df-mine"><i>Your roster</i>' + [0, 1, 2, 3].map(function (s) { var i = me[s]; return '<span class="' + (i == null ? 'df-open' : '') + '">' + (i == null ? 'Open' : '#' + DR[i].num + ' ' + esc(DR[i].name) + ' \u00b7 ' + DR[i].pos) + '</span>'; }).join('') + '</div>' +
+      (mine ? '<div class="df-go"><button type="button" data-df="auto" class="df-alt">Auto Pick</button></div>' : '') + '</div>';
+    el.hidden = false;
+    if (mine) { DF.left = 30; try { el.querySelector('[data-df="pick"]:not([disabled])').focus(); } catch (e) { /* ignore */ }
+      DF.timer = setInterval(function () { DF.left--; var s = $('dfSec'); if (s) s.textContent = DF.left; if (DF.left <= 0) { clearInterval(DF.timer); dfTake(dfBest(DF.k)); } }, 1000); }
+    else setTimeout(function () { if (el.hidden || DF.seq[DF.k] !== t) return; var i = dfBest(DF.k); DF.ros[t].push(i); DF.last = { t: t, i: i }; DF.k++; dfBoard(); }, 1000);
+  }
+  function dfRecap(fromSave) {                                      // every roster with a grade; screenshot-ready
+    var el = dfEl(), T = dfTeams().slice().sort(function (a, b) { return a === CH.me ? -1 : b === CH.me ? 1 : dfAvg(b) - dfAvg(a); });
+    el.innerHTML = '<div class="df-in"><div class="df-tag">League Draft</div><h3>' + (fromSave ? 'Your Saved Draft' : 'Draft Recap') + '</h3><div class="df-rec">' +
+      T.map(function (t) { var r = DF.ros[t].slice().sort(function (a, b) { return DR[a].pos === DR[b].pos ? DR[a].tier - DR[b].tier : DR[a].pos === 'F' ? -1 : 1; });
+        return '<div class="df-team' + (t === CH.me ? ' df-me' : '') + '"><div class="df-th">' + chLogo(t) + '<b>' + esc(ROSTER[t].name) + '</b><em class="df-g df-g' + dfGrade(t) + '">' + dfGrade(t) + '</em></div>' +
+          r.map(function (i) { var p = DR[i]; return '<p><span style="color:' + DTC[p.tier] + '">T' + p.tier + '</span> ' + p.pos + ' #' + p.num + ' ' + esc(p.name) + '<b>' + p.ovr + '</b></p>'; }).join('') + '</div>'; }).join('') + '</div>' +
+      '<div class="df-go">' + (DF.on || fromSave ? '<button type="button" data-df="save" class="df-alt"' + (DF.saved ? ' disabled>Saved \u2713' : '>Save My Team<small>$0.99 per month</small>') + '</button><button type="button" data-df="play">Play Quarterfinal</button>' : '<button type="button" data-df="close">Back to Bracket</button>') + '</div>' +
+      (DF.on || fromSave ? '<p class="df-note">Preview: saving is open at no charge during this test.</p>' : '') + '</div>';
+    el.hidden = false; try { el.querySelector('[data-df="play"],[data-df="close"]').focus(); } catch (e) { /* ignore */ }
+  }
+  function dfK() {                                                  // ratings on the court: your starters' speed, the other club's overall
+    if (!CH.on || CH.g !== 'league' || !DF.ros[CH.me] || !DF.ros[CH.me].length) { cfg.youK = 1; cfg.cpuK = 1; return; }
+    var o = chOpp(); cfg.youK = 1 + (dfAvg(CH.me, 'spd') - 81) / 250; cfg.cpuK = 1 + (dfAvg(o) - 81) / 200;
+  }
+  function dfCss() {
+    var st = document.createElement('style'), F = 'var(--body,system-ui,sans-serif)', P = '#ff2d95', A = '#1fe0d6';
+    st.textContent = '#dfBox{position:fixed;inset:0;z-index:2147482300;background:rgba(4,5,10,.94);display:flex;align-items:center;justify-content:center;padding:8px;font-family:' + F + ';color:#f2efe6}#dfBox[hidden]{display:none}' +
+      '#dfBox .df-in{width:min(100%,480px);max-height:100%;overflow:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;background:#0a0c12;border:2px solid ' + A + ';border-radius:16px;padding:12px 10px;display:flex;flex-direction:column;gap:8px}' +
+      '#dfBox .df-tag{text-align:center;font:700 10.5px/1 ' + F + ';letter-spacing:.16em;text-transform:uppercase;color:' + A + '}#dfBox h3{margin:0;text-align:center;font:900 21px/1 var(--display,' + F + ');letter-spacing:.08em;text-transform:uppercase;color:' + P + '}' +
+      '#dfBox h4{margin:2px 0 0;font:800 11.5px/1 ' + F + ';letter-spacing:.14em;text-transform:uppercase}#dfBox .df-sub,#dfBox .df-note{margin:0;text-align:center;font:500 12px/1.35 ' + F + ';color:#a9adba}' +
+      '#dfBox .df-how{border:1px solid #232a44;border-radius:10px;background:#0f1220;padding:0 10px}#dfBox .df-how summary{cursor:pointer;min-height:38px;display:flex;align-items:center;font:800 12.5px/1 ' + F + ';letter-spacing:.1em;text-transform:uppercase;color:' + A + '}#dfBox .df-how summary::marker{color:' + A + '}' +
+      '#dfBox .df-how ul{margin:0 0 8px;padding-left:17px;display:flex;flex-direction:column;gap:5px;font:500 12px/1.4 ' + F + ';color:#d7d9e0}#dfBox .df-how b{color:#fff}#dfBox .df-rk{margin:0 0 6px;font:500 11px/1.35 ' + F + ';color:#a9adba}' +
+      '#dfBox .df-how table{width:100%;border-collapse:collapse;margin-bottom:10px;font:600 11.5px/1.45 ' + F + '}#dfBox .df-how th,#dfBox .df-how td{padding:5px 4px;border-top:1px solid #1e2440;text-align:left;vertical-align:top}#dfBox .df-how thead th{font:800 9.5px/1 ' + F + ';letter-spacing:.1em;text-transform:uppercase;color:' + A + '}#dfBox .df-how tbody th{font:900 15px/1.1 ' + F + ';width:62px}#dfBox .df-how tbody th i{font:700 9px/1 ' + F + ';font-style:normal;letter-spacing:.06em;text-transform:uppercase}#dfBox .df-how td b{color:#a9adba;margin-left:3px}' +
+      '#dfBox .df-lot{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}#dfBox .df-lot li{display:flex;align-items:center;gap:9px;min-height:36px;padding:0 10px;border-radius:10px;background:#121627;border:1px solid #232a44;font:800 14px/1 ' + F + '}' +
+      '#dfBox .df-lot li b{width:20px;text-align:center;color:' + A + ';font-size:16px}#dfBox .df-lot img,#dfBox .df-clock img,#dfBox .df-th img{width:26px;height:26px;object-fit:contain;flex:none}#dfBox li.df-me{border-color:' + P + ';background:#2a0b1c}' +
+      '#dfBox u{text-decoration:none;font:800 9px/1 ' + F + ';letter-spacing:.12em;text-transform:uppercase;background:' + P + ';color:#fff;border-radius:4px;padding:2px 5px;margin-left:5px}' +
+      '#dfBox .df-clock{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:12px;background:#121627;border:1px solid #232a44}#dfBox .df-clock span{display:flex;flex-direction:column;gap:3px;min-width:0}#dfBox .df-clock i{font:700 9.5px/1 ' + F + ';font-style:normal;letter-spacing:.12em;text-transform:uppercase;color:#a9adba}#dfBox .df-clock b{font:900 16px/1 ' + F + '}' +
+      '#dfBox .df-clock.df-you{border-color:' + P + ';background:#2a0b1c}#dfBox .df-clock em{margin-left:auto;font:900 24px/1 ' + F + ';font-style:normal;color:' + P + ';font-variant-numeric:tabular-nums}' +
+      '#dfBox .df-last{margin:0;text-align:center;font:600 12px/1.3 ' + F + ';color:#c9cbd4}#dfBox .df-last b{color:#fff}' +
+      '#dfBox .df-pool{display:grid;grid-template-columns:1fr 1fr;gap:6px}#dfBox .df-card{border:1.5px solid var(--tc);border-radius:11px;background:#10131d;padding:6px;display:flex;flex-direction:column;gap:5px;min-width:0}#dfBox .df-card.df-gone{opacity:.42}' +
+      '#dfBox .df-top{display:flex;align-items:center;gap:6px;min-width:0}#dfBox .df-ph{flex:none;width:30px;height:30px;border-radius:50%;background:#000;border:1.5px solid #fff;overflow:hidden}#dfBox .df-ph img{width:100%;height:100%;object-fit:cover;display:block}' +
+      '#dfBox .df-id{display:flex;flex-direction:column;gap:2px;min-width:0}#dfBox .df-id b{font:800 12px/1.05 ' + F + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#dfBox .df-id i{font:500 9px/1.15 ' + F + ';font-style:normal;color:#9a9da6}' +
+      '#dfBox .df-top em{margin-left:auto;font:900 17px/1 ' + F + ';font-style:normal;color:var(--tc)}#dfBox .df-bars{display:flex;flex-direction:column;gap:2px}' +
+      '#dfBox .df-bar{display:grid;grid-template-columns:24px 1fr 18px;align-items:center;gap:4px;font:700 8.5px/1 ' + F + '}#dfBox .df-bar i{font-style:normal;color:#8d909a;letter-spacing:.06em}#dfBox .df-bar s{display:block;height:4px;border-radius:2px;background:var(--tc);text-decoration:none}#dfBox .df-bar b{text-align:right;color:#d7d9e0}' +
+      '#dfBox .df-card button{min-height:34px;border-radius:9px;border:0;background:' + P + ';color:#fff;font:800 11.5px/1 ' + F + ';letter-spacing:.04em;text-transform:uppercase;cursor:pointer}#dfBox .df-card button:disabled{background:#232838;color:#8d909a;cursor:default}#dfBox .df-by{margin:0;font:600 10px/1.2 ' + F + ';color:#a9adba;text-align:center}' +
+      '#dfBox .df-mine{display:grid;grid-template-columns:1fr 1fr;gap:4px}#dfBox .df-mine i{grid-column:1/-1;font:700 9.5px/1 ' + F + ';font-style:normal;letter-spacing:.14em;text-transform:uppercase;color:' + A + '}#dfBox .df-mine span{padding:6px 7px;border-radius:7px;background:#2a0b1c;border:1px solid ' + P + ';font:700 11px/1.1 ' + F + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#dfBox .df-mine span.df-open{background:transparent;border-style:dashed;border-color:#3a4160;color:#6f7380}' +
+      '#dfBox .df-rec{display:grid;grid-template-columns:1fr 1fr;gap:6px}#dfBox .df-team{border:1px solid #232a44;border-radius:10px;background:#10131d;padding:6px 7px;min-width:0}#dfBox .df-team.df-me{border-color:' + P + ';background:#1d0915}' +
+      '#dfBox .df-th{display:flex;align-items:center;gap:6px;margin-bottom:3px}#dfBox .df-th b{font:800 12px/1.05 ' + F + ';min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#dfBox .df-g{margin-left:auto;font:900 17px/1 ' + F + ';font-style:normal}' +
+      '#dfBox .df-gA{color:#35d07f}#dfBox .df-gB{color:' + A + '}#dfBox .df-gC{color:#f2c94c}#dfBox .df-gD{color:#ff7a59}' +
+      '#dfBox .df-team p{margin:0;display:flex;gap:4px;font:600 10.5px/1.5 ' + F + ';white-space:nowrap;overflow:hidden}#dfBox .df-team p span{font-weight:800}#dfBox .df-team p b{margin-left:auto;padding-left:3px}' +
+      '#dfBox .df-go{display:flex;gap:8px}#dfBox .df-go button{flex:1 1 0;min-height:46px;border-radius:12px;border:2px solid #de0a7b;background:#de0a7b;color:#fff;font:800 14px/1.05 ' + F + ';letter-spacing:.06em;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}' +
+      '#dfBox .df-go button small{font:700 10px/1 ' + F + ';letter-spacing:.08em;color:' + P + '}#dfBox .df-go button.df-alt{background:transparent;border-color:' + A + '}#dfBox .df-go button:disabled{opacity:.6;cursor:default}#dfBox button:focus-visible{outline:3px solid #fff;outline-offset:2px}' +
+      '@media (orientation:landscape) and (max-height:560px){#dfBox .df-in{width:min(100%,760px)}#dfBox .df-pool,#dfBox .df-rec{grid-template-columns:repeat(3,1fr)}}';
+    document.head.appendChild(st);
   }
   function chStart() {                                              // play your next match: the level steps up each round
     var L = CH_LVL[CH.round];
     cfg.comp = CH.g; cfg.pick = [CH.me, chOpp()]; picked = [true, true]; cfg.level = L[0]; cfg.pace = L[1]; CH.on = true; CH.busy = false;
-    applyTeams(); posterGo();
+    dfK(); applyTeams(); posterGo();
   }
   function chNext(what) {
+    if (what === 'ros') { dfRecap(false); return; }
     var el = $('chBoard'); if (el) el.hidden = true;
     if (window.Table && window.Table.isOpen()) window.Table.close();
     if (what === 'menu') { CH.on = false; CH.busy = false; startDemo(); wzShow(7); return; }
-    if (what === 'again') chDraw(CH.me); else CH.round++;
+    if (what === 'again') { if (CH.g === 'league') { chPaint(); wzShow(7); startDemo(); dfStart($('chDraft').value === 'saved' ? 'saved' : 'live'); return; } chDraw(CH.me); } else CH.round++;
     startDemo(); chStart();
   }
   function chPaint() {                                              // the page where the club is picked: the bracket follows the pick
@@ -2655,6 +2828,8 @@ window.FLFeedback = (function () {
     s.value = CH.me >= 0 ? String(CH.me) : '';
     var curV = cfg.table ? 'table' : view;
     $('chView').innerHTML = [['aerial', 'Professional'], ['side', 'Amateur'], ['table', 'Cocktail Table'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', 'Vintage']].filter(function (m) { return m[0] === 'table' || viewOK(m[0]); }).map(function (m) { return '<option value="' + m[0] + '"' + (m[0] === curV ? ' selected' : '') + '>' + m[1] + '</option>'; }).join('');
+    var dd = $('chDraft'), sv = dfLoad(); dd.hidden = CH.g !== 'league';
+    dd.innerHTML = '<option value="live">Live Draft \u00b7 You Pick Your Roster</option><option value="skip">Skip Draft \u00b7 CPU Picks All Rosters</option>' + (sv ? '<option value="saved">My Saved Team \u00b7 ' + esc(ROSTER[sv.me] ? ROSTER[sv.me].name : '') + ' (' + esc(sv.at || '') + ')</option>' : '');
     $('chBr').innerHTML = CH.me >= 0 ? chBracket() : '<p class="ch-empty">Pick your team to draw the bracket. Win three in a row: Quarterfinal on Easy, Semifinal on Normal, Championship on Hard.</p>';
     $('chMsg').textContent = '';
   }
@@ -3020,7 +3195,7 @@ window.FLFeedback = (function () {
       var hs0 = humans();
       solo = hs0.length && (hs0[0] >> 1) === (hs0[hs0.length - 1] >> 1) ? hs0[0] >> 1 : -1;   // every human player on one team: that team is mine
       var p1 = seatsNow.indexOf(1);                                   // Player 1 serves the opening point, and the ball waits in his hand until he presses serve
-      game = Core.newGame({ seats: seatsNow.slice(), solo: soloBoth.slice(), level: cfg.level, target: cfg.target, rebHold: rebHold(), aimK: aimK(), singles: !!cfg.singles, firstServe: p1 >= 0 ? p1 >> 1 : 0,
+      game = Core.newGame({ seats: seatsNow.slice(), solo: soloBoth.slice(), level: cfg.level, target: cfg.target, rebHold: rebHold(), aimK: aimK(), youK: CH.on ? cfg.youK || 1 : 1, cpuK: CH.on ? cfg.cpuK || 1 : 1, singles: !!cfg.singles, firstServe: p1 >= 0 ? p1 >> 1 : 0,
         latK: cfg.singles ? 0.82 * 1.18 : 0, latZ: cfg.singles ? 0.75 * 1.18 : 0 });   // Professional singles: alone on the court, a person's player runs 18% faster, up the court and across it (these only apply in Professional)
     }
     if (score) game.score = score;
