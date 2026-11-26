@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126102702";
+window.FL_BUILD = "20261126130250";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2331,8 +2331,9 @@ window.FLFeedback = (function () {
         '<button type="button" class="wz-next" data-wz="next">Next</button></section>' +
       '<section class="wz-step" id="wz3" hidden>' + wzTop(3, 'Choose Where to Play') + '<div class="wz-tiles">' +
         '<button type="button" class="wz-tile" data-wz="league"><img src="brand.png" alt=""><span><b>League Play</b><i>Six Club Teams</i></span></button>' +
-        '<button type="button" class="wz-tile" data-wz="champ"><span class="wz-cup" aria-hidden="true">\ud83c\udfc6</span><span><b>Fantasy League Championship</b><i>League or World Cup &middot; Win Three to Lift the Trophy</i></span></button>' +
+        '<button type="button" class="wz-tile" data-wz="champ"><span class="wz-cup" aria-hidden="true">\ud83c\udfc6</span><span><b>Fantasy League Championship</b><i>Six Club Teams &middot; Win Three to Lift the Trophy</i></span></button>' +
         '<button type="button" class="wz-tile" data-wz="world"><img src="usa-crest.png" alt=""><span><b>World Cup Play</b><i>Six National Teams</i></span></button>' +
+        '<button type="button" class="wz-tile" data-wz="cup"><span class="wz-cup" aria-hidden="true">\ud83c\udfc6</span><span><b>World Cup Championships</b><i>Six National Teams &middot; Win Three to Lift the Trophy</i></span></button>' +
         '<button type="button" class="wz-tile" data-wz="dania"><img src="db-crest.png" alt="" style="border-radius:50%"><span><b>Dania Invitational</b><i>5th Annual Dania Beach &middot; 22 Man Roster</i></span></button>' +
         '<button type="button" class="wz-tile" data-wz="allstar">' + wzStar('#e11d2e', '#ff5a66', 'usa-crest.png') + '<span><b>All Star Players</b><i>Past &amp; Present All Star Roster</i></span></button>' +
         '<button type="button" class="wz-tile" data-wz="celeb">' + wzStar('#c9a55c', '#e7c97e', 'brand.png') + '<span><b>Celebrity Players</b><i>Special Guests &amp; Limited Collabs</i></span></button>' +
@@ -2347,8 +2348,7 @@ window.FLFeedback = (function () {
         '<p class="wz-msg" id="wzMsg" role="status"></p>' +
       '</section>' +
       '<section class="wz-step" id="wz7" hidden>' + wzTop(4, 'Fantasy League Championship') +
-        '<select class="wz-sel wz-wide" id="chComp" aria-label="League or World Cup"><option value="league">League Play \u00b7 Six Club Teams</option><option value="world">World Cup \u00b7 Six National Teams</option></select>' +
-        '<div class="wz-sels" style="margin-top:10px"><select class="wz-sel" id="chTeam" aria-label="Your team"></select><select class="wz-sel" id="chView" aria-label="Select view or era"></select></div>' +
+        '<div class="wz-sels"><select class="wz-sel" id="chTeam" aria-label="Your team"></select><select class="wz-sel" id="chView" aria-label="Select view or era"></select></div>' +
         '<div id="chBr"></div>' +
         '<div class="wz-play"><button type="button" class="wz-go" data-wz="ch-play">Play Free Now<small>With Ads</small></button><button type="button" class="wz-go alt" data-wz="ch-play">Play Ad Free Now<small>$0.99 per month</small></button></div>' +
         '<p class="wz-msg" id="chMsg" role="status"></p>' +
@@ -2389,7 +2389,6 @@ window.FLFeedback = (function () {
     var fc = $('faceClear'); fc.classList.add('wz-clear'); $('wzSelfie').parentNode.insertBefore(fc, $('wzSelfie').nextSibling);
     if ($('online')) $('wzOnline').appendChild($('online'));
     $('wzView').addEventListener('change', function () { changeView(this.value); });
-    $('chComp').addEventListener('change', function () { CH.g = this.value; CH.me = -1; CH.m = null; setComp(CH.g); chPaint(); });
     $('chTeam').addEventListener('change', function () { if (this.value === '') { CH.me = -1; CH.m = null; } else chDraw(+this.value); chPaint(); });
     wzDialogs();
     if ($('fbLink')) { $('fbLink').className = 'wz-link'; $('wzLinks').insertBefore($('fbLink'), $('wzLinks').firstChild); }
@@ -2555,7 +2554,7 @@ window.FLFeedback = (function () {
     if (a === 'p2online') { WZ.p2 = 'online'; renderOnline(); wzPaint(); return true; }
     if (a === 'lang-en' || a === 'lang-es') { cfg.lang = a === 'lang-en' ? 'en' : 'es'; save(); wzPaint(); return true; }
     if (a === 'league' || a === 'world') { CH.on = false; WZ.champ = false; if (CH.m) { cfg.level = 'normal'; cfg.pace = 'standard'; } setComp(a); picked = [false, false]; wzShow(4); return true; }
-    if (a === 'champ') { WZ.champ = true; setComp(CH.g); wzShow(7); return true; }
+    if (a === 'champ' || a === 'cup') { var g = a === 'cup' ? 'world' : 'league'; if (g !== CH.g) { CH.g = g; CH.me = -1; CH.m = null; } WZ.champ = true; setComp(CH.g); wzShow(7); return true; }
     if (a === 'ch-play') { if (CH.me < 0) { $('chMsg').textContent = 'Pick your team.'; return true; } var cv = $('chView').value; if (cv === 'table') cfg.table = true; else { cfg.table = false; setView(cv); cfg.view = view; } if (!CH.m) chDraw(CH.me); CH.round = 0; CH.out = false; CH.champ = false; chStart(); return true; }
     if (a === 'hvp') { WZ.hvp = true; hvpAsk(); return true; }
     if (a === 'dania') { if (window.FL_NAV) window.FL_NAV('dania' + (cfg.singles ? 'S' : 'D') + (cfg.seats[0] ? 1 : 0) + (cfg.seats[1] ? 1 : 0)); return true; }
@@ -2599,7 +2598,7 @@ window.FLFeedback = (function () {
     setTimeout(function () { chBoard(); }, 2400);                  // the winning call is seen first
   }
   function chName(k) { var n = ROSTER[k].name; return n === 'USA' ? 'Team USA' : n; }
-  function chTitle() { return CH.g === 'world' ? 'World Cup Championship' : 'Fantasy League Championship'; }
+  function chTitle() { return CH.g === 'world' ? 'World Cup Championships' : 'Fantasy League Championship'; }
   function chLogo(k) { var r = ROSTER[k]; return '<img src="' + r.logo + '" alt="">'; }
   function chBracket() {
     var M = CH.m, nm = function (k) { return k == null ? '<span class="cb-tbd">To be decided</span>' : chLogo(k) + '<span>' + esc(chName(k)) + '</span>'; };
@@ -2640,12 +2639,12 @@ window.FLFeedback = (function () {
   }
   function chPaint() {                                              // the page where the club is picked: the bracket follows the pick
     var s = $('chTeam'); if (!s) return;
-    $('chComp').value = CH.g;
+    var hh = $('wz7').querySelector('.wz-h'); hh.lastChild.textContent = CH.g === 'world' ? 'World Cup Championships' : 'Fantasy League Championship';
     s.innerHTML = '<option value="">Pick Your Team</option>' + groupList(CH.g).map(function (k) { return '<option value="' + k + '">' + esc(chName(k)) + '</option>'; }).join('');
     s.value = CH.me >= 0 ? String(CH.me) : '';
     var curV = cfg.table ? 'table' : view;
     $('chView').innerHTML = [['aerial', 'Professional'], ['side', 'Amateur'], ['table', 'Cocktail Table'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', 'Vintage']].filter(function (m) { return m[0] === 'table' || viewOK(m[0]); }).map(function (m) { return '<option value="' + m[0] + '"' + (m[0] === curV ? ' selected' : '') + '>' + m[1] + '</option>'; }).join('');
-    $('chBr').innerHTML = CH.me >= 0 ? chBracket() : '<p class="ch-empty">Pick League or World Cup, then your team, to draw the bracket. Win three in a row: Quarterfinal on Easy, Semifinal on Normal, Championship on Hard.</p>';
+    $('chBr').innerHTML = CH.me >= 0 ? chBracket() : '<p class="ch-empty">Pick your team to draw the bracket. Win three in a row: Quarterfinal on Easy, Semifinal on Normal, Championship on Hard.</p>';
     $('chMsg').textContent = '';
   }
   function wzHome() { if (WZ) wzShow(cfg.comp === 'hvp' ? 5 : WZ.champ ? 7 : 4); }   // back from a match (Menu, New match, Change setup): the page they started it from
