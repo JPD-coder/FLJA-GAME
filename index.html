@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126190359";
+window.FL_BUILD = "20261126193522";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2552,7 +2552,7 @@ window.FLFeedback = (function () {
     if (a === 'skins') { wzShow(6); return true; }
     if (a === 'skin') { exTermsBack(); WZ.skin = b.dataset.skin; WZ.ref = ''; $('wzTFor').textContent = 'Skin: ' + WZ.skin + ' \u2022 $0.99 per month'; $('wzTNote').textContent = ''; $('wzTerms').hidden = false; var tb = $('wzTerms').querySelector('.wz-tbody'); if (tb) tb.scrollTop = 0; return true; }
     if (a === 'skin-cancel') { $('wzTerms').hidden = true; exTermsBack(); return true; }
-    if (a === 'avatar') { $('wzANote').textContent = ''; $('wzAvatar').hidden = false; return true; }
+    if (a === 'avatar') { avOpen(); return true; }
     if (a === 'avatar-close') { $('wzAvatar').hidden = true; return true; }
     if (a === 'skin-agree' && WZ.skin === 'Expansion Team') { exAgree(); return true; }
     if (a === 'skin-agree') {                                      // agreement accepted: on to the Stripe checkout page (set window.FL_STRIPE to its address)
@@ -2705,6 +2705,175 @@ window.FLFeedback = (function () {
   function exShrink(file, cb) {                                     // an uploaded logo, squared to 256 px on a clear background
     var r = new FileReader(); r.onload = function () { var im = new Image(); im.onload = function () { var cv = document.createElement('canvas'); cv.width = cv.height = 256; var x = cv.getContext('2d'), s = Math.min(256 / im.width, 256 / im.height);
       x.drawImage(im, (256 - im.width * s) / 2, (256 - im.height * s) / 2, im.width * s, im.height * s); cb(cv.toDataURL('image/png')); }; im.onerror = function () { cb(null); }; im.src = r.result; }; r.readAsDataURL(file); }
+  /* ---------- Build Your Avatar: the base male and female photos, recolored (skin, hair, uniform), reshaped (body style) and dressed (top, shoes, hats, jewelry) on a canvas */
+  var AVKEY = 'flja-avatar', AVW = 640, AVH = 700;
+  var AV_SK = [['White', '#efc9a8'], ['Tan', '#d09468'], ['Brown', '#a2683f'], ['Light Black', '#774a2d'], ['Dark Black', '#4a2d1c']];
+  var AV_HR = [['Black', '#221b18'], ['Dark Brown', '#4a2f1f'], ['Brown', '#7d5032'], ['Auburn', '#933d22'], ['Red', '#b8481e'], ['Blonde', '#dcb46e'], ['Platinum', '#ebe0c9'], ['Gray', '#a6a39f']];
+  var AV_BD = [['Super Skinny', 0.8, 0], ['Slim', 0.9, 0], ['Athletic', 0.95, 0], ['Muscular', 1, 0], ['Chubby', 1.1, 0.07], ['Fat', 1.22, 0.15]];
+  var AV_HAT = ['None', 'Baseball Cap', 'Trucker Hat'], AV_EAR = ['None', 'Diamond', 'Cross', 'Small Hoop', 'Big Hoops'];
+  var AV_GEO = {                                                    // 640 x 700 picture coordinates: body center, neck, waist, light levels, hat, ear lobe, neck chain, free wrist (x, y, tilt, arm width)
+    f: { cx: 280, neck: 150, waist: 412, skinL: 132, hairL: 39, fabL: 47, hat: [318, 58, 64, 50], lobe: [287, 101], chain: [[292, 152], [348, 149], [322, 186]], wrist: [430, 421, 0.36, 30] },
+    m: { cx: 300, neck: 112, waist: 375, skinL: 152, hairL: 47, fabL: 52, hat: [302, 50, 76, 54], lobe: [281, 81], chain: [[270, 116], [327, 113], [299, 153]], wrist: [427, 384, 0.26, 33] }
+  };
+  var AV = { g: 'm', body: 3, skin: 1, hair: 1, shirt: '#0b0b0b', shorts: '#0b0b0b', shoes: '#0b0b0b', top: 'shirt', shoe: 'low', hat: 0, ear: 0, chain: false, brace: false, watch: false };
+  try { var avS = JSON.parse(localStorage.getItem(AVKEY) || 'null'); if (avS) for (var avk in avS) if (avk in AV) AV[avk] = avS[avk]; } catch (e) { /* ignore */ }
+  var AVC = {};                                                     // loaded pictures per base
+  function avHex(h) { h = String(h || '#000').replace('#', ''); if (h.length === 3) h = h.replace(/./g, '$&$&'); var n = parseInt(h, 16) || 0; return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+  function avLoad(g, cb) {
+    if (AVC[g] && AVC[g].ok) return cb(AVC[g]);
+    var o = AVC[g] = AVC[g] || { n: 0 }, names = ['av-' + g + '.jpg', 'av-' + g + '-m1.png', 'av-' + g + '-m2.png', 'av-' + g + '-bg.jpg'], left = 4;
+    o.cbs = (o.cbs || []).concat([cb]); if (o.busy) return; o.busy = true; o.im = [];
+    names.forEach(function (src, k) {
+      var im = new Image(); im.onload = im.onerror = function () {
+        o.im[k] = im; if (--left) return;
+        var px = function (img) { var c = document.createElement('canvas'); c.width = AVW; c.height = AVH; var x = c.getContext('2d'); x.drawImage(img, 0, 0, AVW, AVH); return x.getImageData(0, 0, AVW, AVH).data; };
+        try { o.rgb = px(o.im[0]); o.m1 = px(o.im[1]); o.m2 = px(o.im[2]); o.ok = true; } catch (er) { o.ok = false; }
+        o.busy = false; var l = o.cbs; o.cbs = []; l.forEach(function (f) { f(o); });
+      }; im.src = src + '?a=1';
+    });
+  }
+  function avGold(x, x0, y0, x1, y1) { var gr = x.createLinearGradient(x0, y0, x1, y1); gr.addColorStop(0, '#8a5a12'); gr.addColorStop(0.35, '#f6d36b'); gr.addColorStop(0.55, '#fff2b8'); gr.addColorStop(0.8, '#c8901f'); gr.addColorStop(1, '#7a4c0c'); return gr; }
+  function avShade(rgb, k) { return 'rgb(' + rgb.map(function (v) { return Math.max(0, Math.min(255, Math.round(v * k))); }).join(',') + ')'; }
+  function avDress(x, G) {                                          // hats, earrings, chains, bracelets and watch, drawn on the unwarped figure
+    var C = avHex(AV.shirt), dark = C[0] + C[1] + C[2] < 90; if (dark) C = [34, 34, 38];
+    if (AV.chain) { var c = G.chain; [[0, 3.4], [9, 2.6]].forEach(function (k) {
+      x.save(); x.lineCap = 'round'; x.beginPath(); x.moveTo(c[0][0] - k[0] * 0.15, c[0][1]); x.quadraticCurveTo(c[2][0], c[2][1] + k[0] * 2.2, c[1][0] + k[0] * 0.15, c[1][1]);
+      x.lineWidth = k[1] + 1.6; x.strokeStyle = 'rgba(60,35,5,.75)'; x.stroke(); x.lineWidth = k[1]; x.strokeStyle = avGold(x, c[0][0], 0, c[1][0], 0); x.setLineDash([k[1] * 1.1, k[1] * 0.45]); x.stroke(); x.restore(); }); }
+    var w = G.wrist, ax = Math.sin(w[2]), ay = Math.cos(w[2]);        // along the forearm
+    var band = function (d, th, fill, edge) { x.save(); x.translate(w[0] - ax * d, w[1] - ay * d); x.rotate(-w[2]); x.beginPath(); x.ellipse(0, 0, w[3] / 2 + 1.5, th, 0, 0, Math.PI * 2); x.fillStyle = fill; x.fill(); x.lineWidth = 1; x.strokeStyle = edge; x.stroke(); x.restore(); };
+    if (AV.brace) [12, 18, 24].forEach(function (d, i) { band(d + (AV.watch ? 6 : -8), 2.4 + (i === 1 ? 0.8 : 0), avGold(x, w[0] - w[3] / 2, 0, w[0] + w[3] / 2, 0), 'rgba(70,40,5,.8)'); });
+    if (AV.watch) { band(0, 5.5, avGold(x, w[0] - w[3] / 2, 0, w[0] + w[3] / 2, 0), 'rgba(70,40,5,.9)');
+      x.save(); x.translate(w[0] - ax * 1, w[1] - ay * 1); x.rotate(-w[2]); x.beginPath(); x.arc(w[3] * 0.08, 0, 9.5, 0, Math.PI * 2); x.fillStyle = avGold(x, -10, -10, 10, 10); x.fill();
+      x.beginPath(); x.arc(w[3] * 0.08, 0, 7, 0, Math.PI * 2); x.fillStyle = '#0d1b2a'; x.fill(); x.fillStyle = '#ffffff';
+      for (var i = 0; i < 12; i++) { var an = i * Math.PI / 6; x.beginPath(); x.arc(w[3] * 0.08 + Math.cos(an) * 5.6, Math.sin(an) * 5.6, i % 3 ? 0.55 : 0.95, 0, Math.PI * 2); x.fill(); }
+      x.strokeStyle = '#f6d36b'; x.lineWidth = 0.9; x.beginPath(); x.moveTo(w[3] * 0.08, 0); x.lineTo(w[3] * 0.08 + 3.6, -2.2); x.moveTo(w[3] * 0.08, 0); x.lineTo(w[3] * 0.08, -4.6); x.stroke(); x.restore(); }
+    var L = G.lobe;
+    if (AV.ear === 1) { x.save(); x.translate(L[0], L[1]); x.fillStyle = '#ffffff'; x.shadowColor = '#bfe8ff'; x.shadowBlur = 6; x.beginPath(); x.arc(0, 0, 2.6, 0, Math.PI * 2); x.fill(); x.shadowBlur = 0;
+      x.strokeStyle = 'rgba(255,255,255,.95)'; x.lineWidth = 0.8; x.beginPath(); x.moveTo(-6, 0); x.lineTo(6, 0); x.moveTo(0, -6); x.lineTo(0, 6); x.stroke(); x.restore(); }
+    if (AV.ear === 2) { x.save(); x.translate(L[0], L[1]); x.strokeStyle = avGold(x, -2, 0, 2, 12); x.lineWidth = 1; x.beginPath(); x.moveTo(0, 0); x.lineTo(0, 6); x.stroke();
+      x.fillStyle = avGold(x, -5, 6, 5, 20); x.strokeStyle = 'rgba(70,40,5,.9)'; x.lineWidth = 0.6; x.beginPath(); x.rect(-1.3, 6, 2.6, 14); x.rect(-4.5, 9.5, 9, 2.6); x.fill(); x.stroke();
+      x.fillStyle = '#5a3a10'; x.fillRect(-0.5, 9.8, 1, 6.5); x.restore(); }
+    if (AV.ear === 3 || AV.ear === 4) { var r = AV.ear === 3 ? 5.5 : 13; x.save(); x.lineWidth = AV.ear === 3 ? 1.8 : 1.6; x.strokeStyle = 'rgba(70,40,5,.7)'; x.beginPath(); x.arc(L[0], L[1] + r, r, 0, Math.PI * 2); x.stroke();
+      x.lineWidth -= 0.6; x.strokeStyle = avGold(x, L[0] - r, L[1], L[0] + r, L[1] + 2 * r); x.stroke(); x.restore(); }
+    if (AV.hat) { var h = G.hat, hx = h[0], hy = h[1], rx = h[2], ry = h[3], base = avShade(C, 1), sh = avShade(C, 0.72), hi = avShade(C, 1.35);
+      x.save();
+      x.beginPath(); x.moveTo(hx + rx * 0.45, hy + ry * 0.08); x.quadraticCurveTo(hx + rx * 1.25, hy - ry * 0.05, hx + rx * 1.62, hy + ry * 0.32); x.quadraticCurveTo(hx + rx * 1.2, hy + ry * 0.42, hx + rx * 0.4, hy + ry * 0.3); x.closePath();
+      x.fillStyle = sh; x.fill(); x.strokeStyle = 'rgba(0,0,0,.45)'; x.lineWidth = 1; x.stroke();
+      x.beginPath(); x.ellipse(hx, hy, rx, ry, 0, Math.PI, 0); x.quadraticCurveTo(hx, hy + ry * 0.24, hx - rx, hy); x.closePath();
+      var gr = x.createRadialGradient(hx + rx * 0.25, hy - ry * 0.65, 4, hx, hy - ry * 0.2, rx * 1.15); gr.addColorStop(0, hi); gr.addColorStop(0.55, base); gr.addColorStop(1, sh); x.fillStyle = gr; x.fill();
+      if (AV.hat === 2) {                                           // trucker: a white foam front and a mesh back
+        x.save(); x.clip(); x.fillStyle = '#f4f2ec'; x.beginPath(); x.moveTo(hx - rx * 0.05, hy + 4); x.quadraticCurveTo(hx + rx * 0.1, hy - ry * 0.7, hx + rx * 0.25, hy - ry - 4); x.lineTo(hx + rx + 4, hy - ry); x.lineTo(hx + rx + 4, hy + ry); x.closePath(); x.fill();
+        x.strokeStyle = 'rgba(0,0,0,.28)'; x.lineWidth = 0.8; for (var mx = hx - rx; mx < hx; mx += 4.2) { x.beginPath(); x.moveTo(mx, hy - ry); x.lineTo(mx + 6, hy + 4); x.stroke(); x.beginPath(); x.moveTo(mx + 6, hy - ry); x.lineTo(mx, hy + 4); x.stroke(); }
+        x.fillStyle = base; x.beginPath(); x.ellipse(hx + rx * 0.5, hy - ry * 0.45, rx * 0.2, ry * 0.18, -0.1, 0, Math.PI * 2); x.fill(); x.restore(); }
+      else { x.strokeStyle = 'rgba(0,0,0,.25)'; x.lineWidth = 1; x.beginPath(); x.moveTo(hx + rx * 0.05, hy - ry + 1); x.quadraticCurveTo(hx + rx * 0.2, hy - ry * 0.4, hx + rx * 0.12, hy + 3); x.moveTo(hx + rx * 0.05, hy - ry + 1); x.quadraticCurveTo(hx - rx * 0.45, hy - ry * 0.45, hx - rx * 0.55, hy + 2); x.stroke(); }
+      x.beginPath(); x.ellipse(hx, hy, rx, ry, 0, Math.PI, 0); x.quadraticCurveTo(hx, hy + ry * 0.24, hx - rx, hy); x.closePath(); x.strokeStyle = 'rgba(0,0,0,.5)'; x.lineWidth = 1.2; x.stroke();
+      x.fillStyle = sh; x.beginPath(); x.ellipse(hx + rx * 0.06, hy - ry + 1, 4.5, 2.4, 0, 0, Math.PI * 2); x.fill();
+      x.restore(); }
+  }
+  function avShoe(x, X, Y, s) {                                     // the shoe inset: a side view, low top or high top, in the shoe color
+    var C = avHex(AV.shoes), dark = C[0] + C[1] + C[2] < 90; if (dark) C = [40, 40, 44];
+    x.save(); x.translate(X, Y); x.scale(s, s);
+    x.fillStyle = 'rgba(8,10,16,.78)'; x.strokeStyle = 'rgba(255,255,255,.18)'; x.lineWidth = 1; x.beginPath(); x.roundRect ? x.roundRect(0, 0, 170, 104, 12) : x.rect(0, 0, 170, 104); x.fill(); x.stroke();
+    x.fillStyle = '#c9cbd4'; x.font = '800 10px system-ui,sans-serif'; x.textAlign = 'left'; x.fillText(AV.shoe === 'high' ? 'HIGH TOP' : 'LOW TOP', 10, 16);
+    var hi = AV.shoe === 'high', top = hi ? 22 : 46;
+    x.beginPath(); x.moveTo(26, 82); x.lineTo(26, top + 6); x.quadraticCurveTo(26, top, 34, top); x.lineTo(66, top); x.quadraticCurveTo(72, top, 72, top + 8); x.lineTo(74, 56); x.quadraticCurveTo(110, 58, 136, 66); x.quadraticCurveTo(152, 71, 152, 80); x.lineTo(152, 82); x.closePath();
+    var gr = x.createLinearGradient(0, top, 0, 84); gr.addColorStop(0, avShade(C, 1.3)); gr.addColorStop(1, avShade(C, 0.75)); x.fillStyle = gr; x.fill(); x.strokeStyle = 'rgba(0,0,0,.55)'; x.lineWidth = 1.2; x.stroke();
+    x.strokeStyle = '#ffffff'; x.lineWidth = 2.2; x.lineCap = 'round'; for (var i = 0; i < (hi ? 6 : 3); i++) { var lx = 70 + i * 0 + (hi ? 0 : 0), ly = (hi ? 30 : 52) + i * 6; x.beginPath(); x.moveTo(lx - 7 + i * 4, ly); x.lineTo(lx + 3 + i * 4, ly + 2); x.stroke(); }
+    x.fillStyle = 'rgba(255,255,255,.85)'; x.beginPath(); x.moveTo(36, 72); x.quadraticCurveTo(80, 60, 118, 72); x.quadraticCurveTo(80, 66, 40, 78); x.closePath(); x.fill();
+    if (hi) { x.fillStyle = avShade(C, 0.6); x.beginPath(); x.ellipse(36, 40, 6, 6, 0, 0, Math.PI * 2); x.fill(); }
+    x.fillStyle = '#f2f0ea'; x.beginPath(); x.moveTo(22, 82); x.lineTo(156, 82); x.quadraticCurveTo(158, 92, 148, 93); x.lineTo(28, 93); x.quadraticCurveTo(20, 92, 22, 82); x.fill(); x.strokeStyle = 'rgba(0,0,0,.35)'; x.lineWidth = 1; x.stroke();
+    x.fillStyle = 'rgba(0,0,0,.25)'; x.fillRect(24, 88, 132, 2);
+    x.restore();
+  }
+  function avDraw(cv) {
+    var g = AV.g, G = AV_GEO[g];
+    avLoad(g, function (o) {
+      if (!o.ok || AV.g !== g) return;
+      var f = o.fig || (o.fig = document.createElement('canvas')); f.width = AVW; f.height = AVH; var fx = f.getContext('2d'), id = fx.createImageData(AVW, AVH), d = id.data, s = o.rgb, m1 = o.m1, m2 = o.m2;
+      var SK = avHex(AV_SK[AV.skin][1]), HR = avHex(AV_HR[AV.hair][1]), TS = avHex(AV.shirt), TP = avHex(AV.shorts), tank = AV.top === 'tank';
+      var keepT = TS[0] + TS[1] + TS[2] < 90, keepP = TP[0] + TP[1] + TP[2] < 90;
+      for (var p = 0; p < d.length; p += 4) {
+        var r = s[p], gg = s[p + 1], b = s[p + 2], L = 0.299 * r + 0.587 * gg + 0.114 * b, a = m1[p];
+        d[p + 3] = a; if (!a) continue;
+        var sk = m1[p + 1] / 255, hr = m1[p + 2] / 255, sh = m2[p] / 255, so = m2[p + 1] / 255, sl = tank ? m2[p + 2] / 255 : 0, k, t;
+        if (sl > 0) { k = 0.66 + 0.5 * L / G.fabL; sh = Math.max(0, sh - sl); r += (SK[0] * k - r) * sl; gg += (SK[1] * k - gg) * sl; b += (SK[2] * k - b) * sl; }
+        if (sk > 0) { k = L / G.skinL; t = L > 200 ? (L - 200) * 0.6 : 0; r += (SK[0] * k + t - r) * sk; gg += (SK[1] * k + t - gg) * sk; b += (SK[2] * k + t - b) * sk; }
+        if (hr > 0) { k = 0.18 + 0.82 * L / G.hairL; r += (HR[0] * k - r) * hr; gg += (HR[1] * k - gg) * hr; b += (HR[2] * k - b) * hr; }
+        if (sh > 0 && !keepT) { k = 0.36 + 0.92 * L / G.fabL; r += (TS[0] * k - r) * sh; gg += (TS[1] * k - gg) * sh; b += (TS[2] * k - b) * sh; }
+        if (so > 0 && !keepP) { k = 0.36 + 0.92 * L / G.fabL; r += (TP[0] * k - r) * so; gg += (TP[1] * k - gg) * so; b += (TP[2] * k - b) * so; }
+        d[p] = r; d[p + 1] = gg; d[p + 2] = b;
+      }
+      fx.putImageData(id, 0, 0); avDress(fx, G);
+      var x = cv.getContext('2d'), B = AV_BD[AV.body], kb = B[1], belly = B[2];
+      x.clearRect(0, 0, AVW, AVH); x.drawImage(o.im[3], 0, 0, AVW, AVH);
+      for (var y = 0; y < AVH; y++) {
+        var hd = Math.min(1, Math.max(0, (y - G.neck + 10) / 45)), sc = (1 + (kb - 1) * 0.3) * (1 - hd) + kb * hd;
+        sc += belly * Math.exp(-Math.pow((y - G.waist) / 95, 2)) * hd;
+        x.drawImage(f, 0, y, AVW, 1, G.cx - G.cx * sc, y, AVW * sc, 1);
+      }
+      avShoe(x, AVW - 186, AVH - 118, 1);
+    });
+  }
+  function avSave() { try { localStorage.setItem(AVKEY, JSON.stringify(AV)); } catch (e) { /* ignore */ } }
+  function avOpen() {
+    var el = $('avBox');
+    if (!el) { el = document.createElement('div'); el.id = 'avBox'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'avH'); document.body.appendChild(el); }
+    var chips = function (key, list, label) { return '<div class="av-row" role="group" aria-label="' + label + '">' + list.map(function (n, i) { var v = typeof n === 'string' ? i : n[0]; return '<button type="button" data-av="' + key + '" data-v="' + i + '" aria-pressed="' + (AV[key] === i) + '">' + esc(typeof n === 'string' ? n : n[0]) + '</button>'; }).join('') + '</div>'; };
+    var sw = function (key, list, label) { return '<div class="av-row av-sw" role="group" aria-label="' + label + '">' + list.map(function (n, i) { return '<button type="button" data-av="' + key + '" data-v="' + i + '" aria-pressed="' + (AV[key] === i) + '"><i style="background:' + n[1] + '"></i>' + esc(n[0]) + '</button>'; }).join('') + '</div>'; };
+    var pair = function (key, opts, label) { return '<div class="av-row" role="group" aria-label="' + label + '">' + opts.map(function (o) { return '<button type="button" data-av="' + key + '" data-s="' + o[0] + '" aria-pressed="' + (AV[key] === o[0]) + '">' + o[1] + '</button>'; }).join('') + '</div>'; };
+    var tog = function (key, label) { return '<button type="button" data-av="tog" data-k="' + key + '" aria-pressed="' + !!AV[key] + '">' + label + '</button>'; };
+    el.innerHTML = '<div class="av-in"><button type="button" class="df-back" data-av="close">\u2039 Back</button><div class="df-tag">Limited Edition Skins</div><h3 id="avH" tabindex="-1">Build Your Avatar</h3>' +
+      '<div class="av-stage"><canvas id="avCv" width="' + AVW + '" height="' + AVH + '" role="img" aria-label="Your avatar preview"></canvas></div>' +
+      '<div class="av-ctl">' +
+      '<div class="av-l">Player</div>' + pair('g', [['m', 'Male'], ['f', 'Female']], 'Player') +
+      '<div class="av-l">Body Style</div>' + chips('body', AV_BD, 'Body style') +
+      '<div class="av-l">Skin Color</div>' + sw('skin', AV_SK, 'Skin color') +
+      '<div class="av-l">Hair Color</div>' + sw('hair', AV_HR, 'Hair color') +
+      '<div class="av-l">Uniform Color</div><div class="av-cols"><label><input type="color" id="avAll" value="' + AV.shirt + '">All</label><label><input type="color" id="avShirt" value="' + AV.shirt + '">Shirt</label><label><input type="color" id="avShorts" value="' + AV.shorts + '">Shorts</label><label><input type="color" id="avShoes" value="' + AV.shoes + '">Shoes</label></div>' +
+      '<div class="av-l">Top</div>' + pair('top', [['tank', 'Tank Top'], ['shirt', 'Shirt']], 'Top') +
+      '<div class="av-l">Shorts</div><div class="av-row"><button type="button" aria-pressed="true" disabled>Standard</button></div>' +
+      '<div class="av-l">Shoes</div>' + pair('shoe', [['low', 'Low Top'], ['high', 'High Top']], 'Shoes') +
+      '<div class="av-l">Hat</div>' + chips('hat', AV_HAT, 'Hat') +
+      '<div class="av-l">Earrings</div>' + chips('ear', AV_EAR, 'Earrings') +
+      '<div class="av-l">Jewelry</div><div class="av-row" role="group" aria-label="Jewelry">' + tog('chain', 'Gold Chains') + tog('brace', 'Gold Bracelets') + tog('watch', 'Fancy Watch') + '</div>' +
+      '</div><button type="button" class="av-go" data-av="use">Use This Avatar<small>$0.99 per month</small></button>' +
+      '<button type="button" class="av-link" data-av="photos">Or send us two photos and we custom build you</button></div>';
+    el.hidden = false; var cv = $('avCv'), q = 0;
+    var redraw = function () { if (q) return; q = requestAnimationFrame(function () { q = 0; avDraw(cv); }); };
+    var sync = function () { [].forEach.call(el.querySelectorAll('button[data-av]'), function (b) { var k = b.getAttribute('data-av'), v = b.getAttribute('data-v'), s = b.getAttribute('data-s');
+      if (v != null) b.setAttribute('aria-pressed', String(AV[k] === +v)); else if (s != null) b.setAttribute('aria-pressed', String(AV[k] === s)); else if (k === 'tog') b.setAttribute('aria-pressed', String(!!AV[b.getAttribute('data-k')])); }); };
+    var col = function (id, keys) { $(id).addEventListener('input', function () { var v = this.value; keys.forEach(function (k) { AV[k] = v; if (k !== 'all') { var t = $('av' + k.charAt(0).toUpperCase() + k.slice(1)); if (t && t !== this) t.value = v; } }, this); avSave(); redraw(); }); };
+    col('avAll', ['shirt', 'shorts', 'shoes']); col('avShirt', ['shirt']); col('avShorts', ['shorts']); col('avShoes', ['shoes']);
+    el.onclick = function (e) {
+      var b = e.target.closest('button[data-av]'); if (!b) return; var k = b.getAttribute('data-av');
+      if (k === 'close') { el.hidden = true; return; }
+      if (k === 'photos') { el.hidden = true; $('wzANote').textContent = ''; $('wzAvatar').hidden = false; return; }
+      if (k === 'use') { avSave(); el.hidden = true; exTermsBack(); WZ.skin = 'Your Avatar';
+        WZ.ref = [AV.g, AV.body, AV.skin, AV.hair, AV.shirt.slice(1), AV.shorts.slice(1), AV.shoes.slice(1), AV.top.charAt(0), AV.shoe.charAt(0), AV.hat, AV.ear, (AV.chain ? 'c' : '') + (AV.brace ? 'b' : '') + (AV.watch ? 'w' : '')].join('-');
+        $('wzTFor').textContent = 'Skin: Your Avatar \u2022 $0.99 per month'; $('wzTNote').textContent = 'Your avatar is saved on this phone.'; $('wzTerms').hidden = false; var tb = $('wzTerms').querySelector('.wz-tbody'); if (tb) tb.scrollTop = 0; return; }
+      if (k === 'tog') AV[b.getAttribute('data-k')] = !AV[b.getAttribute('data-k')];
+      else if (b.hasAttribute('data-v')) AV[k] = +b.getAttribute('data-v');
+      else if (b.hasAttribute('data-s')) AV[k] = b.getAttribute('data-s');
+      sync(); avSave(); redraw();
+    };
+    el.onkeydown = function (e) { if (e.key === 'Escape') el.hidden = true; };
+    redraw(); try { el.querySelector('#avH').focus(); } catch (er) { /* ignore */ }
+    if (!$('avCss')) { var F = 'var(--ui, system-ui, sans-serif)', A = '#14b8a6', P = '#e11d74', st = document.createElement('style'); st.id = 'avCss';
+      st.textContent = '#avBox{position:fixed;inset:0;z-index:2147482300;background:rgba(4,6,10,.9);display:flex;align-items:center;justify-content:center;padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}#avBox[hidden]{display:none}' +
+        '#avBox .av-in{position:relative;width:min(100%,460px);max-height:100%;overflow:auto;box-sizing:border-box;background:#0a0c12;border:2px solid ' + A + ';border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px;color:#f2efe6}' +
+        '#avBox .df-back{position:absolute;top:10px;left:10px;background:none;border:0;color:#c9cbd4;font:700 12px/1 ' + F + ';min-height:32px;cursor:pointer}#avBox .df-tag{text-align:center;font:700 10.5px/1 ' + F + ';letter-spacing:.16em;text-transform:uppercase;color:' + A + '}' +
+        '#avBox h3{margin:0;text-align:center;font:900 21px/1 var(--display, ' + F + ');text-transform:uppercase;letter-spacing:.02em}' +
+        '#avBox .av-stage{position:sticky;top:-12px;z-index:2;background:#0a0c12;margin:0 -12px;padding:4px 12px 6px;border-bottom:1px solid #1d2233}#avBox canvas{display:block;width:auto;max-width:100%;height:min(40vh,330px);margin:0 auto;border-radius:12px}' +
+        '#avBox .av-ctl{display:flex;flex-direction:column;gap:5px}#avBox .av-l{font:800 10.5px/1 ' + F + ';letter-spacing:.14em;text-transform:uppercase;color:#a9adba;margin-top:5px}' +
+        '#avBox .av-row{display:flex;flex-wrap:wrap;gap:5px}#avBox .av-row button{min-height:34px;padding:0 11px;border-radius:999px;border:1.5px solid #3a4160;background:transparent;color:#f2efe6;font:700 12px/1 ' + F + ';cursor:pointer;display:inline-flex;align-items:center;gap:6px}' +
+        '#avBox .av-row button[aria-pressed="true"]{background:' + P + ';border-color:' + P + ';color:#fff}#avBox .av-row button:disabled{opacity:1;cursor:default}' +
+        '#avBox .av-sw i{width:16px;height:16px;border-radius:50%;border:1.5px solid rgba(255,255,255,.7);flex:none}' +
+        '#avBox .av-cols{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}#avBox .av-cols label{display:flex;flex-direction:column;align-items:center;gap:4px;font:700 11px/1 ' + F + ';color:#c9cbd4}#avBox .av-cols input{width:100%;height:36px;border:1.5px solid #3a4160;border-radius:10px;background:#11141d;padding:2px;cursor:pointer}' +
+        '#avBox .av-go{margin-top:6px;min-height:52px;border:0;border-radius:12px;background:' + P + ';color:#fff;font:900 16px/1.1 ' + F + ';text-transform:uppercase;letter-spacing:.03em;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}#avBox .av-go small{font:700 11px/1 ' + F + ';text-transform:none;letter-spacing:0;opacity:.9}' +
+        '#avBox .av-link{background:none;border:0;color:#c9cbd4;text-decoration:underline;font:600 12px/1.3 ' + F + ';min-height:36px;cursor:pointer}' +
+        '#avBox h3:focus{outline:none}#avBox .df-tag{padding-top:22px}#avBox button:focus-visible,#avBox input:focus-visible{outline:2px solid #fff;outline-offset:2px}';
+      document.head.appendChild(st); }
+  }
   function exOpen() {
     var el = $('exBox'), d = EX || { name: '', logo: '', c1: '#14b8a6', c2: '#0f172a', desc: '', how: 'desc' };
     if (!el) { el = document.createElement('div'); el.id = 'exBox'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'exH'); document.body.appendChild(el); }
