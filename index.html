@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126135842";
+window.FL_BUILD = "20261126135946";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -4706,7 +4706,7 @@ window.FLFeedback = (function () {
     el.querySelector('.db-field').innerHTML = PMC.map(function (c, k) { var nm = PM.posts[k] ? pmPair(PM.posts[k]).name : '';
       return '<li class="' + (k === 0 ? 'pb-you' : '') + '"><span class="pb-chip" style="background:' + c[1] + ';color:' + (k === 2 || k === 5 ? '#111' : '#fff') + '">' + (k + 1) + '</span><span class="pb-nm">' + (nm ? esc(nm) : k === 0 ? 'Pick your team' : 'CPU team') + '</span><em>' + (k === 0 ? 'You' : 'CPU') + '</em></li>'; }).join('');
     $('pmAds').disabled = $('pmFree').disabled = !ready; el.classList.toggle('pm-ready', ready); el.classList.toggle('db-one', one);
-    el.querySelector('.db-hint').textContent = !ready ? (one ? 'Singles: pick one player, front court or back court. The CPU fills Posts 2 to 8.' : 'Doubles: pick a front courter and a back courter. The CPU fills Posts 2 to 8.') : (one ? 'Singles' : 'Doubles' + (dSeat[0] && dSeat[1] ? '' : dSeat[0] ? ' (CPU plays your back court)' : ' (CPU plays your front court)')) + ' \u00b7 Spectacular 9 \u00b7 You are Post 1 in red';
+    el.querySelector('.db-hint').textContent = !ready ? (one ? 'Singles: pick one player, front court or back court. The CPU fills Posts 2 to 8.' : 'Doubles: pick a front courter and a back courter. The CPU fills Posts 2 to 8.') : '';
 
     el.querySelector('.db-art').setAttribute('aria-label', ready ? 'Post 1, ' + dT[0].name + ', against seven CPU teams' : 'Pick your team');
   }
