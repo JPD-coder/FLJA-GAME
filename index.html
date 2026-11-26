@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126152326";
+window.FL_BUILD = "20261126153941";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2362,6 +2362,7 @@ window.FLFeedback = (function () {
       '</section>' +
       '<section class="wz-step" id="wz7" hidden>' + wzTop(4, 'Fantasy League Championship') +
         '<div class="wz-sels"><select class="wz-sel" id="chTeam" aria-label="Your team"></select><select class="wz-sel" id="chView" aria-label="Select view or era"></select></div>' +
+        '<button type="button" class="wz-go alt ch-exp" id="chExp" data-wz="ex-open"></button>' +
         '<select class="wz-sel wz-wide" id="chDraft" aria-label="Draft" style="margin-top:10px"></select>' +
         '<div id="chBr"></div>' +
         '<div class="wz-play"><button type="button" class="wz-go" data-wz="ch-play">Play Free Now<small>With Ads</small></button><button type="button" class="wz-go alt" data-wz="ch-play">Play Ad Free Now<small>$0.99 per month</small></button></div>' +
@@ -2570,6 +2571,7 @@ window.FLFeedback = (function () {
     if (a === 'lang-en' || a === 'lang-es') { cfg.lang = a === 'lang-en' ? 'en' : 'es'; save(); wzPaint(); return true; }
     if (a === 'league' || a === 'world') { CH.on = false; WZ.champ = false; cfg.youK = cfg.cpuK = 1; if (CH.m) { cfg.level = 'normal'; cfg.pace = 'standard'; } setComp(a); picked = [false, false]; wzShow(4); return true; }
     if (a === 'champ' || a === 'cup') { var g = a === 'cup' ? 'world' : 'league'; if (g !== CH.g) { CH.g = g; CH.me = -1; CH.m = null; } WZ.champ = true; setComp(CH.g); wzShow(7); return true; }
+    if (a === 'ex-open') { exOpen(); return true; }
     if (a === 'ch-play') { if (CH.me < 0) { $('chMsg').textContent = 'Pick your team.'; return true; } var cv = $('chView').value; if (cv === 'table') cfg.table = true; else { cfg.table = false; setView(cv); cfg.view = view; } if (CH.g === 'league') { dfStart($('chDraft').value); return true; } if (!CH.m) chDraw(CH.me); CH.round = 0; CH.out = false; CH.champ = false; chStart(); return true; }
     if (a === 'hvp') { WZ.hvp = true; hvpAsk(); return true; }
     if (a === 'dania') { if (window.FL_NAV) window.FL_NAV('dania' + (cfg.singles ? 'S' : 'D') + (cfg.seats[0] ? 1 : 0) + (cfg.seats[1] ? 1 : 0)); return true; }
@@ -2586,17 +2588,90 @@ window.FLFeedback = (function () {
      Six clubs, so two start with a bye; your club never does. The bracket shows after every match: a screenshot of it is the road to the final. ---------- */
   var CH = { g: 'league', on: false, me: -1, t: [], m: null, round: 0, out: false, champ: false, busy: false };
   var CH_RND = ['Quarterfinal', 'Semifinal', 'Championship'], CH_LVL = [['easy', 'relaxed', 'Easy'], ['normal', 'standard', 'Normal'], ['hard', 'pro', 'Hard']];
+  /* ---------- Expansion team: a seventh club for the Fantasy League Championship, made on this phone (name, logo described or uploaded, two colors).
+     It joins the bracket and the draft; four more players join the pool, one in each tier. ---------- */
+  var EX_EMO = [['shark', '\ud83e\udd88'], ['gator', '\ud83d\udc0a'], ['alligator', '\ud83d\udc0a'], ['croc', '\ud83d\udc0a'], ['lion', '\ud83e\udd81'], ['tiger', '\ud83d\udc2f'], ['eagle', '\ud83e\udd85'], ['hawk', '\ud83e\udd85'], ['falcon', '\ud83e\udd85'],
+    ['bear', '\ud83d\udc3b'], ['wolf', '\ud83d\udc3a'], ['bull', '\ud83d\udc02'], ['snake', '\ud83d\udc0d'], ['python', '\ud83d\udc0d'], ['dragon', '\ud83d\udc09'], ['fox', '\ud83e\udd8a'], ['owl', '\ud83e\udd89'], ['horse', '\ud83d\udc0e'], ['stallion', '\ud83d\udc0e'],
+    ['fire', '\ud83d\udd25'], ['flame', '\ud83d\udd25'], ['heat', '\ud83d\udd25'], ['lightning', '\u26a1'], ['bolt', '\u26a1'], ['thunder', '\u26a1'], ['storm', '\u26c8\ufe0f'], ['hurricane', '\ud83c\udf00'], ['star', '\u2b50'], ['crown', '\ud83d\udc51'], ['king', '\ud83d\udc51'], ['queen', '\ud83d\udc51'],
+    ['skull', '\ud83d\udc80'], ['pirate', '\u2620\ufe0f'], ['palm', '\ud83c\udf34'], ['wave', '\ud83c\udf0a'], ['ocean', '\ud83c\udf0a'], ['sun', '\u2600\ufe0f'], ['moon', '\ud83c\udf19'], ['rocket', '\ud83d\ude80'], ['bee', '\ud83d\udc1d'], ['hornet', '\ud83d\udc1d'],
+    ['panther', '\ud83d\udc06'], ['jaguar', '\ud83d\udc06'], ['cat', '\ud83d\udc31'], ['flamingo', '\ud83e\udda9'], ['dolphin', '\ud83d\udc2c'], ['octopus', '\ud83d\udc19'], ['crab', '\ud83e\udd80'], ['parrot', '\ud83e\udd9c'], ['bunny', '\ud83d\udc07'], ['rabbit', '\ud83d\udc07'],
+    ['monkey', '\ud83d\udc12'], ['gorilla', '\ud83e\udd8d'], ['ape', '\ud83e\udd8d'], ['rooster', '\ud83d\udc13'], ['ram', '\ud83d\udc0f'], ['goat', '\ud83d\udc10'], ['knight', '\u2694\ufe0f'], ['sword', '\u2694\ufe0f'], ['viking', '\ud83e\ude93'], ['ghost', '\ud83d\udc7b'], ['devil', '\ud83d\ude08'],
+    ['bat', '\ud83e\udd87'], ['scorpion', '\ud83e\udd82'], ['spider', '\ud83d\udd77\ufe0f'], ['whale', '\ud83d\udc33'], ['turtle', '\ud83d\udc22'], ['frog', '\ud83d\udc38'], ['boar', '\ud83d\udc17'], ['rhino', '\ud83e\udd8f'], ['elephant', '\ud83d\udc18'], ['diamond', '\ud83d\udc8e'], ['gem', '\ud83d\udc8e'],
+    ['money', '\ud83d\udcb0'], ['dollar', '\ud83d\udcb5'], ['anchor', '\u2693'], ['ship', '\u26f5'], ['mountain', '\u26f0\ufe0f'], ['peak', '\u26f0\ufe0f'], ['cactus', '\ud83c\udf35'], ['pepper', '\ud83c\udf36\ufe0f'], ['taco', '\ud83c\udf2e'], ['pizza', '\ud83c\udf55'], ['robot', '\ud83e\udd16'], ['alien', '\ud83d\udc7d']];
+  var EXKEY = 'flja-expansion', EXI = -1, EX = null;
+  try { EX = JSON.parse(localStorage.getItem(EXKEY) || 'null'); } catch (e) { EX = null; }
+  function exKit(x) { var dark = function (h) { var n = parseInt(h.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 < 140; };
+    return { name: x.name, logo: x.logo, ui: dark(x.c1) && !dark(x.c2) ? x.c2 : x.c1, ex: true, kit: { jersey: x.c1, sash: x.c2, helm: x.c2, num: dark(x.c1) ? '#ffffff' : '#141416', nk: { helm: x.c1, belt: x.c2 } } }; }
+  if (EX && EX.name && EX.logo && !PROMO) { ROSTER.push(exKit(EX)); EXI = ROSTER.length - 1; }
+  function chTeams() { return CH.g === 'league' && EXI >= 0 ? groupList('league').concat([EXI]) : groupList(CH.g); }
+  function exLogo(desc, name, c1, c2) {                             // a crest from the description: a shield in the two colors, the closest emblem to the words, and the initials
+    var cv = document.createElement('canvas'); cv.width = cv.height = 256; var x = cv.getContext('2d'), d = (desc || '').toLowerCase(), emo = '';
+    EX_EMO.forEach(function (e) { if (!emo && d.indexOf(e[0]) >= 0) emo = e[1]; });
+    var ini = (name || 'FL').split(/\s+/).filter(Boolean).map(function (w) { return w.charAt(0).toUpperCase(); }).join('').slice(0, 3);
+    x.beginPath(); x.moveTo(128, 8); x.lineTo(236, 40); x.lineTo(228, 150); x.quadraticCurveTo(212, 214, 128, 250); x.quadraticCurveTo(44, 214, 28, 150); x.lineTo(20, 40); x.closePath();
+    x.fillStyle = c1; x.fill(); x.lineWidth = 12; x.strokeStyle = c2; x.stroke(); x.lineWidth = 3; x.strokeStyle = '#ffffff'; x.stroke();
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    if (emo) { x.font = '112px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; x.fillText(emo, 128, 112); }
+    x.fillStyle = c2; x.fillRect(46, emo ? 176 : 98, 164, emo ? 44 : 64); x.fillStyle = '#ffffff';
+    x.font = '900 ' + (emo ? 34 : 54) + 'px system-ui,Arial,sans-serif'; x.fillText(ini || 'FL', 128, emo ? 199 : 131);
+    return { url: cv.toDataURL('image/png'), emo: emo };
+  }
+  function exShrink(file, cb) {                                     // an uploaded logo, squared to 256 px on a clear background
+    var r = new FileReader(); r.onload = function () { var im = new Image(); im.onload = function () { var cv = document.createElement('canvas'); cv.width = cv.height = 256; var x = cv.getContext('2d'), s = Math.min(256 / im.width, 256 / im.height);
+      x.drawImage(im, (256 - im.width * s) / 2, (256 - im.height * s) / 2, im.width * s, im.height * s); cb(cv.toDataURL('image/png')); }; im.onerror = function () { cb(null); }; im.src = r.result; }; r.readAsDataURL(file); }
+  function exOpen() {
+    var el = $('exBox'), d = EX || { name: '', logo: '', c1: '#14b8a6', c2: '#0f172a', desc: '', how: 'desc' };
+    if (!el) { el = document.createElement('div'); el.id = 'exBox'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'exH'); document.body.appendChild(el); }
+    el.innerHTML = '<div class="df-in ex-in"><div class="df-tag">Fantasy League Championship</div><h3 id="exH">Buy an Expansion Team</h3>' +
+      '<label class="ex-l">Team name<input id="exName" maxlength="22" autocomplete="off" placeholder="e.g. Miami Hammerheads" value="' + esc(d.name) + '"></label>' +
+      '<div class="ex-l">Team colors<span class="ex-cols"><label><input type="color" id="exC1" value="' + d.c1 + '">Primary</label><label><input type="color" id="exC2" value="' + d.c2 + '">Secondary</label></span></div>' +
+      '<div class="ex-l">Logo<span class="ex-tabs" role="group" aria-label="Logo"><button type="button" data-ex="desc" aria-pressed="' + (d.how !== 'up') + '">Describe It</button><button type="button" data-ex="up" aria-pressed="' + (d.how === 'up') + '">Upload One</button></span></div>' +
+      '<div class="ex-desc"' + (d.how === 'up' ? ' hidden' : '') + '><textarea id="exDesc" rows="2" maxlength="140" placeholder="Describe it: a hammerhead shark over a palm tree">' + esc(d.desc || '') + '</textarea><button type="button" class="ex-mk" data-ex="make">Make Logo</button></div>' +
+      '<div class="ex-up"' + (d.how === 'up' ? '' : ' hidden') + '><input type="file" id="exFile" accept="image/*"><p class="df-sub">PNG with a clear background looks best.</p></div>' +
+      '<div class="ex-prev"><span class="ex-logo">' + (d.logo ? '<img src="' + d.logo + '" alt="Logo preview">' : '<i>Logo preview</i>') + '</span><span class="ex-pn"><b id="exPn">' + esc(d.name || 'Your Team') + '</b><i>Expansion \u00b7 7th club</i></span></div>' +
+      '<p class="ex-msg" id="exMsg" role="status"></p>' +
+      '<div class="df-go"><button type="button" class="df-alt" data-ex="cancel">Cancel</button><button type="button" data-ex="build">' + (EX ? 'Save Expansion Team' : 'Build Expansion Team') + '</button></div>' +
+      (EX ? '<button type="button" class="ex-rm" data-ex="remove">Remove expansion team</button>' : '') +
+      '<p class="df-note">Preview: expansion teams are free during this test. Your team is kept on this phone.</p></div>';
+    el.hidden = false; var st = { logo: d.logo, how: d.how || 'desc', emo: '' };
+    var paint = function () { var pv = el.querySelector('.ex-logo'); pv.innerHTML = st.logo ? '<img src="' + st.logo + '" alt="Logo preview">' : '<i>Logo preview</i>'; $('exPn').textContent = $('exName').value.trim() || 'Your Team'; $('exPn').style.color = $('exC1').value; };
+    paint();
+    $('exName').addEventListener('input', paint); $('exC1').addEventListener('input', paint);
+    $('exFile').addEventListener('change', function () { var f = this.files && this.files[0]; if (!f) return; exShrink(f, function (u) { if (!u) { $('exMsg').textContent = 'That picture could not be read. Try a PNG or JPG.'; return; } st.logo = u; st.how = 'up'; paint(); }); });
+    el.onclick = function (e) {
+      var b = e.target.closest('button[data-ex]'); if (!b) return; var a = b.getAttribute('data-ex');
+      if (a === 'desc' || a === 'up') { st.how = a; [].forEach.call(el.querySelectorAll('.ex-tabs button'), function (x) { x.setAttribute('aria-pressed', String(x === b)); }); el.querySelector('.ex-desc').hidden = a !== 'desc'; el.querySelector('.ex-up').hidden = a !== 'up'; }
+      else if (a === 'make') { var nm = $('exName').value.trim(); if (!$('exDesc').value.trim()) { $('exMsg').textContent = 'Describe the logo first.'; return; } var lg = exLogo($('exDesc').value, nm, $('exC1').value, $('exC2').value); st.logo = lg.url; st.how = 'desc';
+        $('exMsg').textContent = lg.emo ? '' : 'No emblem matched those words, so the logo shows your initials. Try an animal or object (shark, eagle, lightning).'; paint(); }
+      else if (a === 'cancel') el.hidden = true;
+      else if (a === 'remove') { try { localStorage.removeItem(EXKEY); localStorage.removeItem(DKEY); } catch (er) { /* ignore */ } EX = null; if (CH.me === EXI) CH.me = -1; CH.m = null; EXI = -1; el.hidden = true; chPaint(); }
+      else if (a === 'build') {
+        var name = $('exName').value.trim();
+        if (!name) { $('exMsg').textContent = 'Give your team a name.'; return; }
+        if (!st.logo) { $('exMsg').textContent = st.how === 'up' ? 'Upload a logo.' : 'Describe your logo and tap Make Logo.'; return; }
+        if (groupList('league').some(function (k) { return ROSTER[k].name.toLowerCase() === name.toLowerCase(); })) { $('exMsg').textContent = 'That name is taken by a League club.'; return; }
+        EX = { name: name, logo: st.logo, c1: $('exC1').value, c2: $('exC2').value, desc: $('exDesc').value.trim(), how: st.how };
+        try { localStorage.setItem(EXKEY, JSON.stringify(EX)); } catch (er) { /* kept for this visit */ }
+        if (EXI >= 0) ROSTER[EXI] = exKit(EX); else { ROSTER.push(exKit(EX)); EXI = ROSTER.length - 1; }
+        try { localStorage.removeItem(DKEY); } catch (er) { /* ignore */ }   // an old six-club draft no longer fits
+        el.hidden = true; chDraw(EXI); chPaint(); track('champ', 'expansion');
+      }
+    };
+    try { $('exName').focus(); } catch (e) { /* ignore */ }
+  }
   function chDraw(me) {                                             // your club meets a random club first; two of the others wait in the semifinals
-    var rest = groupList(CH.g).filter(function (k) { return k !== me; }), i, j, x;
+    var rest = chTeams().filter(function (k) { return k !== me; }), i, j, x;
     for (i = rest.length - 1; i > 0; i--) { j = Math.floor(Math.random() * (i + 1)); x = rest[i]; rest[i] = rest[j]; rest[j] = x; }
     CH.me = me; CH.t = [me].concat(rest); CH.round = 0; CH.out = false; CH.champ = false;
     CH.m = { q1: { a: me, b: rest[0] }, q2: { a: rest[2], b: rest[3] }, s1: { a: null, b: rest[1] }, s2: { a: null, b: rest[4] }, f: { a: null, b: null } };
+    if (rest.length === 6) { CH.m.q3 = { a: rest[1], b: rest[5] }; CH.m.s1.b = null; }   // seven clubs: a third quarterfinal decides who meets your bracket side
   }
   function chSim(m) { var w = Math.random() < 0.5, lo = 2 + Math.floor(Math.random() * Math.max(1, cfg.target - 2)); m.sa = w ? cfg.target : lo; m.sb = w ? lo : cfg.target; m.w = w ? m.a : m.b; }   // a match you are not in
   function chOpp() { var M = CH.m; return CH.round === 0 ? M.q1.b : CH.round === 1 ? M.s1.b : M.f.b; }
   function chAfter() {                                              // fill in the rest of the round you just played, so the bracket is always whole
     var M = CH.m;
     if (M.q2.w == null) chSim(M.q2);
+    if (M.q3) { if (M.q3.w == null) chSim(M.q3); M.s1.b = M.q3.w; }
     M.s1.a = M.q1.w; M.s2.a = M.q2.w;
     if (CH.round >= 1 || CH.out) { if (M.s1.w == null) chSim(M.s1); if (M.s2.w == null) chSim(M.s2); M.f.a = M.s1.w; M.f.b = M.s2.w; }
     if (CH.out && M.f.w == null) chSim(M.f);
@@ -2622,16 +2697,16 @@ window.FLFeedback = (function () {
     var box = function (m, lab) { return '<div class="cb-m"><i>' + lab + '</i>' + row(m, 0) + row(m, 1) + '</div>'; };
     var bye = function (k) { return '<div class="cb-m cb-bye"><i>Bye</i><div class="cb-t">' + nm(k) + '</div></div>'; };
     var cw = M.f.w;
-    return '<div class="cb" role="img" aria-label="Championship bracket"><div class="cb-c"><h4>Quarterfinals</h4>' + box(M.q1, 'Game 1') + bye(M.s1.b) + box(M.q2, 'Game 2') + bye(M.s2.b) + '</div>' +
-      '<div class="cb-c"><h4>Semifinals</h4>' + box(M.s1, 'Game 3') + box(M.s2, 'Game 4') + '</div>' +
+    return '<div class="cb" role="img" aria-label="Championship bracket"><div class="cb-c"><h4>Quarterfinals</h4>' + box(M.q1, 'Game 1') + (M.q3 ? box(M.q3, 'Game 2') : bye(M.s1.b)) + box(M.q2, M.q3 ? 'Game 3' : 'Game 2') + bye(M.s2.b) + '</div>' +
+      '<div class="cb-c"><h4>Semifinals</h4>' + box(M.s1, M.q3 ? 'Game 4' : 'Game 3') + box(M.s2, M.q3 ? 'Game 5' : 'Game 4') + '</div>' +
       '<div class="cb-c"><h4>Championship</h4>' + box(M.f, 'Final') + '<div class="cb-ch' + (cw != null ? ' on' : '') + '"><span aria-hidden="true">\ud83c\udfc6</span>' + (cw != null ? chLogo(cw) + '<b>' + esc(chName(cw)) + '</b>' : '<b>Champion</b>') + '</div></div></div>';
   }
   function chBoard() {
     var el = $('chBoard');
     if (!el) { el = document.createElement('div'); el.id = 'chBoard'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', 'Championship bracket'); document.body.appendChild(el);
       el.addEventListener('click', function (e) { var b = e.target.closest('button[data-ch]'); if (b) chNext(b.getAttribute('data-ch')); }); }
-    var me = ROSTER[CH.me], who = whoOf(0) === 'women' ? 'w' : 'm', pic = POSTERS[CH.me + who] || POSTERS[CH.me + 'm'], head, go;
-    if (CH.champ) { head = '<div class="cw"><div class="cw-pic" style="background-image:url(' + pic + ')"><span class="cw-cup" aria-hidden="true">\ud83c\udfc6</span><span class="cw-conf" aria-hidden="true"></span></div><h3>Champions!</h3><p>' + esc(chName(CH.me)) + ' win the ' + chTitle() + '</p></div>';
+    var me = ROSTER[CH.me], who = whoOf(0) === 'women' ? 'w' : 'm', pic = POSTERS[CH.me + who] || POSTERS[CH.me + 'm'] || '', head, go;
+    if (CH.champ) { head = '<div class="cw"><div class="cw-pic" style="background-image:' + (pic ? 'url(' + pic + ')' : 'radial-gradient(circle at 50% 55%, ' + (me.ui || '#888') + 'aa 0%, #07080a 80%)') + '">' + (pic ? '' : '<img class="cw-crest" src="' + me.logo + '" alt="">') + '<span class="cw-cup" aria-hidden="true">\ud83c\udfc6</span><span class="cw-conf" aria-hidden="true"></span></div><h3>Champions!</h3><p>' + esc(chName(CH.me)) + ' win the ' + chTitle() + '</p></div>';
       go = '<button type="button" data-ch="again">Play Again</button><button type="button" data-ch="menu">Home</button>'; }
     else if (CH.out) { head = '<h3>Eliminated</h3><p>' + esc(chName(CH.me)) + ' go out in the ' + CH_RND[CH.round] + '. ' + esc(chName(CH.m.f.w)) + ' win the title.</p>';
       go = '<button type="button" data-ch="again">Try Again</button><button type="button" data-ch="menu">Home</button>'; }
@@ -2652,22 +2727,25 @@ window.FLFeedback = (function () {
     [25, 'Txanika', 'F', '5\'9"', 3, 80, 'Lekeitio'], [68, 'Azpiroz', 'F', '5\'9"', 3, 78, 'Pamplona'], [52, 'Zamora', 'F', '5\'9"', 3, 77, 'Mexico City'],
     [21, 'Danel', 'B', '5\'11"', 3, 80, 'Mutriku'], [26, 'Argoitia', 'B', '6\'0"', 3, 79, 'Azpeitia'], [67, 'Pierre', 'B', '6\'0"', 3, 76, 'Anglet'],
     [99, 'Bixente', 'F', '5\'8"', 4, 74, 'Ustaritz'], [91, 'Amets', 'F', '5\'7"', 4, 72, 'Zarautz'], [58, 'Tambour', 'F', '5\'6"', 4, 70, 'Pau'],
-    [10, 'Aratz', 'B', '5\'8"', 4, 74, 'Tolosa'], [42, 'Montamat', 'B', '5\'9"', 4, 72, 'Mauleon'], [48, 'Ekhi', 'B', '5\'9"', 4, 70, 'Hernani']];
+    [10, 'Aratz', 'B', '5\'8"', 4, 74, 'Tolosa'], [42, 'Montamat', 'B', '5\'9"', 4, 72, 'Mauleon'], [48, 'Ekhi', 'B', '5\'9"', 4, 70, 'Hernani'],
+    [3, 'Zubiaurre', 'F', '5\'10"', 1, 89, 'Elgoibar', 1], [44, 'Etxarri', 'B', '6\'1"', 2, 85, 'Oiartzun', 1], [61, 'Urkiola', 'F', '5\'9"', 3, 78, 'Bermeo', 1], [77, 'Lasaga', 'B', '6\'0"', 4, 71, 'Errenteria', 1]];   // the last four join only with an expansion club
   var DT = ['', 'Elite', 'Starter', 'Rotation', 'Prospect'], DTC = ['', '#e8c25a', '#c9ced6', '#d08a4e', '#7fb3c8'];
   var DR = DP.map(function (p, i) {                                 // the five ratings follow the overall, steady for each player
     var h = 0, n = p[1]; for (var k = 0; k < n.length; k++) h = (h * 31 + n.charCodeAt(k)) % 997;
     var r = function (o, sp) { return Math.max(55, Math.min(99, p[5] + o + ((h >> sp) % 7) - 3)); };
     var face = PROMO && PROMO.people ? PROMO.people.filter(function (w) { return w.name === p[1]; })[0] : null;
-    return { i: i, num: p[0], name: p[1], pos: p[2], ht: p[3], tier: p[4], ovr: p[5], home: p[6], age: 20 + (h % 13), photo: face && face.photo ? face.photo : (['Javier', 'Arrasate', 'Oierdi', 'Kanpandegi', 'Bereau', 'Aratz'].indexOf(p[1]) >= 0 ? 'db-' + p[0] + '.jpg' : ''),
+    return { i: i, ex: !!p[7], num: p[0], name: p[1], pos: p[2], ht: p[3], tier: p[4], ovr: p[5], home: p[6], age: 20 + (h % 13), photo: face && face.photo ? face.photo : (['Javier', 'Arrasate', 'Oierdi', 'Kanpandegi', 'Bereau', 'Aratz'].indexOf(p[1]) >= 0 ? 'db-' + p[0] + '.jpg' : ''),
       spd: r(p[2] === 'F' ? 3 : -2, 1), pow: r(p[2] === 'B' ? 3 : -2, 2), ctl: r(1, 3), rea: r(p[2] === 'F' ? 2 : 0, 4), sta: r(0, 5) };
   });
   var DF = { on: false, order: [], seq: [], k: 0, ros: {}, auto: false, timer: 0, left: 0, saved: false };
   var DKEY = 'flja-draft';
-  function dfLoad() { try { var j = JSON.parse(localStorage.getItem(DKEY) || 'null'); return j && j.ros ? j : null; } catch (e) { return null; } }
+  function dfLoad() { try { var j = JSON.parse(localStorage.getItem(DKEY) || 'null'); if (!j || !j.ros) return null; var k = Object.keys(j.ros).map(Number).sort(function (a, b) { return a - b; }).join(), t = dfTeams().slice().sort(function (a, b) { return a - b; }).join(); return k === t ? j : null; } catch (e) { return null; } }
   function dfSave() { try { localStorage.setItem(DKEY, JSON.stringify({ me: CH.me, ros: DF.ros, order: DF.order, at: new Date().toLocaleDateString() })); return true; } catch (e) { return false; } }
-  function dfTeams() { return groupList('league'); }
+  function dfTeams() { return chTeams(); }
+  function dfN() { return dfTeams().length; }
+  function DRp() { var n7 = dfN() === 7; return DR.filter(function (p) { return !p.ex || n7; }); }
   function dfAvg(t, key) { var r = DF.ros[t] || []; return r.length ? Math.round(r.reduce(function (s, i) { return s + DR[i][key || 'ovr']; }, 0) / r.length) : 0; }
-  function dfGrade(t) { var r = DF.ros[t] || [], a = r.length ? r.reduce(function (s, i) { return s + DR[i].ovr; }, 0) / r.length : 0, L = DR.reduce(function (s, p) { return s + p.ovr; }, 0) / DR.length;   // graded against the league average
+  function dfGrade(t) { var r = DF.ros[t] || [], a = r.length ? r.reduce(function (s, i) { return s + DR[i].ovr; }, 0) / r.length : 0, L = DRp().reduce(function (s, p) { return s + p.ovr; }, 0) / DRp().length;   // graded against the league average
     return a >= L + 0.75 ? 'A' : a >= L ? 'B' : a >= L - 0.75 ? 'C' : 'D'; }
   function dfTaken(i) { for (var t in DF.ros) if (DF.ros[t].indexOf(i) >= 0) return true; return false; }
   function dfCount(t, pos) { return (DF.ros[t] || []).filter(function (i) { return DR[i].pos === pos; }).length; }
@@ -2675,11 +2753,11 @@ window.FLFeedback = (function () {
     var need = {}, sup = {}, T = dfTeams(), seen = {};
     T.forEach(function (t) { need[t] = [2 - dfCount(t, 'F'), 2 - dfCount(t, 'B')]; });
     for (var tr = 1; tr <= 4; tr++) sup[tr] = [0, 0];
-    DR.forEach(function (p) { if (!dfTaken(p.i)) sup[p.tier][p.pos === 'F' ? 0 : 1]++; });
+    DRp().forEach(function (p) { if (!dfTaken(p.i)) sup[p.tier][p.pos === 'F' ? 0 : 1]++; });
     var go = function (j, nd, sp) {
       if (j >= DF.seq.length) return true;
       var key = j + '|' + JSON.stringify(nd) + JSON.stringify(sp); if (seen[key] != null) return seen[key];
-      var t = DF.seq[j], tr = Math.floor(j / 6) + 1, ok = false;
+      var t = DF.seq[j], tr = Math.floor(j / dfN()) + 1, ok = false;
       [0, 1].forEach(function (q) { if (ok) return; if (j === k && q !== (pos === 'F' ? 0 : 1)) return; if (nd[t][q] <= 0 || sp[tr][q] <= 0) return;
         var n2 = JSON.parse(JSON.stringify(nd)), s2 = JSON.parse(JSON.stringify(sp)); n2[t][q]--; s2[tr][q]--; if (go(j + 1, n2, s2)) ok = true; });
       return (seen[key] = ok);
@@ -2692,7 +2770,7 @@ window.FLFeedback = (function () {
     DF.order = T.slice(); for (i = DF.order.length - 1; i > 0; i--) { j = Math.floor(Math.random() * (i + 1)); x = DF.order[i]; DF.order[i] = DF.order[j]; DF.order[j] = x; }
     DF.seq = []; for (var rd = 0; rd < 4; rd++) DF.seq = DF.seq.concat(rd % 2 ? DF.order.slice().reverse() : DF.order);   // snake
     DF.ros = {}; T.forEach(function (t) { DF.ros[t] = []; }); DF.k = 0; DF.saved = false; DF.on = true; DF.auto = mode === 'skip';
-    if (DF.auto) { while (DF.k < 24) dfCpu(); dfRecap(false); } else dfLottery();
+    if (DF.auto) { while (DF.k < 4 * dfN()) dfCpu(); dfRecap(false); } else dfLottery();
   }
   function dfEl() {
     var el = $('dfBox'); if (el) return el;
@@ -2710,7 +2788,7 @@ window.FLFeedback = (function () {
     return el;
   }
   function dfHow() {                                              // How the Draft Works: the rules and every player's ratings, opened from the lottery screen
-    var rows = [1, 2, 3, 4].map(function (t) { var cell = function (pos) { return DR.filter(function (p) { return p.tier === t && p.pos === pos; }).sort(function (a, b) { return b.ovr - a.ovr; }).map(function (p) { return '#' + p.num + ' ' + esc(p.name) + ' <b>' + p.ovr + '</b>'; }).join('<br>'); };
+    var rows = [1, 2, 3, 4].map(function (t) { var cell = function (pos) { return DRp().filter(function (p) { return p.tier === t && p.pos === pos; }).sort(function (a, b) { return b.ovr - a.ovr; }).map(function (p) { return '#' + p.num + ' ' + esc(p.name) + ' <b>' + p.ovr + '</b>'; }).join('<br>'); };
       return '<tr><th scope="row" style="color:' + DTC[t] + '">' + t + '<br><i>' + DT[t] + '</i></th><td>' + cell('F') + '</td><td>' + cell('B') + '</td></tr>'; }).join('');
     return '<details class="df-how"><summary>How the Draft Works<span class="df-plus" aria-hidden="true"></span></summary><ul>' +
       '<li><b>24 players, 6 clubs.</b> The Dania Beach roster plus Gorka and Johan: 12 front courters and 12 back courters.</li>' +
@@ -2738,20 +2816,20 @@ window.FLFeedback = (function () {
     }, 110);
   }
   function dfBest(k) {                                              // CPU: the best player left in the round's tier that keeps every roster two and two (a little luck between close ratings)
-    var tr = Math.floor(k / 6) + 1, c = DR.filter(function (p) { return p.tier === tr && !dfTaken(p.i) && dfCan(k, p.pos); });
+    var tr = Math.floor(k / dfN()) + 1, c = DRp().filter(function (p) { return p.tier === tr && !dfTaken(p.i) && dfCan(k, p.pos); });
     c.sort(function (a, b) { return (b.ovr + Math.random() * 2.5) - (a.ovr + Math.random() * 2.5); });
     return c.length ? c[0].i : -1;
   }
-  function dfCpu() { var i = dfBest(DF.k); if (i < 0) { DF.k = 24; return; } DF.ros[DF.seq[DF.k]].push(i); DF.k++; }
+  function dfCpu() { var i = dfBest(DF.k); if (i < 0) { DF.k = 4 * dfN(); return; } DF.ros[DF.seq[DF.k]].push(i); DF.k++; }
   function dfTake(i) { clearInterval(DF.timer); DF.ros[CH.me].push(i); DF.last = { t: CH.me, i: i }; DF.k++; dfBoard(); }
   function dfBoard() {                                              // the draft room: one pick at a time, the CPU a second apart, a 30-second clock on yours
     var el = dfEl(); clearInterval(DF.timer);
-    if (DF.k >= 24) { dfRecap(false); return; }
-    var t = DF.seq[DF.k], rd = Math.floor(DF.k / 6) + 1, mine = t === CH.me, me = DF.ros[CH.me];
-    var pool = DR.filter(function (p) { return p.tier === rd; });
+    if (DF.k >= 4 * dfN()) { dfRecap(false); return; }
+    var t = DF.seq[DF.k], rd = Math.floor(DF.k / dfN()) + 1, mine = t === CH.me, me = DF.ros[CH.me];
+    var pool = DRp().filter(function (p) { return p.tier === rd; });
     var bar = function (l, v) { return '<span class="df-bar"><i>' + l + '</i><s style="width:' + Math.round((v - 50) * 2) + '%"></s><b>' + v + '</b></span>'; };
     el.innerHTML = '<div class="df-in df-room"><div class="df-tag">League Draft \u00b7 Round ' + rd + ' of 4</div>' +
-      '<div class="df-clock' + (mine ? ' df-you' : '') + '">' + chLogo(t) + '<span><i>Pick ' + (DF.k + 1) + ' of 24 \u00b7 On the clock</i><b>' + esc(ROSTER[t].name) + (mine ? ' (You)' : '') + '</b></span>' + (mine ? '<em id="dfSec">30</em>' : '') + '</div>' +
+      '<div class="df-clock' + (mine ? ' df-you' : '') + '">' + chLogo(t) + '<span><i>Pick ' + (DF.k + 1) + ' of ' + 4 * dfN() + ' \u00b7 On the clock</i><b>' + esc(ROSTER[t].name) + (mine ? ' (You)' : '') + '</b></span>' + (mine ? '<em id="dfSec">30</em>' : '') + '</div>' +
       (DF.last ? '<p class="df-last">' + esc(ROSTER[DF.last.t].name) + ' select <b>#' + DR[DF.last.i].num + ' ' + esc(DR[DF.last.i].name) + '</b> (' + (DR[DF.last.i].pos === 'F' ? 'Front' : 'Back') + ')</p>' : '<p class="df-last">Round 1 opens with Tier 1 Elite</p>') +
       '<h4 style="color:' + DTC[rd] + '">Tier ' + rd + ' \u00b7 ' + DT[rd] + '</h4><div class="df-pool">' +
       pool.map(function (p) { var gone = dfTaken(p.i), ok = !gone && dfCan(DF.k, p.pos), who = ''; for (var tt in DF.ros) if (DF.ros[tt].indexOf(p.i) >= 0) who = ROSTER[tt].name;
@@ -2808,6 +2886,17 @@ window.FLFeedback = (function () {
       '#dfBox .df-go{display:flex;gap:8px}#dfBox .df-go button{flex:1 1 0;min-height:46px;border-radius:12px;border:2px solid #de0a7b;background:#de0a7b;color:#fff;font:800 14px/1.05 ' + F + ';letter-spacing:.06em;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}' +
       '#dfBox .df-go button small{font:700 10px/1 ' + F + ';letter-spacing:.08em;color:' + P + '}#dfBox .df-go button.df-alt{background:transparent;border-color:' + A + '}#dfBox .df-go button:disabled{opacity:.6;cursor:default}#dfBox button:focus-visible{outline:3px solid #fff;outline-offset:2px}' +
       '@media (orientation:landscape) and (max-height:560px){#dfBox .df-in{width:min(100%,760px)}#dfBox .df-pool,#dfBox .df-rec{grid-template-columns:repeat(3,1fr)}}';
+    st.textContent += '#exBox{position:fixed;inset:0;z-index:2147482300;background:rgba(4,5,10,.94);display:flex;align-items:center;justify-content:center;padding:8px;font-family:' + F + ';color:#f2efe6}#exBox[hidden]{display:none}' +
+      '#exBox .df-in{width:min(100%,440px);max-height:100%;overflow:auto;box-sizing:border-box;background:#0a0c12;border:2px solid ' + A + ';border-radius:16px;padding:14px 12px;display:flex;flex-direction:column;gap:10px}#exBox .df-tag{text-align:center;font:700 10.5px/1 ' + F + ';letter-spacing:.16em;text-transform:uppercase;color:' + A + '}#exBox h3{margin:0;text-align:center;font:900 20px/1.1 var(--display,' + F + ');letter-spacing:.06em;text-transform:uppercase;color:' + P + '}' +
+      '#exBox .ex-l{display:flex;flex-direction:column;gap:5px;font:700 10.5px/1 ' + F + ';letter-spacing:.14em;text-transform:uppercase;color:#a9adba}#exBox input:not([type]),#exBox textarea{font:600 16px/1.3 ' + F + ';color:#fff;background:#121627;border:1.5px solid #2b3352;border-radius:10px;padding:10px 11px;letter-spacing:0;text-transform:none;resize:none;box-sizing:border-box;width:100%}' +
+      '#exBox .ex-cols{display:flex;gap:10px}#exBox .ex-cols label{flex:1;display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:10px;background:#121627;border:1.5px solid #2b3352;font:700 12px/1 ' + F + ';color:#f2efe6;letter-spacing:.02em;text-transform:none}#exBox input[type=color]{width:34px;height:30px;border:0;padding:0;background:none}' +
+      '#exBox .ex-tabs{display:flex;gap:8px}#exBox .ex-tabs button{flex:1;min-height:40px;border-radius:999px;border:1.5px solid ' + A + ';background:transparent;color:#f2efe6;font:800 12.5px/1 ' + F + ';letter-spacing:.06em;text-transform:uppercase}#exBox .ex-tabs button[aria-pressed="true"]{background:' + A + ';color:#0b0c0f}' +
+      '#exBox .ex-desc{display:flex;flex-direction:column;gap:6px}#exBox .ex-mk{min-height:40px;border-radius:10px;border:1.5px solid ' + P + ';background:transparent;color:#fff;font:800 13px/1 ' + F + ';letter-spacing:.06em;text-transform:uppercase}#exBox .ex-up input{font:600 13px/1.2 ' + F + ';color:#f2efe6}' +
+      '#exBox .ex-prev{display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;background:#10131d;border:1px solid #232a44}#exBox .ex-logo{width:84px;height:84px;flex:none;border-radius:12px;border:1.5px dashed #3a4160;display:flex;align-items:center;justify-content:center;overflow:hidden}#exBox .ex-logo img{width:100%;height:100%;object-fit:contain}#exBox .ex-logo i{font:600 10px/1.2 ' + F + ';font-style:normal;color:#6f7380;text-align:center}' +
+      '#exBox .ex-pn{display:flex;flex-direction:column;gap:4px;min-width:0}#exBox .ex-pn b{font:900 18px/1.1 ' + F + ';letter-spacing:.04em;text-transform:uppercase;overflow-wrap:anywhere}#exBox .ex-pn i{font:700 10px/1 ' + F + ';font-style:normal;letter-spacing:.14em;text-transform:uppercase;color:#a9adba}' +
+      '#exBox .ex-msg{margin:0;min-height:1em;text-align:center;font:600 12px/1.3 ' + F + ';color:#ffb3d1}#exBox .ex-rm{align-self:center;background:none;border:0;color:#a9adba;font:600 12px/1 ' + F + ';text-decoration:underline;padding:6px}' +
+      '#exBox .df-go{display:flex;gap:8px}#exBox .df-go button{flex:1 1 0;min-height:46px;border-radius:12px;border:2px solid #de0a7b;background:#de0a7b;color:#fff;font:800 14px/1.05 ' + F + ';letter-spacing:.06em;text-transform:uppercase}#exBox .df-go button.df-alt{background:transparent;border-color:' + A + '}#exBox .df-note{margin:0;text-align:center;font:500 11px/1.35 ' + F + ';color:#a9adba}#exBox button:focus-visible{outline:3px solid #fff;outline-offset:2px}' +
+      '#wiz .ch-exp{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;margin-top:10px;min-height:52px;padding:8px}#wiz .ch-exp small{font:700 10px/1 var(--body);letter-spacing:.08em}#wiz .ch-exp[hidden]{display:none}#chBoard .cw-crest{position:absolute;left:50%;top:58%;width:62%;transform:translate(-50%,-50%)}';
     document.head.appendChild(st);
   }
   function chStart() {                                              // play your next match: the level steps up each round
@@ -2826,10 +2915,11 @@ window.FLFeedback = (function () {
   function chPaint() {                                              // the page where the club is picked: the bracket follows the pick
     var s = $('chTeam'); if (!s) return;
     var hh = $('wz7').querySelector('.wz-h'); hh.lastChild.textContent = CH.g === 'world' ? 'World Cup Championships' : 'Fantasy League Championship';
-    s.innerHTML = '<option value="">Pick Your Team</option>' + groupList(CH.g).map(function (k) { return '<option value="' + k + '">' + esc(chName(k)) + '</option>'; }).join('');
+    s.innerHTML = '<option value="">Pick Your Team</option>' + chTeams().map(function (k) { return '<option value="' + k + '">' + esc(chName(k)) + '</option>'; }).join('');
     s.value = CH.me >= 0 ? String(CH.me) : '';
     var curV = cfg.table ? 'table' : view;
     $('chView').innerHTML = [['aerial', 'Professional'], ['side', 'Amateur'], ['table', 'Cocktail Table'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', 'Vintage']].filter(function (m) { return m[0] === 'table' || viewOK(m[0]); }).map(function (m) { return '<option value="' + m[0] + '"' + (m[0] === curV ? ' selected' : '') + '>' + m[1] + '</option>'; }).join('');
+    var xb = $('chExp'); xb.hidden = CH.g !== 'league'; xb.innerHTML = EXI >= 0 ? 'Edit Expansion Team<small>' + esc(ROSTER[EXI].name) + '</small>' : 'Buy an Expansion Team<small>Add a 7th club</small>';
     var dd = $('chDraft'), sv = dfLoad(); dd.hidden = CH.g !== 'league';
     dd.innerHTML = '<option value="live">Live Draft \u00b7 You Pick Your Roster</option><option value="skip">Skip Draft \u00b7 CPU Picks All Rosters</option>' + (sv ? '<option value="saved">My Saved Team \u00b7 ' + esc(ROSTER[sv.me] ? ROSTER[sv.me].name : '') + ' (' + esc(sv.at || '') + ')</option>' : '');
     $('chBr').innerHTML = CH.me >= 0 ? chBracket() : '';
