@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126211432";
+window.FL_BUILD = "20261126212756";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2928,7 +2928,7 @@ window.FLFeedback = (function () {
       '<div class="av-ctl">' +
       '<div class="av-l">Player</div>' + pair('g', [['m', 'male'], ['f', 'female']], 'Player') +
       '<div class="av-l">Uniform Color</div><div class="av-cols"><label><input type="color" id="avShirt" value="' + AV.shirt + '">shirt</label><label><input type="color" id="avShorts" value="' + AV.shorts + '">shorts</label><label><input type="color" id="avBelt" value="' + AV.belt + '">belt</label><label><input type="color" id="avCesta" value="' + AV.cesta + '">cesta</label><label class="av-mo"><input type="color" id="avSlc" value="' + AV.slc + '">sleeves</label><label class="av-mo"><input type="color" id="avLgc" value="' + AV.lgc + '">leggings</label></div>' +
-      '<div class="av-mo"><div class="av-l">Sleeves &amp; Leggings</div><div class="av-row" role="group" aria-label="Arm sleeves and leggings">' + tog('slv', 'arm sleeves') + tog('leg', 'leggings') + '</div></div>' +
+      '<div class="av-mo"><div class="av-row" role="group" aria-label="Arm sleeves and leggings">' + tog('slv', 'arm sleeves') + tog('leg', 'leggings') + '</div></div>' +
       '<div class="av-l">Top</div>' + pair('top', [['tank', 'tank top'], ['shirt', 'shirt']], 'Top') +
       '<div class="av-l">Shorts</div><div class="av-row"><button type="button" aria-pressed="true" disabled>standard</button></div>' +
       '<div class="av-l">Body Style</div><div class="av-bm">' + chips('bm', AV_BDM, 'Body style') + '</div><div class="av-bf">' + chips('bf', AV_BD, 'Body style') + '</div>' +
