@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126093219";
+window.FL_BUILD = "20261126094638";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -651,6 +651,44 @@ body.wiz #setup { padding-top: 0; }
 #wiz .wz-court.wz-court-top { margin: 0 0 9px; }
 #wiz .wz-court.wz-court-top > div { display: flex; flex-direction: column-reverse; }
 #wiz .wz-court.wz-court-top span { margin: 4px 0 0; }
+#wiz .wz-cup { flex: none; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; font-size: 34px; line-height: 1; }
+#chBr { margin-top: 12px; }
+.ch-empty { margin: 18px 6px; text-align: center; font: 500 14px/1.45 var(--body, system-ui, sans-serif); color: #c8cad0; }
+.cb { display: grid; grid-template-columns: 1.08fr 1.08fr 1fr; gap: 6px; align-items: center; }
+.cb-c { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.cb-c h4 { margin: 0 0 1px; text-align: center; font: 700 9.5px/1 var(--body, system-ui, sans-serif); letter-spacing: .1em; text-transform: uppercase; color: #1fe0d6; }
+.cb-m { border: 1px solid #23505a; border-radius: 9px; background: #0e1116; padding: 3px 4px 4px; min-width: 0; }
+.cb-m > i { display: block; font: 600 8px/1.3 var(--body, system-ui, sans-serif); font-style: normal; letter-spacing: .12em; text-transform: uppercase; color: #8d909a; }
+.cb-m.cb-bye { border-style: dashed; opacity: .85; }
+.cb-t { display: flex; align-items: center; gap: 4px; min-height: 22px; padding: 0 3px; border-radius: 5px; font: 700 10.5px/1.05 var(--body, system-ui, sans-serif); color: #f2efe6; min-width: 0; }
+.cb-t img { width: 17px; height: 17px; object-fit: contain; flex: none; }
+.cb-t span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cb-t b { margin-left: auto; font-weight: 900; padding-left: 3px; }
+.cb-t.cb-me { background: #3a0b24; box-shadow: inset 2px 0 0 #ff2d95; }
+.cb-t.cb-l { opacity: .5; }
+.cb-t.cb-w span, .cb-t.cb-w b { color: #1fe0d6; }
+.cb-t .cb-tbd { color: #6f7380; font-weight: 600; font-style: italic; }
+.cb-ch { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 2px; border-radius: 10px; border: 1px dashed #5a4a1e; text-align: center; font: 800 10.5px/1.1 var(--body, system-ui, sans-serif); color: #c9a55c; }
+.cb-ch span { font-size: 26px; line-height: 1; } .cb-ch img { width: 30px; height: 30px; object-fit: contain; }
+.cb-ch.on { border-style: solid; border-color: #c9a55c; background: #1c1608; color: #f2e3b3; }
+#chBoard { position: fixed; inset: 0; z-index: 2147482000; background: rgba(4, 5, 10, .9); display: flex; align-items: center; justify-content: center; padding: 10px; font-family: var(--body, system-ui, sans-serif); color: #f2efe6; }
+#chBoard[hidden] { display: none; }
+#chBoard .ch-in { width: min(100%, 470px); max-height: 100%; overflow: auto; -webkit-overflow-scrolling: touch; box-sizing: border-box; background: #0a0c12; border: 2px solid #1fe0d6; border-radius: 16px; padding: 12px 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+#chBoard .ch-tag { text-align: center; font: 700 10.5px/1 var(--body, system-ui, sans-serif); letter-spacing: .16em; text-transform: uppercase; color: #1fe0d6; }
+#chBoard h3 { margin: 0; text-align: center; font: 900 22px/1 var(--display, system-ui, sans-serif); letter-spacing: .08em; text-transform: uppercase; color: #ff2d95; }
+#chBoard p { margin: 0; text-align: center; font: 600 13px/1.3 var(--body, system-ui, sans-serif); color: #e6e7ec; }
+#chBoard .ch-go { display: flex; gap: 8px; }
+#chBoard .ch-go button { flex: 1 1 0; min-height: 46px; border-radius: 12px; border: 2px solid #de0a7b; background: #de0a7b; color: #fff; font: 800 14px/1 var(--body, system-ui, sans-serif); letter-spacing: .06em; text-transform: uppercase; cursor: pointer; }
+#chBoard .ch-go button + button { background: transparent; border-color: #1fe0d6; }
+#chBoard button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+#chBoard .cw { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+#chBoard .cw-pic { position: relative; width: min(62%, 230px); aspect-ratio: 760 / 1000; border-radius: 14px; border: 2px solid #c9a55c; background: #000 center top / cover no-repeat; overflow: hidden; }
+#chBoard .cw-cup { position: absolute; left: 50%; top: 4px; transform: translateX(-50%); font-size: 54px; line-height: 1; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .7)); animation: cwCup 1.6s ease-in-out infinite alternate; }
+#chBoard .cw-conf { position: absolute; inset: 0; background-image: radial-gradient(circle, #ff2d95 0 2px, transparent 3px), radial-gradient(circle, #1fe0d6 0 2px, transparent 3px), radial-gradient(circle, #f2d21f 0 2px, transparent 3px); background-size: 47px 61px, 59px 53px, 71px 67px; background-position: 0 0, 20px 30px, 40px 10px; animation: cwConf 3s linear infinite; opacity: .85; }
+@keyframes cwCup { from { transform: translateX(-50%) translateY(0) rotate(-5deg); } to { transform: translateX(-50%) translateY(6px) rotate(5deg); } }
+@keyframes cwConf { to { background-position: 0 183px, 20px 189px, 40px 211px; } }
+@media (prefers-reduced-motion: reduce) { #chBoard .cw-cup, #chBoard .cw-conf { animation: none; } }
+@media (orientation: landscape) and (max-height: 560px) { #chBoard .ch-in { width: min(100%, 720px); } #chBoard .cw { flex-direction: row; justify-content: center; } #chBoard .cw-pic { width: 90px; } }
 #wiz .wz-only { margin: 0 0 5px; text-align: center; font: 600 10.5px/1.2 var(--body, system-ui, sans-serif); letter-spacing: .1em; text-transform: uppercase; color: #a9adba; }
 #wiz .wz-selfie { display: block; margin-top: 12px; border: 1.5px solid #1fe0d6; border-radius: 14px; padding: 12px; background: #121318; color: #f2efe6; font: 600 12.5px/1.4 var(--display); letter-spacing: .1em; text-transform: uppercase; text-align: center; cursor: pointer; position: relative; }
 #wiz .wz-selfie .face-prev { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 50%; background-size: cover; background-position: center; display: none; }
@@ -2293,6 +2331,7 @@ window.FLFeedback = (function () {
         '<button type="button" class="wz-next" data-wz="next">Next</button></section>' +
       '<section class="wz-step" id="wz3" hidden>' + wzTop(3, 'Choose Where to Play') + '<div class="wz-tiles">' +
         '<button type="button" class="wz-tile" data-wz="league"><img src="brand.png" alt=""><span><b>League Play</b><i>Six Club Teams</i></span></button>' +
+        '<button type="button" class="wz-tile" data-wz="champ"><span class="wz-cup" aria-hidden="true">\ud83c\udfc6</span><span><b>Fantasy League Championship</b><i>Win Three to Lift the Trophy</i></span></button>' +
         '<button type="button" class="wz-tile" data-wz="world"><img src="usa-crest.png" alt=""><span><b>World Cup Play</b><i>Six National Teams</i></span></button>' +
         '<button type="button" class="wz-tile" data-wz="dania"><img src="db-crest.png" alt="" style="border-radius:50%"><span><b>Dania Invitational</b><i>5th Annual Dania Beach &middot; 22 Man Roster</i></span></button>' +
         '<button type="button" class="wz-tile" data-wz="allstar">' + wzStar('#e11d2e', '#ff5a66', 'usa-crest.png') + '<span><b>All Star Players</b><i>Past &amp; Present All Star Roster</i></span></button>' +
@@ -2306,6 +2345,12 @@ window.FLFeedback = (function () {
         '<div class="wz-lab">Select View or Era</div><select class="wz-sel wz-wide" id="wzView" aria-label="Select view or era"></select>' +
         '<div class="wz-play"><button type="button" class="wz-go" data-wz="play">Play Free Now<small>With Ads</small></button><button type="button" class="wz-go alt" data-wz="play">Play Ad Free Now<small>$0.99 per month</small></button></div>' +
         '<p class="wz-msg" id="wzMsg" role="status"></p>' +
+      '</section>' +
+      '<section class="wz-step" id="wz7" hidden>' + wzTop(4, 'Fantasy League Championship') +
+        '<div class="wz-sels"><select class="wz-sel" id="chTeam" aria-label="Your team"></select><select class="wz-sel" id="chView" aria-label="Select view or era"></select></div>' +
+        '<div id="chBr"></div>' +
+        '<div class="wz-play"><button type="button" class="wz-go" data-wz="ch-play">Play Free Now<small>With Ads</small></button><button type="button" class="wz-go alt" data-wz="ch-play">Play Ad Free Now<small>$0.99 per month</small></button></div>' +
+        '<p class="wz-msg" id="chMsg" role="status"></p>' +
       '</section>' +
       '<section class="wz-step" id="wz5" hidden>' + wzTop(4, '<span class="ho">Hoots</span> vs <span class="pk">Peaks</span>') +
         '<div class="wz-door"><img src="hvp-door.jpg?v=2" alt="A Hoots player and a Peaks player face off, each with a cesta"></div>' +
@@ -2343,6 +2388,7 @@ window.FLFeedback = (function () {
     var fc = $('faceClear'); fc.classList.add('wz-clear'); $('wzSelfie').parentNode.insertBefore(fc, $('wzSelfie').nextSibling);
     if ($('online')) $('wzOnline').appendChild($('online'));
     $('wzView').addEventListener('change', function () { changeView(this.value); });
+    $('chTeam').addEventListener('change', function () { if (this.value === '') { CH.me = -1; CH.m = null; } else chDraw(+this.value); chPaint(); });
     wzDialogs();
     if ($('fbLink')) { $('fbLink').className = 'wz-link'; $('wzLinks').insertBefore($('fbLink'), $('wzLinks').firstChild); }
     $('whatToggle').addEventListener('click', function () { var o = $('whatBox').hidden; $('whatBox').hidden = !o; this.textContent = 'What is Jai Alai ' + (o ? '\u2212' : '+'); this.setAttribute('aria-expanded', String(o)); });
@@ -2413,7 +2459,8 @@ window.FLFeedback = (function () {
   function wzShow(n) {
     if (!WZ) return;
     WZ.step = n;
-    for (var i = 1; i <= 6; i++) $('wz' + i).hidden = i !== n;
+    for (var i = 1; i <= 7; i++) $('wz' + i).hidden = i !== n;
+    if (n === 7) chPaint();
     if (n === 4 && !picked[0] && !picked[1]) { $('wzMsg').textContent = ''; }
     elSetup.scrollTop = 0; try { window.scrollTo(0, 0); } catch (e) { /* ignore */ }
     wzPaint();
@@ -2495,7 +2542,7 @@ window.FLFeedback = (function () {
       try { window.open(su + (su.indexOf('?') < 0 ? '?' : '&') + 'client_reference_id=' + encodeURIComponent(String(WZ.skin).replace(/[^A-Za-z0-9]/g, '_') + (WZ.ref ? '_' + WZ.ref : '')), '_blank', 'noopener'); } catch (e) { location.href = su; }
       $('wzTerms').hidden = true; return true;
     }
-    if (a === 'back') { if (WZ.step === 5 || WZ.step === 6) { wzShow(3); return true; } if (WZ.step === 1) { try { location.reload(); } catch (e) { /* ignore */ } } else wzShow(WZ.step - 1); return true; }
+    if (a === 'back') { if (WZ.step === 5 || WZ.step === 6 || WZ.step === 7) { wzShow(3); return true; } if (WZ.step === 1) { try { location.reload(); } catch (e) { /* ignore */ } } else wzShow(WZ.step - 1); return true; }
     if (a.indexOf('court-') === 0) {                              // doubles: who plays your front court and your back court
       var ci = a.charAt(6) === 'f' ? 0 : 1; cfg.seats[ci] = +a.charAt(8);
       if (!cfg.seats[0] && !cfg.seats[1]) cfg.seats[1 - ci] = 1;   // you always play at least one of them
@@ -2505,7 +2552,9 @@ window.FLFeedback = (function () {
     if (a === 'p2cpu') { WZ.p2 = 'cpu'; if (net.role) netLeave(); wzPaint(); return true; }
     if (a === 'p2online') { WZ.p2 = 'online'; renderOnline(); wzPaint(); return true; }
     if (a === 'lang-en' || a === 'lang-es') { cfg.lang = a === 'lang-en' ? 'en' : 'es'; save(); wzPaint(); return true; }
-    if (a === 'league' || a === 'world') { setComp(a); picked = [false, false]; wzShow(4); return true; }
+    if (a === 'league' || a === 'world') { CH.on = false; WZ.champ = false; if (CH.m) { cfg.level = 'normal'; cfg.pace = 'standard'; } setComp(a); picked = [false, false]; wzShow(4); return true; }
+    if (a === 'champ') { WZ.champ = true; setComp('league'); wzShow(7); return true; }
+    if (a === 'ch-play') { if (CH.me < 0) { $('chMsg').textContent = 'Pick your team.'; return true; } var cv = $('chView').value; if (cv === 'table') cfg.table = true; else { cfg.table = false; setView(cv); cfg.view = view; } if (!CH.m) chDraw(CH.me); CH.round = 0; CH.out = false; CH.champ = false; chStart(); return true; }
     if (a === 'hvp') { WZ.hvp = true; hvpAsk(); return true; }
     if (a === 'dania') { if (window.FL_NAV) window.FL_NAV('dania' + (cfg.singles ? 'S' : 'D') + (cfg.seats[0] ? 1 : 0) + (cfg.seats[1] ? 1 : 0)); return true; }
     if (a === 'celeb' || a === 'allstar') { if (window.FL_NAV) window.FL_NAV(a); else window.open(a === 'celeb' ? CELEB_URL : ALLSTAR_URL, '_blank'); return true; }
@@ -2517,7 +2566,84 @@ window.FLFeedback = (function () {
     return false;
   }
   function wzHvpGo() { if (WZ) { WZ.hvp = false; wzShow(5); } }   // Hoots vs Peaks from the step menu: straight into the match
-  function wzHome() { if (WZ) wzShow(cfg.comp === 'hvp' ? 5 : 4); }   // back from a match (Menu, New match, Change setup): the page they started it from
+  /* ---------- Fantasy League Championship: pick a club and win three in a row (Quarterfinal on Easy, Semifinal on Normal, Championship on Hard).
+     Six clubs, so two start with a bye; your club never does. The bracket shows after every match: a screenshot of it is the road to the final. ---------- */
+  var CH = { on: false, me: -1, t: [], m: null, round: 0, out: false, champ: false, busy: false };
+  var CH_RND = ['Quarterfinal', 'Semifinal', 'Championship'], CH_LVL = [['easy', 'relaxed', 'Easy'], ['normal', 'standard', 'Normal'], ['hard', 'pro', 'Hard']];
+  function chDraw(me) {                                             // your club meets a random club first; two of the others wait in the semifinals
+    var rest = [0, 1, 2, 3, 4, 5].filter(function (k) { return k !== me; }), i, j, x;
+    for (i = rest.length - 1; i > 0; i--) { j = Math.floor(Math.random() * (i + 1)); x = rest[i]; rest[i] = rest[j]; rest[j] = x; }
+    CH.me = me; CH.t = [me].concat(rest); CH.round = 0; CH.out = false; CH.champ = false;
+    CH.m = { q1: { a: me, b: rest[0] }, q2: { a: rest[2], b: rest[3] }, s1: { a: null, b: rest[1] }, s2: { a: null, b: rest[4] }, f: { a: null, b: null } };
+  }
+  function chSim(m) { var w = Math.random() < 0.5, lo = 2 + Math.floor(Math.random() * Math.max(1, cfg.target - 2)); m.sa = w ? cfg.target : lo; m.sb = w ? lo : cfg.target; m.w = w ? m.a : m.b; }   // a match you are not in
+  function chOpp() { var M = CH.m; return CH.round === 0 ? M.q1.b : CH.round === 1 ? M.s1.b : M.f.b; }
+  function chAfter() {                                              // fill in the rest of the round you just played, so the bracket is always whole
+    var M = CH.m;
+    if (M.q2.w == null) chSim(M.q2);
+    M.s1.a = M.q1.w; M.s2.a = M.q2.w;
+    if (CH.round >= 1 || CH.out) { if (M.s1.w == null) chSim(M.s1); if (M.s2.w == null) chSim(M.s2); M.f.a = M.s1.w; M.f.b = M.s2.w; }
+    if (CH.out && M.f.w == null) chSim(M.f);
+  }
+  function chOver(won, sc) {                                        // your match ended
+    if (!CH.on || CH.busy) return;
+    CH.busy = true;
+    var M = CH.m, m = CH.round === 0 ? M.q1 : CH.round === 1 ? M.s1 : M.f;
+    m.sa = sc[0]; m.sb = sc[1]; m.w = won ? m.a : m.b;
+    if (!won) CH.out = true;
+    chAfter();
+    if (won && CH.round === 2) CH.champ = true;
+    track('champ', (CH.champ ? 'won' : CH.out ? 'out' : 'advance') + '.' + CH.round);
+    setTimeout(function () { chBoard(); }, 2400);                  // the winning call is seen first
+  }
+  function chLogo(k) { var r = ROSTER[k]; return '<img src="' + r.logo + '" alt="">'; }
+  function chBracket() {
+    var M = CH.m, nm = function (k) { return k == null ? '<span class="cb-tbd">To be decided</span>' : chLogo(k) + '<span>' + esc(ROSTER[k].name) + '</span>'; };
+    var row = function (m, side) { var k = side ? m.b : m.a, s = side ? m.sb : m.sa, done = m.w != null;
+      return '<div class="cb-t' + (k === CH.me ? ' cb-me' : '') + (done && m.w === k ? ' cb-w' : done ? ' cb-l' : '') + '">' + nm(k) + (done ? '<b>' + s + '</b>' : '') + '</div>'; };
+    var box = function (m, lab) { return '<div class="cb-m"><i>' + lab + '</i>' + row(m, 0) + row(m, 1) + '</div>'; };
+    var bye = function (k) { return '<div class="cb-m cb-bye"><i>Bye</i><div class="cb-t">' + nm(k) + '</div></div>'; };
+    var cw = M.f.w;
+    return '<div class="cb" role="img" aria-label="Championship bracket"><div class="cb-c"><h4>Quarterfinals</h4>' + box(M.q1, 'Game 1') + bye(M.s1.b) + box(M.q2, 'Game 2') + bye(M.s2.b) + '</div>' +
+      '<div class="cb-c"><h4>Semifinals</h4>' + box(M.s1, 'Game 3') + box(M.s2, 'Game 4') + '</div>' +
+      '<div class="cb-c"><h4>Championship</h4>' + box(M.f, 'Final') + '<div class="cb-ch' + (cw != null ? ' on' : '') + '"><span aria-hidden="true">\ud83c\udfc6</span>' + (cw != null ? chLogo(cw) + '<b>' + esc(ROSTER[cw].name) + '</b>' : '<b>Champion</b>') + '</div></div></div>';
+  }
+  function chBoard() {
+    var el = $('chBoard');
+    if (!el) { el = document.createElement('div'); el.id = 'chBoard'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', 'Fantasy League Championship bracket'); document.body.appendChild(el);
+      el.addEventListener('click', function (e) { var b = e.target.closest('button[data-ch]'); if (b) chNext(b.getAttribute('data-ch')); }); }
+    var me = ROSTER[CH.me], who = whoOf(0) === 'women' ? 'w' : 'm', pic = POSTERS[CH.me + who] || POSTERS[CH.me + 'm'], head, go;
+    if (CH.champ) { head = '<div class="cw"><div class="cw-pic" style="background-image:url(' + pic + ')"><span class="cw-cup" aria-hidden="true">\ud83c\udfc6</span><span class="cw-conf" aria-hidden="true"></span></div><h3>Champions!</h3><p>' + esc(me.name) + ' win the Fantasy League Championship</p></div>';
+      go = '<button type="button" data-ch="again">Play Again</button><button type="button" data-ch="menu">Menu</button>'; }
+    else if (CH.out) { head = '<h3>Eliminated</h3><p>' + esc(me.name) + ' go out in the ' + CH_RND[CH.round] + '. ' + esc(ROSTER[CH.m.f.w].name) + ' win the title.</p>';
+      go = '<button type="button" data-ch="again">Try Again</button><button type="button" data-ch="menu">Menu</button>'; }
+    else { head = '<h3>You Advance!</h3><p>Next: ' + CH_RND[CH.round + 1] + ' vs ' + esc(ROSTER[CH.round === 0 ? CH.m.s1.b : CH.m.f.b].name) + ' \u00b7 ' + CH_LVL[CH.round + 1][2] + '</p>';
+      go = '<button type="button" data-ch="next">Play ' + CH_RND[CH.round + 1] + '</button>'; }
+    el.innerHTML = '<div class="ch-in"><div class="ch-tag">Fantasy League Championship</div>' + head + chBracket() + '<div class="ch-go">' + go + '</div></div>';
+    el.hidden = false; try { el.querySelector('button').focus(); } catch (e) { /* ignore */ }
+  }
+  function chStart() {                                              // play your next match: the level steps up each round
+    var L = CH_LVL[CH.round];
+    cfg.comp = 'league'; cfg.pick = [CH.me, chOpp()]; picked = [true, true]; cfg.level = L[0]; cfg.pace = L[1]; CH.on = true; CH.busy = false;
+    applyTeams(); posterGo();
+  }
+  function chNext(what) {
+    var el = $('chBoard'); if (el) el.hidden = true;
+    if (window.Table && window.Table.isOpen()) window.Table.close();
+    if (what === 'menu') { CH.on = false; CH.busy = false; startDemo(); wzShow(7); return; }
+    if (what === 'again') chDraw(CH.me); else CH.round++;
+    startDemo(); chStart();
+  }
+  function chPaint() {                                              // the page where the club is picked: the bracket follows the pick
+    var s = $('chTeam'); if (!s) return;
+    if (!s.options.length) s.innerHTML = '<option value="">Pick Your Team</option>' + [0, 1, 2, 3, 4, 5].map(function (k) { return '<option value="' + k + '">' + esc(ROSTER[k].name) + '</option>'; }).join('');
+    s.value = CH.me >= 0 ? String(CH.me) : '';
+    var curV = cfg.table ? 'table' : view;
+    $('chView').innerHTML = [['aerial', 'Professional'], ['side', 'Amateur'], ['table', 'Cocktail Table'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', 'Vintage']].filter(function (m) { return m[0] === 'table' || viewOK(m[0]); }).map(function (m) { return '<option value="' + m[0] + '"' + (m[0] === curV ? ' selected' : '') + '>' + m[1] + '</option>'; }).join('');
+    $('chBr').innerHTML = CH.me >= 0 ? chBracket() : '<p class="ch-empty">Pick your team to draw the bracket. Win three in a row: Quarterfinal on Easy, Semifinal on Normal, Championship on Hard.</p>';
+    $('chMsg').textContent = '';
+  }
+  function wzHome() { if (WZ) wzShow(cfg.comp === 'hvp' ? 5 : WZ.champ ? 7 : 4); }   // back from a match (Menu, New match, Change setup): the page they started it from
   wzInit();
   if (WZ && window.FL_GOSTEP) setTimeout(function () { wzShow(3); }, 0);   // back from Celebrity or All Star: land on Choose Where to Play
   elSetup.addEventListener('click', function (e) {
@@ -2982,6 +3108,7 @@ window.FLFeedback = (function () {
     track('start', (cfg.singles ? 'singles' : 'doubles') + '.' + cfg.comp + '.table');
     window.Table.open({ teams: tm, singles: !!cfg.singles, target: cfg.target, level: cfg.level, pace: PACE[cfg.pace] || 0.88, rebHold: rebHold(), aimK: aimK(), sound: !!cfg.sound, names: shotNames(), score: score || null, intro: false, ads: window.FL_ADS ? adEvery() : 0, hooks: {
       point: function (w) { pmPoint(w); },
+      win: function (w, sc) { chOver(w === 0, sc); },
       menu: function () { PM.on = false; window.Table.close(); startDemo(); wzHome(); },
       mode: function (sc) { window.Table.close(); cfg.table = false; var nx = PROMO ? (PROMO.dania ? 'aerial' : 'side') : viewOK('vintage') ? 'vintage' : 'aerial'; setView(nx); cfg.view = view; save(); startMatch(sc || undefined); },   // on to the next mode, same match
       music: window.FL_MUSIC ? function () { musToggle(); } : null, musicOn: function () { return !!spLive; } } });
@@ -4770,7 +4897,7 @@ window.FLFeedback = (function () {
         var sl = $('sideLab'); if (sl && who >= 0) { sl.textContent = game.cfg.singles ? 'Singles' : who % 2 ? 'Back Court' : 'Front Court'; sl.classList.toggle('live', hd === who); }
       }
       var over = game.phase === 'over';
-      if (over !== wasOver) { wasOver = over; show(); }
+      if (over !== wasOver) { wasOver = over; show(); if (over && CH.on && mode === 'match') chOver(game.winner === 0, game.score.slice()); }
     }
     draw();
   }
@@ -5418,6 +5545,7 @@ window.Table = (function () {
         fx.texts = []; if (CALLS[game.msg.ev]) say(CALLS[game.msg.ev], '#f2efe6', W / 2, L.cy + L.ch * 0.4, true); say('POINT ' + O.teams[w].n.toUpperCase(), O.teams[w].c1, W / 2, L.cy + L.ch * 0.4 + W * 0.11, true);
         confetti(W / 2, L.cy + L.ch * 0.45, ev === 'win' ? 120 : 26, [O.teams[w].c1, O.teams[w].c2, '#fff']);
         if (O.hooks && O.hooks.point) O.hooks.point(w);
+        if (ev === 'win' && O.hooks && O.hooks.win) O.hooks.win(w, game.score.slice());
         if (ev === 'win') mode = 'over'; else if (O.ads > 0 && (game.score[0] + game.score[1]) % O.ads === 0) adv.due = true; }
     });
     game.events.length = 0;

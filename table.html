@@ -647,6 +647,7 @@ window.Table = (function () {
         fx.texts = []; if (CALLS[game.msg.ev]) say(CALLS[game.msg.ev], '#f2efe6', W / 2, L.cy + L.ch * 0.4, true); say('POINT ' + O.teams[w].n.toUpperCase(), O.teams[w].c1, W / 2, L.cy + L.ch * 0.4 + W * 0.11, true);
         confetti(W / 2, L.cy + L.ch * 0.45, ev === 'win' ? 120 : 26, [O.teams[w].c1, O.teams[w].c2, '#fff']);
         if (O.hooks && O.hooks.point) O.hooks.point(w);
+        if (ev === 'win' && O.hooks && O.hooks.win) O.hooks.win(w, game.score.slice());
         if (ev === 'win') mode = 'over'; else if (O.ads > 0 && (game.score[0] + game.score[1]) % O.ads === 0) adv.due = true; }
     });
     game.events.length = 0;
