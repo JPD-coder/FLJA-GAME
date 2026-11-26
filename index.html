@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126213002";
+window.FL_BUILD = "20261126221056";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -799,6 +799,9 @@ html.fight-on.speed-on .pad .fightb { left: calc(var(--sc, 70px) * -.4); positio
 /* Fight is shown as the \1F4A5 symbol, the size of the joystick ball */
 .pad .fightb, .pad .fightb.on { width: calc(var(--sc, 70px) * .67); height: calc(var(--sc, 70px) * .67); padding: 0; border: 0; border-radius: 50%; background: none; color: inherit; font-size: calc(var(--sc, 70px) * .56); line-height: 1; letter-spacing: 0; display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 0 5px rgba(255, 90, 40, .55)); }
 .pad .fightb:active { transform: scale(.88); }
+.pad .shotrow { position: relative; display: block; }   /* Fight beside Cut, Speed beside Side Wall */
+.pad .shotrow > .throw { width: 100%; }
+html .pad .shots .shotrow .fightb { position: absolute !important; left: calc(100% + 8px) !important; top: 50% !important; margin: calc(var(--sc, 70px) * -.335) 0 0 0 !important; width: calc(var(--sc, 70px) * .67) !important; height: calc(var(--sc, 70px) * .67) !important; padding: 0 !important; border: 0 !important; border-radius: 50% !important; background: none !important; box-shadow: none !important; overflow: visible !important; font-size: calc(var(--sc, 70px) * .56) !important; line-height: 1 !important; }
 .pad .fightb.go { animation: fight-boom .5s ease-in-out infinite; } @keyframes fight-boom { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.22); filter: drop-shadow(0 0 12px #ff3a2a); } }
 @media (prefers-reduced-motion: reduce) { .pad .fightb.go { animation: none; background: none; filter: drop-shadow(0 0 12px #ff3a2a); } }
 #codeBox.won input, #codeBox.won button[type="submit"] { display: none; } #codeBox .code-boom { display: block; text-align: center; font-size: 54px; line-height: 1; margin-bottom: -10px; } #codeBox.won p { color: #e9e6df; font-size: 14px; text-align: left; }
@@ -3416,7 +3419,13 @@ window.FLFeedback = (function () {
         for (var q = 0; q < set.length; q++) out += sb(only, set[q]);
         return out + langBtn();
       };
-      var serveBall = function (only) { return sb(only, 0, ' ball') + '<button type="button" class="fightb" data-seat="' + s + '" data-fo="' + only + '" data-act="F" title="Fight \u2014 run at the other side and swing your cesta at him; keep tapping to keep fighting" aria-label="Fight">\ud83d\udca5</button><button type="button" class="fightb speedb" data-seat="' + s + '" data-fo="' + only + '" data-act="Z" title="Speed \u2014 dash to where the ball will land; keep tapping to bounce around the walls" aria-label="Speed">\u2744\ufe0f</button>'; };   // Fight sits under Serve
+      var fBtn = function (only) { return '<button type="button" class="fightb" data-seat="' + s + '" data-fo="' + only + '" data-act="F" title="Fight \u2014 run at the other side and swing your cesta at him; keep tapping to keep fighting" aria-label="Fight">\ud83d\udca5</button>'; };
+      var zBtn = function (only) { return '<button type="button" class="fightb speedb" data-seat="' + s + '" data-fo="' + only + '" data-act="Z" title="Speed \u2014 dash to where the ball will land; keep tapping to bounce around the walls" aria-label="Speed">\u2744\ufe0f</button>'; };
+      var serveBall = function (only, beside) { return sb(only, 0, ' ball') + (beside ? '' : fBtn(only) + zBtn(only)); };   // Fight and Speed sit under Serve, or beside Cut and Side Wall when those are on the pad
+      var besideShots = function (only, html) {                    // the one-player pad: Fight to the right of Cut, Speed to the right of Side Wall
+        var wrap = function (h, cls, extra) { return h.replace(new RegExp('(<button type="button" class="throw idle ' + cls + '[^>]*>[^<]*</button>)'), '<span class="shotrow">$1' + extra + '</span>'); };
+        return wrap(wrap(html, 's2', fBtn(only)), 's4', zBtn(only));
+      };
       // four shot buttons sit above a box naming the player they belong to
       var box = function (only) { return '<div class="shotbox" data-box="' + only + '"><div class="shots">' + four(only) + '</div><div class="shot-label">' + (cfg.singles ? 'Singles' : only % 2 ? 'Back Court' : 'Front Court') + '</div></div>'; };
       var minis = '<div class="minis"><button type="button" class="mini" data-mini="menu" aria-label="New match">Menu</button>' +
@@ -3425,11 +3434,12 @@ window.FLFeedback = (function () {
         '<button type="button" class="mini" id="miniPause" data-mini="pause"' + (net.role === 'guest' ? ' hidden' : '') + '>Pause</button></div>';
       // one player, either way up: the shots stand in a column on the left, movement and the serve on the right,
       // and the small controls sit under the court bar between them. Sideways they flank the court; upright they sit under it.
+      var beside = shotSet().indexOf(2) >= 0 && shotSet().indexOf(4) >= 0;   // Pro: Cut and Side Wall are on the pad
       if (sidesOn || hs.length === 1) {
         html += '<div class="pad ' + (sidesOn ? 'land' : 'tall') + ' t' + (s >> 1) + '">' +
-          '<div class="shots round">' + four(-1) + '</div>' +
+          '<div class="shots round">' + (beside ? besideShots(-1, four(-1)) : four(-1)) + '</div>' +
           '<div class="shotbox">' + minis + '</div>' +
-          '<div class="righthand">' + moveR + serveBall(-1) + '</div></div>';
+          '<div class="righthand">' + moveR + serveBall(-1, beside) + '</div></div>';
         return;
       }
       html += '<div class="pad t' + (s >> 1) + '"><div class="pad-label"><i>' + (hs.length === 1 ? 'You \u00b7 ' + esc(cfg.names[s >> 1]) : 'P' + n + ' \u00b7 ' + esc(cfg.names[s >> 1])) + '</i></div>' +
