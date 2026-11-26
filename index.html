@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126202244";
+window.FL_BUILD = "20261126205356";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2714,27 +2714,30 @@ window.FLFeedback = (function () {
   var AV_BDM = ['boney', 'thin', 'skinny', 'athletic', 'muscular', 'chubby', 'fat', 'slob'];   // the male bodies are their own pictures (muscular is the base photo)
   var AV_BD = [['super skinny', 0.8, 0, 0.3, 0], ['slim', 0.9, 0, 0.3, 0], ['athletic', 0.95, 0, 0.3, 0], ['muscular', 1, 0, 0.3, 0], ['chubby', 1.1, 0, 0.3, 0], ['fat', 1.22, 0, 0.3, 0]];   // belly, fat face and the slob body wait on new base art   // name, width, belly, face share, double chin
   var AV_CE = [['black', '#26262b'], ['natural', '#d29a5c'], ['white', '#efede6'], ['red', '#c62828'], ['blue', '#1f4fd6'], ['gold', '#d4a72c'], ['pink', '#e11d74']];
+  var AV_HM = [{x:128.1,y:0.0,w:320,h:406,fx:347.0,fy:44.8,fh:85.9,hairL:29},{x:128.1,y:0.0,w:320,h:406,fx:347.5,fy:40.6,fh:90.2,hairL:23},{x:128.1,y:0.0,w:320,h:406,fx:345.9,fy:41.6,fh:88.6,hairL:25},{x:128.1,y:0.0,w:320,h:406,fx:345.9,fy:38.4,fh:91.8,hairL:24},{x:128.1,y:0.0,w:320,h:406,fx:345.9,fy:81.7,fh:88.6,hairL:20},{x:128.1,y:0.0,w:320,h:406,fx:346.4,fy:41.6,fh:88.1,hairL:16},{x:128.1,y:0.0,w:320,h:406,fx:345.4,fy:37.9,fh:92.9,hairL:21},{x:128.1,y:0.0,w:320,h:406,fx:345.4,fy:38.4,fh:91.8,hairL:17}];   // the male hair layers (in builder order): crop box, face reference, hair light level
   var AV_HAT = ['none', 'baseball cap', 'trucker hat'], AV_EAR = ['none', 'diamond', 'cross', 'small hoop', 'big hoops'];
   var AV_GEO = {                                                    // 640 x 700 picture coordinates
     f: { cx: 280, half: 62, neck: 150, waist: 405, skinL: 132, hairL: 39, fabL: 47, ceL: 162, ceOrig: 1, btL: 15, ht: 3, head: [312, 64, 42, 52], chin: [348, 134], hat: [318, 58, 64, 50], lobe: [287, 101], chain: [[292, 152], [348, 149], [322, 186]], wrist: [430, 421, 0.36, 30] },
-    m: { cx: 300, half: 86, neck: 112, waist: 365, skinL: 152, hairL: 47, fabL: 52, ceL: 27, ceOrig: 0, btL: 40, ht: 1, head: [298, 55, 46, 51], chin: [345, 114], hat: [302, 50, 76, 54], lobe: [281, 81], chain: [[270, 116], [327, 113], [299, 153]], wrist: [427, 384, 0.26, 33] },
-    m0: {skinL: 130, hairL: 51, fabL: 54, ceL: 54, btL: 30, lobe: [282, 76], chain: [[257, 122], [312, 118], [288, 160]], wrist: [401, 376, 0.45, 18], hr: 1.0}, m1: {skinL: 148, hairL: 49, fabL: 49, ceL: 43, btL: 29, lobe: [282, 76], chain: [[259, 122], [312, 118], [288, 160]], wrist: [400, 389, 0.35, 18], hr: 1.0}, m2: {skinL: 158, hairL: 50, fabL: 55, ceL: 48, btL: 42, lobe: [282, 76], chain: [[259, 118], [314, 115], [288, 157]], wrist: [401, 384, 0.38, 19], hr: 1.0}, m3: {skinL: 148, hairL: 51, fabL: 57, ceL: 43, btL: 43, lobe: [282, 76], chain: [[257, 113], [316, 111], [288, 155]], wrist: [410, 383, 0.3, 21], hr: 1.0}, m5: {skinL: 147, hairL: 49, fabL: 57, ceL: 31, btL: 22, lobe: [282, 80], chain: [[254, 113], [323, 111], [291, 157]], wrist: [438, 383, 0.3, 27], hr: 1.08}, m6: {skinL: 148, hairL: 49, fabL: 57, ceL: 25, btL: 16, lobe: [282, 84], chain: [[256, 115], [328, 112], [294, 160]], wrist: [449, 374, 0.25, 30], hr: 1.12}, m7: {skinL: 114, hairL: 51, fabL: 59, ceL: 34, btL: 47, lobe: [278, 77], chain: [[251, 141], [342, 133], [302, 179]], wrist: [523, 374, 0.15, 32], hr: 1.16},
-    fk: { fabL: 55, ceL: 168, ceOrig: 1, btL: 16 }, mk: { fabL: 58, ceL: 45, ceOrig: 0, btL: 40 }
+    m: { slL: 225, lgL: 7, fx: 346.4, fy: 34.2, fh: 95.5, cx: 300, half: 86, neck: 112, waist: 365, skinL: 152, hairL: 47, fabL: 52, ceL: 27, ceOrig: 0, btL: 40, ht: 1, head: [298, 55, 46, 51], chin: [345, 114], hat: [302, 50, 76, 54], lobe: [281, 81], chain: [[270, 116], [327, 113], [299, 153]], wrist: [427, 384, 0.26, 33] },
+    mt: {slL: 234, lgL: 9, fx: 347.0, fy: 34.2, fh: 96.6, skinL: 155, hairL: 49, fabL: 46, ceL: 35, btL: 44, lobe: [281, 81], chain: [[270, 116], [327, 113], [299, 153]], wrist: [427, 384, 0.26, 33], hr: 1.0}, m0: {slL: 198, lgL: 19, fx: 347.5, fy: 34.7, fh: 90.7, skinL: 130, hairL: 51, fabL: 54, ceL: 54, btL: 30, lobe: [282, 76], chain: [[257, 122], [312, 118], [288, 160]], wrist: [401, 376, 0.45, 18], hr: 1.0}, m1: {slL: 212, lgL: 12, fx: 348.0, fy: 34.2, fh: 91.8, skinL: 148, hairL: 49, fabL: 49, ceL: 43, btL: 29, lobe: [282, 76], chain: [[259, 122], [312, 118], [288, 160]], wrist: [400, 389, 0.35, 18], hr: 1.0}, m2: {slL: 223, lgL: 11, fx: 346.4, fy: 35.8, fh: 92.9, skinL: 158, hairL: 50, fabL: 55, ceL: 48, btL: 42, lobe: [282, 76], chain: [[259, 118], [314, 115], [288, 157]], wrist: [401, 384, 0.38, 19], hr: 1.0}, m3: {slL: 219, lgL: 12, fx: 347.0, fy: 34.7, fh: 94.5, skinL: 148, hairL: 51, fabL: 57, ceL: 43, btL: 43, lobe: [282, 76], chain: [[257, 113], [316, 111], [288, 155]], wrist: [410, 383, 0.3, 21], hr: 1.0}, m5: {slL: 216, lgL: 17, fx: 348.6, fy: 34.2, fh: 96.1, skinL: 147, hairL: 49, fabL: 57, ceL: 31, btL: 22, lobe: [282, 80], chain: [[254, 113], [323, 111], [291, 157]], wrist: [438, 383, 0.3, 27], hr: 1.08}, m6: {slL: 224, lgL: 12, fx: 348.6, fy: 35.4, fh: 92.7, skinL: 148, hairL: 49, fabL: 57, ceL: 25, btL: 16, lobe: [282, 84], chain: [[256, 115], [328, 112], [294, 160]], wrist: [449, 374, 0.25, 30], hr: 1.12}, m7: {slL: 214, lgL: 62, fx: 351.8, fy: 36.8, fh: 95.5, skinL: 114, hairL: 51, fabL: 59, ceL: 34, btL: 47, lobe: [278, 77], chain: [[251, 141], [342, 133], [302, 179]], wrist: [523, 374, 0.15, 32], hr: 1.16},
+    fk: { fabL: 55, ceL: 168, ceOrig: 1, btL: 16 }, mk: { slL: 224, lgL: 12, fabL: 58, ceL: 45, ceOrig: 0, btL: 40 }
   };
-  var AV = { view: 'kit', g: 'm', bm: 4, bf: 3, skin: 1, hair: 1, ht: -1, shirt: '#0b0b0b', shorts: '#0b0b0b', shoes: '#0b0b0b', belt: '#0b0b0b', top: 'shirt', shoe: 'low', cesta: '#26262b', hat: 0, ear: 0, chain: false, brace: false, watch: false };
-  try { var avS = JSON.parse(localStorage.getItem(AVKEY) || 'null'); if (avS && avS.v === 4) for (var avk in avS) if (avk in AV) AV[avk] = avS[avk]; } catch (e) { /* ignore */ }
+  var AV = { view: 'kit', g: 'm', bm: 4, bf: 3, skin: 1, hair: 1, ht: -1, shirt: '#0b0b0b', shorts: '#0b0b0b', shoes: '#0b0b0b', belt: '#0b0b0b', slc: '#f2f2f2', lgc: '#0b0b0b', slv: true, leg: true, top: 'shirt', shoe: 'low', cesta: '#26262b', hat: 0, ear: 0, chain: false, brace: false, watch: false };
+  try { var avS = JSON.parse(localStorage.getItem(AVKEY) || 'null'); if (avS && avS.v === 6) for (var avk in avS) if (avk in AV) AV[avk] = avS[avk]; } catch (e) { /* ignore */ }
   var AVC = {};                                                     // loaded pictures per base
   function avHex(h) { h = String(h || '#000').replace('#', ''); if (h.length === 3) h = h.replace(/./g, '$&$&'); var n = parseInt(h, 16) || 0; return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
   function avLoad(key, cb) {
     if (AVC[key] && AVC[key].ok) return cb(AVC[key]);
-    var o = AVC[key] = AVC[key] || {}, kit = key === 'mk' || key === 'fk';
-    var names = kit ? ['av-' + key + '.jpg', 'av-' + key + '-m.png', 'av-' + key + '-c.png', 'av-' + key + '-t.jpg'] : ['av-' + key + '.jpg', 'av-' + key + '-m1.png', 'av-' + key + '-m2.png', 'av-' + key + '-c.png', 'av-' + key.charAt(0) + '-bg.jpg'], left = names.length;
+    var o = AVC[key] = AVC[key] || {}, kit = key === 'mk' || key === 'fk' || key.indexOf('mh') === 0;
+    var names = key.indexOf('mh') === 0 ? ['av-' + key + '.jpg', 'av-' + key + '-m.png'] : kit ? ['av-' + key + '.jpg', 'av-' + key + '-m.png', 'av-' + key + '-c.png', 'av-' + key + '-t.jpg'] : ['av-' + key + '.jpg', 'av-' + key + '-m1.png', 'av-' + key + '-m2.png', 'av-' + key + '-c.png', 'av-' + key.charAt(0) + '-bg.jpg'], left;
+    if (key === 'mk') names.push('av-mk-x.png', 'av-mk-bg.jpg'); else if (!kit && key.charAt(0) === 'm') names.push('av-' + key + '-x.png');   // the male pictures: arm sleeves and leggings
+    left = names.length;
     o.cbs = (o.cbs || []).concat([cb]); if (o.busy) return; o.busy = true; o.im = [];
     names.forEach(function (src, k) {
       var im = new Image(); im.onload = im.onerror = function () {
         o.im[k] = im; if (--left) return;
         var px = function (img) { var c = document.createElement('canvas'); c.width = AVW; c.height = AVH; var x = c.getContext('2d'); x.drawImage(img, 0, 0, AVW, AVH); return x.getImageData(0, 0, AVW, AVH).data; };
-        try { o.px = names.map(function (n, i) { return i === names.length - 1 && !kit ? null : px(o.im[i]); }); o.ok = true; } catch (er) { o.ok = false; }
+        try { o.px = names.map(function (n, i) { return !kit && /-bg\.jpg$/.test(n) ? null : px(o.im[i]); }); o.ok = true; } catch (er) { o.ok = false; }
         o.busy = false; var l = o.cbs; o.cbs = []; l.forEach(function (f) { f(o); });
       }; im.src = src + '?a=2';
     });
@@ -2742,7 +2745,7 @@ window.FLFeedback = (function () {
   function avRnd(seed) { var s = seed; return function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
   function avGold(x, x0, y0, x1, y1) { var gr = x.createLinearGradient(x0, y0, x1, y1); gr.addColorStop(0, '#8a5a12'); gr.addColorStop(0.35, '#f6d36b'); gr.addColorStop(0.55, '#fff2b8'); gr.addColorStop(0.8, '#c8901f'); gr.addColorStop(1, '#7a4c0c'); return gr; }
   function avShade(rgb, k) { return 'rgb(' + rgb.map(function (v) { return Math.max(0, Math.min(255, Math.round(v * k))); }).join(',') + ')'; }
-  function avHT() { return AV_GEO[AV.g].ht; }                    // hair types wait on new base art; the drawn styles below are kept for that
+  function avHT() { return AV.g === 'm' ? AV.ht : -1; }          // -1: the photo's own hair; the male styles are layers cut from the hair pictures (female styles wait on her pictures)
   function avHair(x, G) {                                           // a drawn hair style, painted behind the face and body (destination-over), then a scalp under it
     var t = avHT(), H = avHex(AV_HR[AV.hair][1]), S = avHex(AV_SK[AV.skin][1]), h = G.head, cx = h[0], cy = h[1], rx = h[2], ry = h[3], R = avRnd(7 + t * 13);
     var col = function (k) { return avShade(H, k); };
@@ -2842,16 +2845,17 @@ window.FLFeedback = (function () {
     x.fillStyle = '#f2f0ea'; x.beginPath(); x.moveTo(22, 82); x.lineTo(156, 82); x.quadraticCurveTo(158, 92, 148, 93); x.lineTo(28, 93); x.quadraticCurveTo(20, 92, 22, 82); x.fill(); x.strokeStyle = 'rgba(0,0,0,.35)'; x.lineWidth = 1; x.stroke();
     x.restore();
   }
+  function avMB() { return AV.bm === 4 ? 't' : AV.bm; }            // the male body picture: muscular in a tank top has its own photo
   function avTint(d, s, p, w, T, L0, k0, k1) { var k = k0 + k1 * (0.299 * s[p] + 0.587 * s[p + 1] + 0.114 * s[p + 2]) / L0; d[p] += (T[0] * k - d[p]) * w; d[p + 1] += (T[1] * k - d[p + 1]) * w; d[p + 2] += (T[2] * k - d[p + 2]) * w; }
   function avDraw(cv) {
-    var kit = AV.view === 'kit', mb = AV.g === 'm' && AV.bm !== 4, key = AV.g + (kit ? 'k' : mb ? AV.bm : ''), G = AV_GEO[AV.g], GK = AV_GEO[key];
+    var kit = AV.view === 'kit', mb = AV.g === 'm' && (AV.bm !== 4 || AV.top === 'tank'), key = AV.g + (kit ? 'k' : mb ? avMB() : ''), G = AV_GEO[AV.g], GK = AV_GEO[key];
     if (!kit && mb) { G = {}; for (var gk in AV_GEO.m) G[gk] = AV_GEO.m[gk]; for (gk in GK) G[gk] = GK[gk]; G.hat = [G.hat[0], G.hat[1], G.hat[2] * G.hr, G.hat[3] * G.hr]; }
     avLoad(key, function (o) {
-      if (!o.ok || (AV.g + (AV.view === 'kit' ? 'k' : AV.g === 'm' && AV.bm !== 4 ? AV.bm : '')) !== key) return;
-      var TS = avHex(AV.shirt), TP = avHex(AV.shorts), CE = avHex(AV.cesta), BT = avHex(AV.belt), keepB = BT[0] + BT[1] + BT[2] < 90, tank = AV.top === 'tank', keepT = TS[0] + TS[1] + TS[2] < 90, keepP = TP[0] + TP[1] + TP[2] < 90, keepC = !GK.ceOrig && CE[0] + CE[1] + CE[2] < 120;
+      if (!o.ok || (AV.g + (AV.view === 'kit' ? 'k' : AV.g === 'm' && (AV.bm !== 4 || AV.top === 'tank') ? avMB() : '')) !== key) return;
+      var TS = avHex(AV.shirt), TP = avHex(AV.shorts), CE = avHex(AV.cesta), BT = avHex(AV.belt), keepB = BT[0] + BT[1] + BT[2] < 90, tank = AV.top === 'tank', keepT = TS[0] + TS[1] + TS[2] < 90, keepP = TP[0] + TP[1] + TP[2] < 90, keepC = !GK.ceOrig && CE[0] + CE[1] + CE[2] < 120, SL = avHex(AV.slc), LG = avHex(AV.lgc), keepS = SL[0] + SL[1] + SL[2] > 690, keepL = LG[0] + LG[1] + LG[2] < 90;
       var x = cv.getContext('2d'), f = o.fig || (o.fig = document.createElement('canvas')); f.width = AVW; f.height = AVH; var fx = f.getContext('2d'), id = fx.createImageData(AVW, AVH), d = id.data, p, w;
       if (kit) {                                                    // the uniform silhouette: recolor on the kit photo (a tank top swaps in the sleeveless picture)
-        var s = tank ? o.px[3] : o.px[0], m = o.px[1], c = o.px[2];
+        var s = tank ? o.px[3] : o.px[0], m = o.px[1], c = o.px[2], xk = o.px[4];
         for (p = 0; p < d.length; p += 4) {
           d[p] = s[p]; d[p + 1] = s[p + 1]; d[p + 2] = s[p + 2]; d[p + 3] = 255;
           var sl = tank ? m[p + 2] / 255 : 0;
@@ -2859,10 +2863,13 @@ window.FLFeedback = (function () {
           if ((w = m[p + 1] / 255) > 0 && !keepP) avTint(d, s, p, w, TP, GK.fabL, 0.36, 0.92);
           if ((w = c[p] / 255) > 0 && !keepC) avTint(d, s, p, w, CE, GK.ceL, 0.3, 0.7);
           if ((w = c[p + 1] / 255) > 0 && !keepB) avTint(d, s, p, w, BT, GK.btL, 0.3, 0.7);
+          if (xk) { var kb2 = o.px[5];
+            if ((w = xk[p] / 255) > 0) { if (!AV.slv) { d[p] += (kb2[p] - d[p]) * w; d[p + 1] += (kb2[p + 1] - d[p + 1]) * w; d[p + 2] += (kb2[p + 2] - d[p + 2]) * w; } else if (!keepS) avTint(d, s, p, w, SL, GK.slL, 0.3, 0.7); }
+            if ((w = xk[p + 1] / 255) > 0) { if (!AV.leg) { d[p] += (kb2[p] - d[p]) * w; d[p + 1] += (kb2[p + 1] - d[p + 1]) * w; d[p + 2] += (kb2[p + 2] - d[p + 2]) * w; } else if (!keepL) avTint(d, s, p, w, LG, GK.lgL * 4, 0.36, 0.92); } }
         }
         fx.putImageData(id, 0, 0); x.clearRect(0, 0, AVW, AVH); x.drawImage(f, 0, 0); avShoe(x, AVW - 186, AVH - 118); return;
       }
-      var S0 = o.px[0], m1 = o.px[1], m2 = o.px[2], ce = o.px[3], SK = avHex(AV_SK[AV.skin][1]), HR = avHex(AV_HR[AV.hair][1]), ht = avHT(), own = ht === G.ht;
+      var S0 = o.px[0], m1 = o.px[1], m2 = o.px[2], ce = o.px[3], xb = o.px[5], SK = avHex(AV_SK[AV.skin][1]), HR = avHex(AV_HR[AV.hair][1]), ht = avHT(), own = ht < 0;
       for (p = 0; p < d.length; p += 4) {
         var a = m1[p]; d[p] = S0[p]; d[p + 1] = S0[p + 1]; d[p + 2] = S0[p + 2]; d[p + 3] = a; if (!a) continue;
         var sk = m1[p + 1] / 255, hr = m1[p + 2] / 255, sh = m2[p] / 255, so = m2[p + 1] / 255, sl2 = tank ? m2[p + 2] / 255 : 0;
@@ -2873,9 +2880,23 @@ window.FLFeedback = (function () {
         if (so > 0 && !keepP) avTint(d, S0, p, so, TP, G.fabL, 0.36, 0.92);
         if ((w = ce[p] / 255) > 0 && !keepC) avTint(d, S0, p, w, CE, G.ceL, 0.3, 0.7);
         if ((w = ce[p + 1] / 255) > 0 && !keepB) avTint(d, S0, p, w, BT, G.btL, 0.3, 0.7);
+        if (xb) {
+          if ((w = xb[p] / 255) > 0) { if (!AV.slv) avTint(d, S0, p, w, SK, G.slL, 0.3, 0.5); else if (!keepS) avTint(d, S0, p, w, SL, G.slL, 0.3, 0.7); }
+          if ((w = xb[p + 1] / 255) > 0) { if (!AV.leg) avTint(d, S0, p, w, SK, G.lgL * 4, 0.5, 0.8); else if (!keepL) avTint(d, S0, p, w, LG, G.lgL * 4, 0.36, 0.92); } }
       }
       fx.putImageData(id, 0, 0);
-      var B = AV.g === 'm' ? ['', 1, 0, 0.3, 0] : AV_BD[AV.bf]; if (!own) avHair(fx, G); avChin(fx, G, B[4]); avDress(fx, G);
+      var B = AV.g === 'm' ? ['', 1, 0, 0.3, 0] : AV_BD[AV.bf], fin = function () { avChin(fx, G, B[4]); avDress(fx, G); avFinish(o, G, B, f, fx, x); };
+      if (own) fin(); else avLoad('mh' + ht, function (ho) { if (!ho.ok || avHT() !== ht) return; avLayer(fx, G, ht, ho, SK, HR); fin(); });
+    });
+  }
+  function avLayer(fx, G, t, ho, SK, HR) {                          // the chosen hair style: tinted to the skin and hair colors, lined up on this body's face and drawn over the head
+    var M = AV_HM[t], c = document.createElement('canvas'); c.width = M.w; c.height = M.h; var cx = c.getContext('2d'); cx.drawImage(ho.im[0], 0, 0, M.w, M.h);
+    var id = cx.getImageData(0, 0, M.w, M.h), d = id.data, s = new Uint8ClampedArray(d), mk = document.createElement('canvas'); mk.width = M.w; mk.height = M.h; var mx = mk.getContext('2d'); mx.drawImage(ho.im[1], 0, 0, M.w, M.h); var m = mx.getImageData(0, 0, M.w, M.h).data;
+    for (var p = 0; p < d.length; p += 4) { d[p + 3] = m[p]; if (!m[p]) continue; if (m[p + 1]) avTint(d, s, p, m[p + 1] / 255, SK, G.skinL, 0, 1); if (m[p + 2]) avTint(d, s, p, m[p + 2] / 255, HR, M.hairL, 0.18, 0.82); }
+    cx.putImageData(id, 0, 0); var k = G.fh / M.fh; fx.drawImage(c, G.fx + (M.x - M.fx) * k, G.fy + (M.y - M.fy) * k, M.w * k, M.h * k);
+  }
+  function avFinish(o, G, B, f, fx, x) {
+    {
       var bc = o.body || (o.body = document.createElement('canvas')); bc.width = AVW; bc.height = AVH; var bx = bc.getContext('2d'), kb = B[1], belly = B[2], fs = B[3];
       for (var y = 0; y < AVH; y++) {                               // row by row: the head widens by the face share, the belly pushes the front (right) side forward
         var hd = Math.min(1, Math.max(0, (y - G.neck + 10) / 45)), sc = (1 + (kb - 1) * fs) * (1 - hd) + kb * hd, g = Math.exp(-Math.pow((y - G.waist + 18) / (70 + 40 * belly), 2)) * hd;
@@ -2888,9 +2909,9 @@ window.FLFeedback = (function () {
         var dk = bx.createRadialGradient(bxp - 30, byp + 70 + 30 * belly, 4, bxp - 30, byp + 60 + 30 * belly, 80 + 50 * belly); dk.addColorStop(0, 'rgba(0,0,0,' + (0.25 + 0.15 * belly) + ')'); dk.addColorStop(1, 'rgba(0,0,0,0)'); bx.fillStyle = dk; bx.fillRect(0, 0, AVW, AVH); bx.restore();
       }
       x.clearRect(0, 0, AVW, AVH); x.drawImage(o.im[4], 0, 0, AVW, AVH); x.drawImage(bc, 0, 0); avShoe(x, AVW - 186, AVH - 118);
-    });
+    }
   }
-  function avSave() { try { AV.v = 4; localStorage.setItem(AVKEY, JSON.stringify(AV)); } catch (e) { /* ignore */ } }
+  function avSave() { try { AV.v = 6; localStorage.setItem(AVKEY, JSON.stringify(AV)); } catch (e) { /* ignore */ } }
   function avOpen() {
     var el = $('avBox');
     if (!el) { el = document.createElement('div'); el.id = 'avBox'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'avH'); document.body.appendChild(el); }
@@ -2903,12 +2924,14 @@ window.FLFeedback = (function () {
       '<div class="av-stage"><canvas id="avCv" width="' + AVW + '" height="' + AVH + '" role="img" aria-label="Your avatar preview"></canvas>' + pair('view', [['kit', 'uniform'], ['player', 'player']], 'Show') + '</div>' +
       '<div class="av-ctl">' +
       '<div class="av-l">Player</div>' + pair('g', [['m', 'male'], ['f', 'female']], 'Player') +
-      '<div class="av-l">Uniform Color</div><div class="av-cols"><label><input type="color" id="avAll" value="' + AV.shirt + '">all</label><label><input type="color" id="avShirt" value="' + AV.shirt + '">shirt</label><label><input type="color" id="avShorts" value="' + AV.shorts + '">shorts</label><label><input type="color" id="avShoes" value="' + AV.shoes + '">shoes</label><label><input type="color" id="avBelt" value="' + AV.belt + '">belt</label><label><input type="color" id="avCesta" value="' + AV.cesta + '">cesta</label></div>' +
+      '<div class="av-l">Uniform Color</div><div class="av-cols"><label><input type="color" id="avAll" value="' + AV.shirt + '">all</label><label><input type="color" id="avShirt" value="' + AV.shirt + '">shirt</label><label><input type="color" id="avShorts" value="' + AV.shorts + '">shorts</label><label><input type="color" id="avShoes" value="' + AV.shoes + '">shoes</label><label><input type="color" id="avBelt" value="' + AV.belt + '">belt</label><label><input type="color" id="avCesta" value="' + AV.cesta + '">cesta</label><label class="av-mo"><input type="color" id="avSlc" value="' + AV.slc + '">sleeves</label><label class="av-mo"><input type="color" id="avLgc" value="' + AV.lgc + '">leggings</label></div>' +
+      '<div class="av-mo"><div class="av-l">Sleeves &amp; Leggings</div><div class="av-row" role="group" aria-label="Arm sleeves and leggings">' + tog('slv', 'arm sleeves') + tog('leg', 'leggings') + '</div></div>' +
       '<div class="av-l">Top</div>' + pair('top', [['tank', 'tank top'], ['shirt', 'shirt']], 'Top') +
       '<div class="av-l">Shorts</div><div class="av-row"><button type="button" aria-pressed="true" disabled>standard</button></div>' +
       '<div class="av-l">Shoes</div>' + pair('shoe', [['low', 'low top'], ['high', 'high top']], 'Shoes') +
       '<div class="av-l">Body Style</div><div class="av-bm">' + chips('bm', AV_BDM, 'Body style') + '</div><div class="av-bf">' + chips('bf', AV_BD, 'Body style') + '</div>' +
       '<div class="av-l">Skin Color</div>' + sw('skin', AV_SK, 'Skin color') +
+      '<div class="av-ht"><div class="av-l">Hair Type</div>' + chips('ht', AV_HT, 'Hair type') + '</div>' +
       '<div class="av-l">Hair Color</div>' + sw('hair', AV_HR, 'Hair color') +
       '<div class="av-l">Hat</div>' + chips('hat', AV_HAT, 'Hat') +
       '<div class="av-l">Earrings</div>' + chips('ear', AV_EAR, 'Earrings') +
@@ -2917,22 +2940,22 @@ window.FLFeedback = (function () {
       '<button type="button" class="av-link" data-av="photos">Or send us two photos and we custom build you</button></div>';
     el.hidden = false; var cv = $('avCv'), q = 0;
     var redraw = function () { if (q) return; q = requestAnimationFrame(function () { q = 0; avDraw(cv); }); };
-    var sync = function () { el.querySelector('.av-bm').hidden = AV.g !== 'm'; el.querySelector('.av-bf').hidden = AV.g === 'm'; [].forEach.call(el.querySelectorAll('button[data-av]'), function (b) { var k = b.getAttribute('data-av'), v = b.getAttribute('data-v'), s = b.getAttribute('data-s');
+    var sync = function () { el.querySelector('.av-bm').hidden = AV.g !== 'm'; el.querySelector('.av-bf').hidden = AV.g === 'm'; el.querySelector('.av-ht').hidden = AV.g !== 'm'; [].forEach.call(el.querySelectorAll('.av-mo'), function (n) { n.hidden = AV.g !== 'm'; }); [].forEach.call(el.querySelectorAll('button[data-av]'), function (b) { var k = b.getAttribute('data-av'), v = b.getAttribute('data-v'), s = b.getAttribute('data-s');
       if (v != null) b.setAttribute('aria-pressed', String((k === 'ht' ? avHT() : AV[k]) === +v)); else if (s != null) b.setAttribute('aria-pressed', String(AV[k] === s)); else if (k === 'tog') b.setAttribute('aria-pressed', String(!!AV[b.getAttribute('data-k')])); }); };
     var col = function (id, keys) { $(id).addEventListener('input', function () { var v = this.value, me = this; keys.forEach(function (k) { AV[k] = v; var t = $('av' + k.charAt(0).toUpperCase() + k.slice(1)); if (t && t !== me) t.value = v; }); avSave(); redraw(); }); };
-    col('avAll', ['shirt', 'shorts', 'shoes', 'belt']); col('avShirt', ['shirt']); col('avShorts', ['shorts']); col('avShoes', ['shoes']); col('avBelt', ['belt']); col('avCesta', ['cesta']);
+    col('avAll', ['shirt', 'shorts', 'shoes', 'belt']); col('avShirt', ['shirt']); col('avShorts', ['shorts']); col('avShoes', ['shoes']); col('avBelt', ['belt']); col('avCesta', ['cesta']); col('avSlc', ['slc']); col('avLgc', ['lgc']);
     var BODYK = { bm: 1, bf: 1, skin: 1, hair: 1, ht: 1, hat: 1, ear: 1, tog: 1 };
     el.onclick = function (e) {
       var b = e.target.closest('button[data-av]'); if (!b) return; var k = b.getAttribute('data-av');
       if (k === 'close') { el.hidden = true; return; }
       if (k === 'photos') { el.hidden = true; $('wzANote').textContent = ''; $('wzAvatar').hidden = false; return; }
       if (k === 'use') { avSave(); el.hidden = true; exTermsBack(); WZ.skin = 'Your Avatar';
-        WZ.ref = [AV.g, AV.g === 'm' ? AV.bm : AV.bf, AV.skin, AV.hair, avHT(), AV.shirt.slice(1), AV.shorts.slice(1), AV.shoes.slice(1), AV.belt.slice(1), AV.top.charAt(0), AV.shoe.charAt(0), AV.cesta.slice(1), AV.hat, AV.ear, (AV.chain ? 'c' : '') + (AV.brace ? 'b' : '') + (AV.watch ? 'w' : '')].join('-');
+        WZ.ref = [AV.g, AV.g === 'm' ? AV.bm : AV.bf, AV.skin, AV.hair, avHT(), AV.shirt.slice(1), AV.shorts.slice(1), AV.shoes.slice(1), AV.belt.slice(1), AV.top.charAt(0), AV.shoe.charAt(0), AV.cesta.slice(1), AV.hat, AV.ear, (AV.chain ? 'c' : '') + (AV.brace ? 'b' : '') + (AV.watch ? 'w' : ''), AV.slv ? AV.slc.slice(1) : 'x', AV.leg ? AV.lgc.slice(1) : 'x'].join('-');
         $('wzTFor').textContent = 'Skin: Your Avatar \u2022 $0.99 per month'; $('wzTNote').textContent = 'Your avatar is saved on this phone.'; $('wzTerms').hidden = false; var tb = $('wzTerms').querySelector('.wz-tbody'); if (tb) tb.scrollTop = 0; return; }
       if (k === 'tog') AV[b.getAttribute('data-k')] = !AV[b.getAttribute('data-k')];
       else if (b.hasAttribute('data-v')) AV[k] = +b.getAttribute('data-v');
       else if (b.hasAttribute('data-s')) AV[k] = b.getAttribute('data-s');
-      if (BODYK[k]) AV.view = 'player';
+      if (BODYK[k] && !(k === 'tog' && /^(slv|leg)$/.test(b.getAttribute('data-k')))) AV.view = 'player';
       sync(); avSave(); redraw();
     };
     el.onkeydown = function (e) { if (e.key === 'Escape') el.hidden = true; };
