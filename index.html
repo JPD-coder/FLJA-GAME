@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126092655";
+window.FL_BUILD = "20261126092820";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -648,7 +648,8 @@ body.wiz #setup { padding-top: 0; }
 #wiz .wz-seg button[aria-pressed="true"] { background: #1fe0d6; color: #111; font-weight: 800; }
 #wiz .wz-seg.wz-small button { font-size: 12px; letter-spacing: .05em; }
 #wiz .wz-card .wz-seg + .wz-seg { margin-top: 9px; }
-#wiz .wz-court.wz-court-top { margin: 0 0 8px; }
+#wiz .wz-court.wz-court-top { margin: 0; }
+#wiz .wz-only.wz-only-court { margin: 5px 0 9px; }
 #wiz .wz-only { margin: 5px 0 0; text-align: center; font: 600 10.5px/1.2 var(--body, system-ui, sans-serif); letter-spacing: .1em; text-transform: uppercase; color: #a9adba; }
 #wiz .wz-selfie { display: block; margin-top: 12px; border: 1.5px solid #1fe0d6; border-radius: 14px; padding: 12px; background: #121318; color: #f2efe6; font: 600 12.5px/1.4 var(--display); letter-spacing: .1em; text-transform: uppercase; text-align: center; cursor: pointer; position: relative; }
 #wiz .wz-selfie .face-prev { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 50%; background-size: cover; background-position: center; display: none; }
@@ -2285,7 +2286,7 @@ window.FLFeedback = (function () {
         '<div class="seg wz-seg" id="wzType"></div><p class="wz-only">League, World &amp; Dania Beach Game Only</p>' +
         '<label class="wz-selfie" id="wzSelfie"><span id="wzSelfieTxt">Take a Selfie or Upload a Picture<br>to Star in Your Own Game</span></label>' +
         '<div class="wz-fine">*Images are never stored or shared.</div>' +
-        '<div class="wz-card"><h3>Player 1</h3><div class="wz-court wz-court-top" id="wzCourt" hidden></div><div class="seg wz-seg" id="wzWho"></div><p class="wz-only">League &amp; World Game Only</p></div>' +
+        '<div class="wz-card"><h3>Player 1</h3><div class="wz-court wz-court-top" id="wzCourt" hidden></div><p class="wz-only wz-only-court" id="wzCourtNote" hidden>League, World &amp; Dania Beach Game Only</p><div class="seg wz-seg" id="wzWho"></div><p class="wz-only">League &amp; World Game Only</p></div>' +
         '<div class="wz-card"><h3>Player 2</h3><div class="seg wz-seg" id="wzP2"></div><div id="wzOnline" hidden></div></div>' +
         '<div class="wz-card"><h3>Shot Buttons</h3><div class="seg wz-seg" id="wzLang"></div></div>' +
         '<button type="button" class="wz-next" data-wz="next">Next</button></section>' +
@@ -2452,7 +2453,7 @@ window.FLFeedback = (function () {
     seg($('wzType'), [['singles', 'Singles'], ['doubles', 'Doubles']], cfg.singles ? 'singles' : 'doubles', 'type');
     var WHO = cfg.singles ? [['men', 'Men'], ['women', 'Women']] : [['men', 'Men'], ['women', 'Women'], ['mixed', 'Both']];
     $('wzWho').innerHTML = WHO.map(function (o) { return '<button type="button" data-who="0" data-v="' + o[0] + '" aria-pressed="' + (whoOf(0) === o[0]) + '">' + o[1] + '</button>'; }).join('');
-    var ct = $('wzCourt'); ct.hidden = !!cfg.singles; $('wz2').classList.toggle('wz-tight', !cfg.singles);
+    var ct = $('wzCourt'); ct.hidden = !!cfg.singles; $('wzCourtNote').hidden = ct.hidden; $('wz2').classList.toggle('wz-tight', !cfg.singles);
     if (!cfg.singles) ct.innerHTML = [['f', 'Front Court', 0], ['b', 'Back Court', 1]].map(function (c) { return '<div><span>' + c[1] + '</span><div class="seg wz-seg"><button type="button" data-wz="court-' + c[0] + '-1" aria-pressed="' + !!cfg.seats[c[2]] + '">You</button><button type="button" data-wz="court-' + c[0] + '-0" aria-pressed="' + !cfg.seats[c[2]] + '">CPU</button></div></div>'; }).join('');
     if (WZ.p2 === 'cpu' && cfg.whoT[1] !== cfg.whoT[0]) { cfg.whoT[1] = cfg.whoT[0]; applyTeams(); }   // the CPU plays the same as you
     $('wzP2').innerHTML = '<button type="button" data-wz="p2cpu" aria-pressed="' + (WZ.p2 === 'cpu') + '">CPU</button><button type="button" data-wz="p2online" aria-pressed="' + (WZ.p2 === 'online') + '">Play a Friend or Foe</button>';
