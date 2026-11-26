@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126092919";
+window.FL_BUILD = "20261126093219";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -4629,7 +4629,7 @@ window.FLFeedback = (function () {
     el.innerHTML = '<div class="pm-in"><div class="pm-top">' + (window.FL_INGAME && window.FL_NAV ? '<button type="button" class="pm-back" id="pmBack">\u2039 Back</button><span>Step 4 of 4</span><span class="pm-dots"><i></i><i></i><i></i><i></i></span>' : '') + '</div>' +
       '<h2 class="pm-tag">' + esc(P.tag) + '</h2>' +
       '<div class="db-art" role="group" aria-label=""><div class="db-col"><button type="button" class="db-me db-stats">Live Player Stats</button><div class="db-card" data-k="0"></div><div class="db-card" data-k="1"></div></div>' +
-      '<div class="db-col"><div class="db-me db-cpu">Pari-Mutuel \u00b7 8 Posts</div><ol class="db-field"></ol></div><span class="pm-vs" aria-hidden="true">VS</span></div>' +
+      '<div class="db-col"><div class="db-me db-cpu">Pari-Mutuel \u00b7 8 Posts</div><ol class="db-field"></ol></div></div>' +
       '<div class="pm-ctl"><div class="pm-lbl">' + (dFmt === 'singles' ? 'Pick Your Player' : 'Pick Your Team') + '</div><div class="pm-row pm-teams">' + sel('F') + sel('B') + '</div>' +
       
       '<p class="db-hint" aria-live="polite"></p>' +
