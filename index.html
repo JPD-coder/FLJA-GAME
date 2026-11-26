@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126161000";
+window.FL_BUILD = "20261126161443";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2610,18 +2610,18 @@ window.FLFeedback = (function () {
     var tp = $('wzTerms'), tb = tp.querySelector('.wz-tbody'), h = tp.querySelector('h3');
     if (!exOrig) exOrig = { h: h.innerHTML, b: tb.innerHTML };
     h.textContent = 'Ownership Terms';
-    tb.innerHTML = '<p><b>Please read before you continue. This is a $49.99 annual license that renews automatically every 12 months until you cancel. Charges are not refunded.</b></p>' +
+    tb.innerHTML = '<p><b>Please read before you continue. This is a $499 annual license that renews automatically every 12 months until you cancel. Charges are not refunded.</b></p>' +
       '<h4>1. What you are getting</h4><p>An Expansion Team is a custom club for the Fantasy League Championship in Fantasy League Jai Alai: the team name, logo and colors you create, a place in the bracket and the league draft, and four added players in the draft pool. You are leasing the right to operate this team inside the game. It is not a sale of the team.</p>' +
-      '<h4>2. Price and renewal</h4><p>The first payment of $49.99 covers 12 months from the day you pay. Unless you cancel before the renewal date, the license renews automatically for another 12 months and is charged again at the then-current price. You can cancel at any time; your team stays active until the end of the paid year.</p>' +
+      '<h4>2. Price and renewal</h4><p>The first payment of $499 covers 12 months from the day you pay. Unless you cancel before the renewal date, the license renews automatically for another 12 months and is charged again at the then-current price. You can cancel at any time; your team stays active until the end of the paid year.</p>' +
       '<h4>3. Who owns the team</h4><p>Fantasy League Jai Alai Game, LLC owns the team and everything connected to it, including its name, logo, colors, likeness (name, image and likeness), players, merchandise designs and any other assets, whether you created them or we did. You grant us a permanent, worldwide, royalty-free right to use anything you submit for the team. You confirm you have the right to submit any name or logo you provide and that it does not copy anyone else\u2019s name, logo or trademark or contain offensive material.</p>' +
       '<h4>4. When payments stop</h4><p>If your annual payment stops, fails or is canceled, your license ends at the end of the paid period. You lose control of the team and access to it as its owner-operator, your team code stops earning, and we may keep, retire, reassign or relaunch the team.</p>' +
-      '<h4>5. Owner-operator profit share</h4><p>While your license is active: (a) each time a player uses your team code to play in tournament mode, you earn 25% of the net profit from that player\u2019s $0.99 monthly subscription; and (b) you may order custom merchandise for your team at our team store at 50% off, and you earn 35% of the net profit when others buy your team\u2019s merchandise at our store. Net profit means revenue received after payment processing fees, platform and app store fees, refunds and chargebacks, taxes, and the cost of making and shipping goods. Amounts are calculated by us from our records.</p>' +
+      '<h4>5. Owner-operator profit share</h4><p>While your license is active: (a) each time a player uses your team code to play in tournament mode, you earn 50% of the net profit from that player\u2019s $0.99 monthly subscription; and (b) you may order custom merchandise for your team at our team store at 50% off, and you earn 50% of the net profit when others buy your team\u2019s merchandise at our store. Net profit means revenue received after payment processing fees, platform and app store fees, refunds and chargebacks, taxes, and the cost of making and shipping goods. Amounts are calculated by us from our records.</p>' +
       '<h4>6. Reports and payment</h4><p>We will send a quarterly report of your earnings. To be paid, you must complete our online owner form, including a W-9 and your bank details. We may hold payments until the form is complete, and we may set a minimum payout amount.</p>' +
       '<h4>7. Where the team is kept</h4><p>Your team is saved on this device and with the league under your team code. Clearing your browser data or changing devices may require us to restore your ownership.</p>' +
       '<h4>8. Payment</h4><p>Payment is taken by our payment processor, Stripe, on its secure checkout page. We do not see or store your card details.</p>' +
       '<h4>9. Changes</h4><p>We may update the game, the Championship, the profit share and these terms. The Legal section in Step 1 has our full terms and privacy notice.</p>' +
       '<p class="wz-tco">Fantasy League Jai Alai Game, LLC</p>';
-    WZ.skin = 'Expansion Team'; WZ.ref = ''; $('wzTFor').textContent = 'Expansion Team: ' + EX.name + ' \u2022 $49.99 per year, renews automatically'; $('wzTNote').textContent = '';
+    WZ.skin = 'Expansion Team'; WZ.ref = ''; $('wzTFor').textContent = 'Expansion Team: ' + EX.name + ' \u2022 $499 per year, renews automatically'; $('wzTNote').textContent = '';
     tp.hidden = false; tb.scrollTop = 0;
   }
   function exTermsBack() { if (!exOrig) return; var tp = $('wzTerms'); tp.querySelector('h3').innerHTML = exOrig.h; tp.querySelector('.wz-tbody').innerHTML = exOrig.b; }
@@ -2649,9 +2649,11 @@ window.FLFeedback = (function () {
     el.innerHTML = '<div class="df-in ex-in"><div class="df-tag">Fantasy League Championship</div><span class="ex-wl"><img src="' + EX.logo + '" alt=""></span>' +
       '<h3 id="exWelH">Congratulations!</h3><p class="ex-wt">You built the <b>' + esc(EX.name) + '</b>. Welcome to the Fantasy League family.</p>' +
       '<p class="ex-wt">As an owner-operator, you share in the profits of the league two ways:</p>' +
-      '<ol class="ex-wo"><li><b>Share your team.</b> Give other players your team code. Every time someone uses it to play in tournament mode, you earn 25% of the net profit from the $0.99 per month that player pays.' +
+      '<ol class="ex-wo"><li><b>Share your team.</b> Give other players your team code. Every time someone uses it to play in tournament mode, you earn 50% of the net profit from the $0.99 per month that player pays.' +
         '<span class="ex-code"><code id="exCodeTxt">' + esc(EX.code) + '</code><button type="button" data-w="copy">Copy</button></span><i>Players pick \u201cExpansion Team Code\u201d under Pick Your Team and enter it.</i></li>' +
-      '<li><b>Sell your merch.</b> Order custom merch for your team at our team store at a 50% discount. When people buy your team\u2019s merch at our store, you earn 35% of the net profit.</li></ol>' +
+      '<li><b>Sell your merch.</b> Order custom merch for your team at our team store at a 50% discount. When people buy your team\u2019s merch at our store, you earn 50% of the net profit.</li></ol>' +
+      '<div class="ex-ex"><b>Example: 250 players sign up with your code</b><span>250 \u00d7 $0.99 a month = $247.50 a month, a $2,970 annualized run rate</span><span>Less 20% operating costs = $2,376 net</span><span>Your 50% share = <b>$1,188 a year</b> (about $99 a month), before merch</span><i>Illustration only. Actual results depend on sign-ups and costs.</i></div>' +
+      '' +
       '<p class="ex-wt">You\u2019ll get a quarterly report with your numbers. To be paid, you\u2019ll fill out a short online owner form with your W-9 and bank details; we\u2019ll send you the link.</p>' +
       '<p class="ex-msg" id="exWelMsg" role="status"></p>' +
       '<div class="df-go"><a class="ex-store" href="https://usjaialai.com" target="_blank" rel="noopener">Team Store</a><button type="button" data-w="ok">Let\u2019s Play</button></div></div>';
@@ -2716,7 +2718,7 @@ window.FLFeedback = (function () {
       '<p class="ex-msg" id="exMsg" role="status"></p>' +
       '<div class="df-go"><button type="button" class="df-alt" data-ex="cancel">Cancel</button><button type="button" data-ex="build">' + (EX ? 'Save Expansion Team' : 'Build Expansion Team') + '</button></div>' +
       (EX ? '<button type="button" class="ex-rm" data-ex="remove">Remove expansion team</button>' : '') +
-      '<p class="df-note">$49.99 for 12 months, then renews each year. You agree to the ownership terms and pay when you tap Play.</p></div>';
+      '<p class="df-note">$499 for 12 months, then renews each year. You agree to the ownership terms and pay when you tap Play.</p></div>';
     el.hidden = false; var st = { logo: d.logo, how: d.how || 'desc', emo: '' };
     var paint = function () { var pv = el.querySelector('.ex-logo'); pv.innerHTML = st.logo ? '<img src="' + st.logo + '" alt="Logo preview">' : '<i>Logo preview</i>'; $('exPn').textContent = $('exName').value.trim() || 'Your Team'; $('exPn').style.color = $('exC1').value; };
     paint();
@@ -2985,6 +2987,7 @@ window.FLFeedback = (function () {
       '#exWel .df-in,#exCodeBox .df-in{position:relative;width:min(100%,440px);max-height:100%;overflow:auto;box-sizing:border-box;background:#0a0c12;border:2px solid ' + A + ';border-radius:16px;padding:14px 14px;display:flex;flex-direction:column;gap:9px}#exWel .df-tag,#exCodeBox .df-tag{text-align:center;font:700 10.5px/1 ' + F + ';letter-spacing:.16em;text-transform:uppercase;color:' + A + '}' +
       '#exWel h3,#exCodeBox h3{margin:0;text-align:center;font:900 22px/1.1 var(--display,' + F + ');letter-spacing:.06em;text-transform:uppercase;color:' + P + '}#exWel .ex-wl{align-self:center;width:96px;height:96px}#exWel .ex-wl img{width:100%;height:100%;object-fit:contain}' +
       '#exWel .ex-wt{margin:0;font:500 13.5px/1.45 ' + F + ';color:#e6e7ec;text-align:center}#exWel .ex-wt b{color:#fff}#exWel .ex-wo{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font:500 13px/1.45 ' + F + ';color:#d7d9e0}#exWel .ex-wo b{color:#fff}#exWel .ex-wo i{display:block;font-style:normal;font-size:11.5px;color:#a9adba}' +
+      '#exWel .ex-ex{display:flex;flex-direction:column;gap:3px;padding:9px 11px;border-radius:10px;background:#0f1a1c;border:1px solid #1d4d4a;font:500 12px/1.4 ' + F + ';color:#d7d9e0}#exWel .ex-ex b{color:#fff}#exWel .ex-ex i{font-style:normal;font-size:10.5px;color:#8d909a}' +
       '#exWel .ex-code{display:flex;align-items:center;gap:8px;margin:6px 0 3px}#exWel code{flex:1;font:800 16px/1 ui-monospace,Menlo,monospace;letter-spacing:.06em;color:' + A + ';background:#121627;border:1.5px dashed ' + A + ';border-radius:8px;padding:9px 10px;text-align:center;user-select:all}#exWel .ex-code button{min-height:38px;padding:0 14px;border-radius:8px;border:1.5px solid ' + A + ';background:transparent;color:#fff;font:800 12px/1 ' + F + ';letter-spacing:.08em;text-transform:uppercase}' +
       '#exWel .df-go,#exCodeBox .df-go{display:flex;gap:8px}#exWel .df-go button,#exWel .ex-store,#exCodeBox .df-go button{flex:1 1 0;min-height:46px;border-radius:12px;border:2px solid #de0a7b;background:#de0a7b;color:#fff;font:800 14px/1 ' + F + ';letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer}#exWel .ex-store,#exCodeBox .df-go button.df-alt{background:transparent;border-color:' + A + '}' +
       '#exWel .ex-msg,#exCodeBox .ex-msg{margin:0;min-height:1em;text-align:center;font:600 12px/1.3 ' + F + ';color:#ffb3d1}#exCodeBox .df-sub{margin:0;text-align:center;font:500 12.5px/1.4 ' + F + ';color:#a9adba}#exCodeBox .ex-l{display:flex;flex-direction:column;gap:5px;font:700 10.5px/1 ' + F + ';letter-spacing:.14em;text-transform:uppercase;color:#a9adba}' +
@@ -3012,7 +3015,7 @@ window.FLFeedback = (function () {
     s.value = CH.me >= 0 ? String(CH.me) : '';
     var curV = cfg.table ? 'table' : view;
     $('chView').innerHTML = [['aerial', 'Professional'], ['side', 'Amateur'], ['table', 'Cocktail Table'], ['vintage', '90s Throwback'], ['retro', '80s Retro'], ['sixties', 'Vintage']].filter(function (m) { return m[0] === 'table' || viewOK(m[0]); }).map(function (m) { return '<option value="' + m[0] + '"' + (m[0] === curV ? ' selected' : '') + '>' + m[1] + '</option>'; }).join('');
-    var xb = $('chExp'); xb.hidden = CH.g !== 'league'; xb.innerHTML = EX ? 'Edit Expansion Team<small>' + esc(EX.name) + ' \u00b7 ' + esc(EX.code || '') + '</small>' : 'Buy an Expansion Team<small>$49.99 per year</small>';
+    var xb = $('chExp'); xb.hidden = CH.g !== 'league'; xb.innerHTML = EX ? 'Edit Expansion Team<small>' + esc(EX.name) + ' \u00b7 ' + esc(EX.code || '') + '</small>' : 'Buy an Expansion Team<small>$499 per year</small>';
     var dd = $('chDraft'), sv = dfLoad(); dd.hidden = CH.g !== 'league';
     dd.innerHTML = '<option value="live">Live Draft \u00b7 You Pick Your Roster</option><option value="skip">Skip Draft \u00b7 CPU Picks All Rosters</option>' + (sv ? '<option value="saved">My Saved Team \u00b7 ' + esc(ROSTER[sv.me] ? ROSTER[sv.me].name : '') + ' (' + esc(sv.at || '') + ')</option>' : '');
     $('chBr').innerHTML = CH.me >= 0 ? chBracket() : '';
