@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126212925";
+window.FL_BUILD = "20261126213002";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2932,8 +2932,8 @@ window.FLFeedback = (function () {
       '<div class="av-mo"><div class="av-row" role="group" aria-label="Arm sleeves and leggings">' + tog('slv', 'sleeves') + tog('leg', 'leggings') + '</div></div>' +
       '<div class="av-l">Uniform Color</div><div class="av-cols"><label><input type="color" id="avShirt" value="' + AV.shirt + '">shirt</label><label><input type="color" id="avShorts" value="' + AV.shorts + '">shorts / pants</label><label><input type="color" id="avBelt" value="' + AV.belt + '">belt</label><label><input type="color" id="avCesta" value="' + AV.cesta + '">cesta</label><label class="av-mo"><input type="color" id="avSlc" value="' + AV.slc + '">sleeves</label><label class="av-mo"><input type="color" id="avLgc" value="' + AV.lgc + '">leggings</label></div>' +
       '<div class="av-l">Body Style</div><div class="av-bm">' + chips('bm', AV_BDM, 'Body style') + '</div><div class="av-bf">' + chips('bf', AV_BD, 'Body style') + '</div>' +
-      '<div class="av-l">Skin &amp; Hair Color</div><div class="av-cols"><label><input type="color" id="avSkc" value="' + AV.skc + '">skin</label><label><input type="color" id="avHrc" value="' + AV.hrc + '">hair</label></div>' +
       '<div class="av-ht"><div class="av-l">Hair Type</div>' + chips('ht', AV_HT, 'Hair type') + '</div>' +
+      '<div class="av-l">Skin &amp; Hair Color</div><div class="av-cols"><label><input type="color" id="avSkc" value="' + AV.skc + '">skin</label><label><input type="color" id="avHrc" value="' + AV.hrc + '">hair</label></div>' +
       '</div><button type="button" class="av-go" data-av="use">Use This Avatar<small>$0.99 per month</small></button>' +
       '<button type="button" class="av-link" data-av="photos">Or send us two photos and we custom build you</button></div>';
     el.hidden = false; var cv = $('avCv'), q = 0;
