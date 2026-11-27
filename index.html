@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261127030031";
+window.FL_BUILD = "20261127030502";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2993,10 +2993,15 @@ window.FLFeedback = (function () {
         '#avBox button:focus-visible,#avBox input:focus-visible{outline:2px solid #fff;outline-offset:2px}';
       document.head.appendChild(st); }
   }
+  function exClear() {                                            // drops the saved expansion team from this phone and from the bracket
+    try { localStorage.removeItem(EXKEY); localStorage.removeItem(DKEY); } catch (er) { /* ignore */ }
+    if (!EX) return; EX = null; if (CH.me === EXI) CH.me = -1; CH.m = null; if (EXG) exSet(exKit(EXG)); else if (EXI >= 0) { ROSTER.splice(EXI, 1); EXI = -1; }
+    try { chPaint(); } catch (er) { /* ignore */ }
+  }
   function exOpen() {
     var el = $('exBox'), d = EX || { name: '', logo: '', c1: '#14b8a6', c2: '#0f172a', desc: '', how: 'desc' };
     if (!el) { el = document.createElement('div'); el.id = 'exBox'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'exH'); document.body.appendChild(el); }
-    el.innerHTML = '<div class="df-in ex-in"><button type="button" class="df-back" data-ex="cancel">\u2039 Back</button><button type="button" class="df-reset" data-ex="reset">Reset</button><div class="df-tag">Fantasy League Championship</div><h3 id="exH">Buy an Expansion Team</h3>' +
+    el.innerHTML = '<div class="df-in ex-in"><button type="button" class="df-back" data-ex="cancel">\u2039 Back</button><button type="button" class="df-reset" data-ex="reset">Reset</button><h3 id="exH">Buy an Expansion Team</h3>' +
       '<label class="ex-l">Team name<input id="exName" maxlength="22" autocomplete="off" placeholder="e.g. Miami Hammerheads" value="' + esc(d.name) + '"></label>' +
       '<div class="ex-l">Team colors<span class="ex-cols"><label><input type="color" id="exC1" value="' + d.c1 + '">Primary</label><label><input type="color" id="exC2" value="' + d.c2 + '">Secondary</label></span></div>' +
       '<div class="ex-l">Logo<span class="ex-tabs" role="group" aria-label="Logo"><button type="button" data-ex="desc" aria-pressed="' + (d.how !== 'up') + '">Describe It</button><button type="button" data-ex="up" aria-pressed="' + (d.how === 'up') + '">Upload One</button></span></div>' +
@@ -3004,7 +3009,7 @@ window.FLFeedback = (function () {
       '<div class="ex-up"' + (d.how === 'up' ? '' : ' hidden') + '><input type="file" id="exFile" accept="image/*"><p class="df-sub">PNG with a clear background looks best.</p></div>' +
       '<div class="ex-prev"><span class="ex-logo">' + (d.logo ? '<img src="' + d.logo + '" alt="Logo preview">' : '<i>Logo preview</i>') + '</span><span class="ex-pn"><b id="exPn">' + esc(d.name || 'Your Team') + '</b><i>' + (EX && EX.code ? 'Team code ' + esc(EX.code) : 'Expansion Team') + '</i></span></div>' +
       '<p class="ex-msg" id="exMsg" role="status"></p>' +
-      '<div class="df-go"><button type="button" class="df-alt" data-ex="cancel">Cancel</button><button type="button" data-ex="build">' + (EX ? 'Save Expansion Team' : 'Build Expansion Team') + '</button></div>' +
+      '<div class="df-go"><button type="button" data-ex="build">' + (EX ? 'Save Expansion Team' : 'Build Expansion Team') + '</button></div>' +
       (EX ? '<button type="button" class="ex-rm" data-ex="remove">Remove expansion team</button>' : '') +
       '<p class="df-note">$499 for 12 months, then renews each year. You agree to the ownership terms and pay when you tap Play.</p></div>';
     el.hidden = false; var st = { logo: d.logo, how: d.how || 'desc', emo: '' };
@@ -3018,8 +3023,8 @@ window.FLFeedback = (function () {
       else if (a === 'make') { var nm = $('exName').value.trim(); if (!$('exDesc').value.trim()) { $('exMsg').textContent = 'Describe the logo first.'; return; } var lg = exLogo($('exDesc').value, nm, $('exC1').value, $('exC2').value); st.logo = lg.url; st.how = 'desc';
         $('exMsg').textContent = lg.emo ? '' : 'No emblem matched those words, so the logo shows your initials. Try an animal or object (shark, eagle, lightning).'; paint(); }
       else if (a === 'cancel') el.hidden = true;
-      else if (a === 'reset') { $('exName').value = ''; $('exC1').value = '#14b8a6'; $('exC2').value = '#0f172a'; $('exDesc').value = ''; $('exFile').value = ''; st.logo = ''; $('exMsg').textContent = ''; paint(); }   // clears the form; the saved team changes only on Save
-      else if (a === 'remove') { try { localStorage.removeItem(EXKEY); localStorage.removeItem(DKEY); } catch (er) { /* ignore */ } EX = null; if (CH.me === EXI) CH.me = -1; CH.m = null; if (EXG) exSet(exKit(EXG)); else { ROSTER.splice(EXI, 1); EXI = -1; } el.hidden = true; chPaint(); }
+      else if (a === 'reset') { exClear(); EX = null; exOpen(); return; }   // start over: the saved team is cleared and the form is empty
+      else if (a === 'remove') { exClear(); el.hidden = true; chPaint(); }
       else if (a === 'build') {
         var name = $('exName').value.trim();
         if (!name) { $('exMsg').textContent = 'Give your team a name.'; return; }
@@ -3259,6 +3264,7 @@ window.FLFeedback = (function () {
     var st = document.createElement('style'), F = 'var(--body,system-ui,sans-serif)', P = '#ff2d95', A = '#1fe0d6';
     st.textContent = '#dfBox{position:fixed;inset:0;z-index:2147482300;background:rgba(4,5,10,.94);display:flex;align-items:center;justify-content:center;padding:8px;font-family:' + F + ';color:#f2efe6}#dfBox[hidden]{display:none}' +
       '#dfBox .df-in{width:min(100%,480px);max-height:100%;overflow:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;background:#0a0c12;border:2px solid ' + A + ';border-radius:16px;padding:12px 10px;display:flex;flex-direction:column;gap:8px}' +
+      '#exBox #exH{margin-top:30px}' +
       '#exBox .df-reset{position:absolute;right:10px;top:9px;background:none;border:0;padding:4px 2px;color:#c9cbd4;font:700 12px/1 system-ui,sans-serif;text-decoration:underline;cursor:pointer;min-height:28px}' +
       '#dfBox .df-in,#exBox .df-in{position:relative}#dfBox .df-back,#exBox .df-back{position:absolute;left:10px;top:9px;background:none;border:0;padding:4px 2px;color:' + A + ';font:700 12px/1 ' + F + ';letter-spacing:.12em;text-transform:uppercase;cursor:pointer;z-index:1}' +
       '#dfBox .df-tag{text-align:center;font:700 10.5px/1 ' + F + ';letter-spacing:.16em;text-transform:uppercase;color:' + A + '}#dfBox h3{margin:0;text-align:center;font:900 21px/1 var(--display,' + F + ');letter-spacing:.08em;text-transform:uppercase;color:' + P + '}' +
