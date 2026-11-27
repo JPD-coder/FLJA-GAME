@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261127030502";
+window.FL_BUILD = "20261127033506";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2731,7 +2731,7 @@ window.FLFeedback = (function () {
     fk: { fabL: 55, ceL: 168, ceOrig: 1, btL: 16 }, mk: { slL: 224, lgL: 12, fabL: 58, ceL: 45, ceOrig: 0, btL: 40 }
   };
   var AV = { view: 'kit', g: 'm', bm: 4, bf: 3, skc: '#d09468', hrc: '#4a2f1f', ht: -1, shirt: '#0b0b0b', shorts: '#0b0b0b', shoes: '#0b0b0b', belt: '#0b0b0b', slc: '#f2f2f2', lgc: '#0b0b0b', slv: true, leg: true, bot: 'shorts', fh: 0, top: 'shirt', shoe: 'low', cesta: '#26262b', hat: 0, ear: 0, chain: false, brace: false, watch: false };
-  var AV0 = JSON.stringify(AV);                                    // the starting look, for Reset
+  var AV0 = JSON.stringify(AV); AV.bot = 'shorts';   // pants were taken off the builder                                    // the starting look, for Reset
   try { var avS = JSON.parse(localStorage.getItem(AVKEY) || 'null'); if (avS && avS.v === 8) for (var avk in avS) if (avk in AV) AV[avk] = avS[avk]; } catch (e) { /* ignore */ }
   AV.view = 'player'; AV.hat = 0; AV.ear = 0; AV.chain = AV.brace = AV.watch = false;   // the player shows from the start; hats, shoes and jewelry are off the builder
   var AVC = {};                                                     // loaded pictures per base
@@ -2862,7 +2862,7 @@ window.FLFeedback = (function () {
     if (!kit && mb) { G = {}; for (var gk in AV_GEO.m) G[gk] = AV_GEO.m[gk]; for (gk in GK) G[gk] = GK[gk]; G.hat = [G.hat[0], G.hat[1], G.hat[2] * G.hr, G.hat[3] * G.hr]; }
     avLoad(key, function (o) {
       if (!o.ok || (AV.g + (AV.view === 'kit' ? 'k' : AV.g === 'm' && (AV.bm !== 4 || AV.top === 'tank') ? avMB() : '')) !== key) return;
-      var TS = avHex(AV.shirt), TP = avHex(AV.shorts), CE = avHex(AV.cesta), BT = avHex(AV.belt), keepB = BT[0] + BT[1] + BT[2] < 90, tank = AV.top === 'tank', pants = AV.g === 'm' && AV.bot === 'pants', keepT = TS[0] + TS[1] + TS[2] < 90, keepP = TP[0] + TP[1] + TP[2] < 90, keepC = !GK.ceOrig && CE[0] + CE[1] + CE[2] < 120, SL = avHex(AV.slc), LG = avHex(AV.lgc), keepS = SL[0] + SL[1] + SL[2] > 690, keepL = LG[0] + LG[1] + LG[2] < 90;
+      var TS = avHex(AV.shirt), TP = avHex(AV.shorts), CE = avHex(AV.cesta), BT = avHex(AV.belt), keepB = BT[0] + BT[1] + BT[2] < 90, tank = AV.top === 'tank', pants = false, keepT = TS[0] + TS[1] + TS[2] < 90, keepP = TP[0] + TP[1] + TP[2] < 90, keepC = !GK.ceOrig && CE[0] + CE[1] + CE[2] < 120, SL = avHex(AV.slc), LG = avHex(AV.lgc), keepS = SL[0] + SL[1] + SL[2] > 690, keepL = LG[0] + LG[1] + LG[2] < 90;
       var x = cv.getContext('2d'), f = o.fig || (o.fig = document.createElement('canvas')); f.width = AVW; f.height = AVH; var fx = f.getContext('2d'), id = fx.createImageData(AVW, AVH), d = id.data, p, w;
       if (kit) {                                                    // the uniform silhouette: recolor on the kit photo (a tank top swaps in the sleeveless picture)
         var s = tank ? o.px[3] : o.px[0], m = o.px[1], c = o.px[2], xk = o.px[4];
@@ -2944,9 +2944,8 @@ window.FLFeedback = (function () {
       '<div class="av-ctl">' +
       '<div class="av-l">Player</div>' + pair('g', [['m', 'male'], ['f', 'female']], 'Player') +
       '<div class="av-l">Uniform Style</div><div class="av-row" role="group" aria-label="Top">' + ['shirt', 'tank'].map(function (v) { return '<button type="button" data-av="top" data-s="' + v + '" aria-pressed="false">' + (v === 'tank' ? 'tank top' : 'shirt') + '</button>'; }).join('') + '</div>' +
-      '<div class="av-row" role="group" aria-label="Bottoms"><button type="button" data-av="bot" data-s="shorts" aria-pressed="false">shorts</button><button type="button" class="av-mo" data-av="bot" data-s="pants" aria-pressed="false">pants</button></div>' +
       '<div class="av-mo"><div class="av-row" role="group" aria-label="Arm sleeves and leggings">' + tog('slv', 'sleeves') + tog('leg', 'leggings') + '</div></div>' +
-      '<div class="av-l">Uniform Color</div><div class="av-cols"><label><input type="color" id="avShirt" value="' + AV.shirt + '">shirt</label><label><input type="color" id="avShorts" value="' + AV.shorts + '">shorts / pants</label><label><input type="color" id="avBelt" value="' + AV.belt + '">belt</label><label><input type="color" id="avCesta" value="' + AV.cesta + '">cesta</label><label class="av-mo"><input type="color" id="avSlc" value="' + AV.slc + '">sleeves</label><label class="av-mo"><input type="color" id="avLgc" value="' + AV.lgc + '">leggings</label></div>' +
+      '<div class="av-l">Uniform Color</div><div class="av-cols"><label><input type="color" id="avShirt" value="' + AV.shirt + '">shirt</label><label><input type="color" id="avShorts" value="' + AV.shorts + '">shorts</label><label><input type="color" id="avBelt" value="' + AV.belt + '">belt</label><label><input type="color" id="avCesta" value="' + AV.cesta + '">cesta</label><label class="av-mo"><input type="color" id="avSlc" value="' + AV.slc + '">sleeves</label><label class="av-mo"><input type="color" id="avLgc" value="' + AV.lgc + '">leggings</label></div>' +
       '<div class="av-l">Body Style</div><div class="av-bm">' + chips('bm', AV_BDM, 'Body style') + '</div><div class="av-bf">' + chips('bf', AV_BD, 'Body style') + '</div>' +
       '<div class="av-ht"><div class="av-l">Hair Type</div>' + chips('ht', AV_HT, 'Hair type') + '</div>' +
       '<div class="av-mo"><div class="av-l">Facial Hair</div>' + chips('fh', AV_FH, 'Facial hair') + '</div>' +
