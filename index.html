@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261127024949";
+window.FL_BUILD = "20261127030031";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2891,8 +2891,8 @@ window.FLFeedback = (function () {
         if ((w = ce[p] / 255) > 0 && !keepC) avTint(d, S0, p, w, CE, G.ceL, 0.3, 0.7);
         if ((w = ce[p + 1] / 255) > 0 && !keepB) avTint(d, S0, p, w, BT, G.btL, 0.3, 0.7);
         if (xb) {
-          if ((w = xb[p] / 255) > 0) { if (!AV.slv) avTint(d, S0, p, w, SK, G.slL, 0.3, 0.5); else if (!keepS) avTint(d, S0, p, w, SL, G.slL, 0.3, 0.7); }
-          if ((w = xb[p + 1] / 255) > 0) { if (pants) { if (!keepP) avTint(d, S0, p, w, TP, G.lgL * 4, 0.36, 0.92); } else if (!AV.leg) avTint(d, S0, p, w, SK, G.lgL * 4, 0.5, 0.8); else if (!keepL) avTint(d, S0, p, w, LG, G.lgL * 4, 0.36, 0.92); } }
+          if ((w = xb[p] / 255) > 0) { if (!AV.slv) avTint(d, S0, p, w, SK, G.slL, 0.72, 0.3); else if (!keepS) avTint(d, S0, p, w, SL, G.slL, 0.3, 0.7); }
+          if ((w = xb[p + 1] / 255) > 0) { if (pants) { if (!keepP) avTint(d, S0, p, w, TP, G.lgL * 4, 0.36, 0.92); } else if (!AV.leg) avTint(d, S0, p, w, SK, G.lgL * 4, 0.92, 0.3); else if (!keepL) avTint(d, S0, p, w, LG, G.lgL * 4, 0.36, 0.92); } }
       }
       fx.putImageData(id, 0, 0);
       var B = AV.g === 'm' ? ['', 1, 0, 0.3, 0] : AV_BD[AV.bf], fin = function () { avFace(fx, G, HR, fin2); }, fin2 = function () { avChin(fx, G, B[4]); avDress(fx, G); avFinish(o, G, B, f, fx, x); };
