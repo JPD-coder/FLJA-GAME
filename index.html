@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261127023831";
+window.FL_BUILD = "20261127024949";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2731,6 +2731,7 @@ window.FLFeedback = (function () {
     fk: { fabL: 55, ceL: 168, ceOrig: 1, btL: 16 }, mk: { slL: 224, lgL: 12, fabL: 58, ceL: 45, ceOrig: 0, btL: 40 }
   };
   var AV = { view: 'kit', g: 'm', bm: 4, bf: 3, skc: '#d09468', hrc: '#4a2f1f', ht: -1, shirt: '#0b0b0b', shorts: '#0b0b0b', shoes: '#0b0b0b', belt: '#0b0b0b', slc: '#f2f2f2', lgc: '#0b0b0b', slv: true, leg: true, bot: 'shorts', fh: 0, top: 'shirt', shoe: 'low', cesta: '#26262b', hat: 0, ear: 0, chain: false, brace: false, watch: false };
+  var AV0 = JSON.stringify(AV);                                    // the starting look, for Reset
   try { var avS = JSON.parse(localStorage.getItem(AVKEY) || 'null'); if (avS && avS.v === 8) for (var avk in avS) if (avk in AV) AV[avk] = avS[avk]; } catch (e) { /* ignore */ }
   AV.view = 'player'; AV.hat = 0; AV.ear = 0; AV.chain = AV.brace = AV.watch = false;   // the player shows from the start; hats, shoes and jewelry are off the builder
   var AVC = {};                                                     // loaded pictures per base
@@ -2938,7 +2939,7 @@ window.FLFeedback = (function () {
     var sw = function (key, list, label) { return '<div class="av-row av-sw" role="group" aria-label="' + label + '">' + list.map(function (n, i) { return '<button type="button" data-av="' + key + '" data-v="' + i + '" aria-pressed="false"><i style="background:' + n[1] + '"></i>' + esc(n[0]) + '</button>'; }).join('') + '</div>'; };
     var pair = function (key, opts, label) { return '<div class="av-row" role="group" aria-label="' + label + '">' + opts.map(function (o) { return '<button type="button" data-av="' + key + '" data-s="' + o[0] + '" aria-pressed="false">' + o[1] + '</button>'; }).join('') + '</div>'; };
     var tog = function (key, label) { return '<button type="button" data-av="tog" data-k="' + key + '" aria-pressed="false">' + label + '</button>'; };
-    el.innerHTML = '<div class="av-in"><button type="button" class="df-back" data-av="close">\u2039 Back</button><div class="df-tag">Limited Edition Skins</div><h3 id="avH" tabindex="-1">Build Your Avatar</h3>' +
+    el.innerHTML = '<div class="av-in"><button type="button" class="df-back" data-av="close">\u2039 Back</button><button type="button" class="df-reset" data-av="reset">Reset</button><div class="df-tag">Limited Edition Skins</div><h3 id="avH" tabindex="-1">Build Your Avatar</h3>' +
       '<div class="av-stage"><canvas id="avCv" width="' + AVW + '" height="' + AVH + '" role="img" aria-label="Your avatar preview"></canvas></div>' +
       '<div class="av-ctl">' +
       '<div class="av-l">Player</div>' + pair('g', [['m', 'male'], ['f', 'female']], 'Player') +
@@ -2963,6 +2964,7 @@ window.FLFeedback = (function () {
     el.onclick = function (e) {
       var b = e.target.closest('button[data-av]'); if (!b) return; var k = b.getAttribute('data-av');
       if (k === 'close') { el.hidden = true; return; }
+      if (k === 'reset') { AV = JSON.parse(AV0); AV.view = 'player'; AV.picked = {}; avSave(); avOpen(); return; }   // back to the starting player, every wheel blank
       if (k === 'photos') { el.hidden = true; $('wzANote').textContent = ''; $('wzAvatar').hidden = false; return; }
       if (k === 'use') { avSave(); el.hidden = true; exTermsBack(); WZ.skin = 'Your Avatar';
         WZ.ref = [AV.g, AV.g === 'm' ? AV.bm : AV.bf, AV.skc.slice(1), AV.hrc.slice(1), avHT(), AV.shirt.slice(1), AV.shorts.slice(1), AV.shoes.slice(1), AV.belt.slice(1), AV.top.charAt(0), AV.shoe.charAt(0), AV.cesta.slice(1), AV.hat, AV.ear, (AV.chain ? 'c' : '') + (AV.brace ? 'b' : '') + (AV.watch ? 'w' : ''), AV.slv ? AV.slc.slice(1) : 'x', AV.leg ? AV.lgc.slice(1) : 'x', AV.bot.charAt(0), AV.fh].join('-');
@@ -2979,7 +2981,7 @@ window.FLFeedback = (function () {
       st.textContent = '#avBox{position:fixed;inset:0;z-index:2147482300;background:rgba(4,6,10,.9);display:flex;align-items:center;justify-content:center;padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}#avBox[hidden]{display:none}' +
         '#avBox .av-in{position:relative;width:min(100%,460px);max-height:100%;overflow:auto;box-sizing:border-box;background:#0a0c12;border:2px solid ' + A + ';border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px;color:#f2efe6}' +
         '#avBox .df-back{position:absolute;top:10px;left:10px;background:none;border:0;color:#c9cbd4;font:700 12px/1 ' + F + ';min-height:32px;cursor:pointer}#avBox .df-tag{text-align:center;font:700 10.5px/1 ' + F + ';letter-spacing:.16em;text-transform:uppercase;color:' + A + ';padding-top:22px}' +
-        '#avBox h3{margin:0;text-align:center;font:900 21px/1 var(--display, ' + F + ');text-transform:uppercase;letter-spacing:.02em}#avBox h3:focus{outline:none}#avBox input.av-blank::-webkit-color-swatch{background:transparent!important;border-color:transparent}#avBox input.av-blank::-moz-color-swatch{background:transparent!important;border-color:transparent}#avBox [hidden]{display:none!important}' +
+        '#avBox h3{margin:0;text-align:center;font:900 21px/1 var(--display, ' + F + ');text-transform:uppercase;letter-spacing:.02em}#avBox h3:focus{outline:none}#avBox .df-reset{position:absolute;top:10px;right:10px;background:none;border:0;color:#c9cbd4;font:700 12px/1 system-ui,sans-serif;min-height:32px;cursor:pointer;text-decoration:underline}#avBox input.av-blank::-webkit-color-swatch{background:transparent!important;border-color:transparent}#avBox input.av-blank::-moz-color-swatch{background:transparent!important;border-color:transparent}#avBox [hidden]{display:none!important}' +
         '#avBox .av-stage{position:sticky;top:-12px;z-index:2;background:#0a0c12;margin:0 -12px;padding:4px 12px 6px;border-bottom:1px solid #1d2233;display:flex;flex-direction:column;align-items:center;gap:6px}#avBox canvas{display:block;width:auto;max-width:100%;height:min(38vh,310px);border-radius:12px}' +
         '#avBox .av-ctl{display:flex;flex-direction:column;gap:5px}#avBox .av-l{font:800 10.5px/1 ' + F + ';letter-spacing:.14em;text-transform:uppercase;color:#a9adba;margin-top:5px}' +
         '#avBox .av-row{display:flex;flex-wrap:wrap;gap:5px}#avBox .av-row button{min-height:34px;padding:0 11px;border-radius:999px;border:1.5px solid #3a4160;background:transparent;color:#f2efe6;font:700 12.5px/1 ' + F + ';text-transform:lowercase;cursor:pointer;display:inline-flex;align-items:center;gap:6px}' +
@@ -2994,7 +2996,7 @@ window.FLFeedback = (function () {
   function exOpen() {
     var el = $('exBox'), d = EX || { name: '', logo: '', c1: '#14b8a6', c2: '#0f172a', desc: '', how: 'desc' };
     if (!el) { el = document.createElement('div'); el.id = 'exBox'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'exH'); document.body.appendChild(el); }
-    el.innerHTML = '<div class="df-in ex-in"><button type="button" class="df-back" data-ex="cancel">\u2039 Back</button><div class="df-tag">Fantasy League Championship</div><h3 id="exH">Buy an Expansion Team</h3>' +
+    el.innerHTML = '<div class="df-in ex-in"><button type="button" class="df-back" data-ex="cancel">\u2039 Back</button><button type="button" class="df-reset" data-ex="reset">Reset</button><div class="df-tag">Fantasy League Championship</div><h3 id="exH">Buy an Expansion Team</h3>' +
       '<label class="ex-l">Team name<input id="exName" maxlength="22" autocomplete="off" placeholder="e.g. Miami Hammerheads" value="' + esc(d.name) + '"></label>' +
       '<div class="ex-l">Team colors<span class="ex-cols"><label><input type="color" id="exC1" value="' + d.c1 + '">Primary</label><label><input type="color" id="exC2" value="' + d.c2 + '">Secondary</label></span></div>' +
       '<div class="ex-l">Logo<span class="ex-tabs" role="group" aria-label="Logo"><button type="button" data-ex="desc" aria-pressed="' + (d.how !== 'up') + '">Describe It</button><button type="button" data-ex="up" aria-pressed="' + (d.how === 'up') + '">Upload One</button></span></div>' +
@@ -3016,6 +3018,7 @@ window.FLFeedback = (function () {
       else if (a === 'make') { var nm = $('exName').value.trim(); if (!$('exDesc').value.trim()) { $('exMsg').textContent = 'Describe the logo first.'; return; } var lg = exLogo($('exDesc').value, nm, $('exC1').value, $('exC2').value); st.logo = lg.url; st.how = 'desc';
         $('exMsg').textContent = lg.emo ? '' : 'No emblem matched those words, so the logo shows your initials. Try an animal or object (shark, eagle, lightning).'; paint(); }
       else if (a === 'cancel') el.hidden = true;
+      else if (a === 'reset') { $('exName').value = ''; $('exC1').value = '#14b8a6'; $('exC2').value = '#0f172a'; $('exDesc').value = ''; $('exFile').value = ''; st.logo = ''; $('exMsg').textContent = ''; paint(); }   // clears the form; the saved team changes only on Save
       else if (a === 'remove') { try { localStorage.removeItem(EXKEY); localStorage.removeItem(DKEY); } catch (er) { /* ignore */ } EX = null; if (CH.me === EXI) CH.me = -1; CH.m = null; if (EXG) exSet(exKit(EXG)); else { ROSTER.splice(EXI, 1); EXI = -1; } el.hidden = true; chPaint(); }
       else if (a === 'build') {
         var name = $('exName').value.trim();
@@ -3256,6 +3259,7 @@ window.FLFeedback = (function () {
     var st = document.createElement('style'), F = 'var(--body,system-ui,sans-serif)', P = '#ff2d95', A = '#1fe0d6';
     st.textContent = '#dfBox{position:fixed;inset:0;z-index:2147482300;background:rgba(4,5,10,.94);display:flex;align-items:center;justify-content:center;padding:8px;font-family:' + F + ';color:#f2efe6}#dfBox[hidden]{display:none}' +
       '#dfBox .df-in{width:min(100%,480px);max-height:100%;overflow:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;background:#0a0c12;border:2px solid ' + A + ';border-radius:16px;padding:12px 10px;display:flex;flex-direction:column;gap:8px}' +
+      '#exBox .df-reset{position:absolute;right:10px;top:9px;background:none;border:0;padding:4px 2px;color:#c9cbd4;font:700 12px/1 system-ui,sans-serif;text-decoration:underline;cursor:pointer;min-height:28px}' +
       '#dfBox .df-in,#exBox .df-in{position:relative}#dfBox .df-back,#exBox .df-back{position:absolute;left:10px;top:9px;background:none;border:0;padding:4px 2px;color:' + A + ';font:700 12px/1 ' + F + ';letter-spacing:.12em;text-transform:uppercase;cursor:pointer;z-index:1}' +
       '#dfBox .df-tag{text-align:center;font:700 10.5px/1 ' + F + ';letter-spacing:.16em;text-transform:uppercase;color:' + A + '}#dfBox h3{margin:0;text-align:center;font:900 21px/1 var(--display,' + F + ');letter-spacing:.08em;text-transform:uppercase;color:' + P + '}' +
       '#dfBox h4{margin:2px 0 0;font:800 11.5px/1 ' + F + ';letter-spacing:.14em;text-transform:uppercase}#dfBox .df-sub,#dfBox .df-note{margin:0;text-align:center;font:500 12px/1.35 ' + F + ';color:#a9adba}' +
