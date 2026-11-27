@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261127002038";
+window.FL_BUILD = "20261127011956";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -180,6 +180,7 @@ body.sides.aer .pads { padding-left: calc(var(--sc) * .62); padding-right: calc(
 .pad.tall .shots.round button { width: calc(var(--sc) * 1.42); height: calc(var(--sc) * .86); min-height: 0; padding: 0 4px; border-radius: 14px;
   font-weight: 800; font-size: calc(var(--sc) * .23) !important; letter-spacing: 0; line-height: 1.02; }
 .pad.tall .shotbox { flex: 1 1 auto; min-width: 0; align-self: center; background: #0b0c0f; border: 0; }   /* the small controls sit on the same centre line as the hands */
+.pad.tall .minis .miniback { display: none !important; }   /* upright phones use the Back button in the top bar */
 .pad.tall .minis { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; padding: 2px; border-top: 0; }
 .pad.tall .minis button { flex: 1 1 44%; min-width: 0; height: auto; min-height: 30px; padding: 2px 4px; font-size: 11px !important; letter-spacing: .05em; }
 .pad.tall .shot-label { font-size: 11px; padding: 3px 2px; }
@@ -476,7 +477,6 @@ body.retro #adCard { border-radius: 0; border-color: #1fd5d9; font-family: ui-mo
 .after .start { margin: 0; }
 .after .ghost { padding: 10px 18px; font-size: 14px; }
 .hint { margin: 0; text-align: center; color: var(--muted); font-size: 13px; }
-@media (orientation: landscape) { #btnBack { display: none !important; } }
 .hint.rotate { font-size: 16px; font-weight: 800; color: #f2efe6; letter-spacing: .02em; padding: 4px 0; }
 .rotate { display: none; }
 
@@ -3441,7 +3441,7 @@ window.FLFeedback = (function () {
       };
       // four shot buttons sit above a box naming the player they belong to
       var box = function (only) { return '<div class="shotbox" data-box="' + only + '"><div class="shots">' + four(only) + '</div><div class="shot-label">' + (cfg.singles ? 'Singles' : only % 2 ? 'Back Court' : 'Front Court') + '</div></div>'; };
-      var minis = '<div class="minis"><button type="button" class="mini" data-mini="menu" aria-label="New match">Menu</button>' +
+      var minis = '<div class="minis"><button type="button" class="mini miniback" data-mini="back" aria-label="Back to Choose Where to Play">\u2039 Back</button><button type="button" class="mini" data-mini="menu" aria-label="New match">Menu</button>' +
         (MULTI && !window.FL_VIEW3 ? '<button type="button" class="mini" data-mini="view" aria-label="Change the mode and camera">Mode</button>' : '') +
         (window.FL_MUSIC && MUSIC[eraView()] ? '<button type="button" class="mini' + (spLive ? ' hot spinning' : '') + '" id="miniMusic" data-mini="music" aria-label="Era music: show or hide the player">' + recHTML() + 'Music</button>' : '') +
         '<button type="button" class="mini" id="miniPause" data-mini="pause"' + (net.role === 'guest' ? ' hidden' : '') + '>Pause</button></div>';
@@ -3835,6 +3835,7 @@ window.FLFeedback = (function () {
   elApp.addEventListener('click', function (e) {
     var b = e.target.closest('button[data-mini]'); if (!b) return;
     var mk = b.getAttribute('data-mini');
+    if (mk === 'back') { goHome(); return; }
     if (mk === 'pause') togglePause(); else if (mk === 'view') changeView(); else if (mk === 'music') musToggle();
     else if (mk === 'lang') { cfg.lang = cfg.lang === 'en' ? 'es' : 'en'; save(); buildPads(); }
     else if (mk === 'guide') { cfg.guide = cfg.guide === false; save(); buildPads(); }
