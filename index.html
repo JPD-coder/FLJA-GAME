@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126230547";
+window.FL_BUILD = "20261127002038";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2925,7 +2925,7 @@ window.FLFeedback = (function () {
         var hl = bx.createRadialGradient(bxp - 10, byp - 30, 4, bxp - 10, byp - 20, 90 + 60 * belly); hl.addColorStop(0, 'rgba(255,255,255,' + (0.1 + 0.06 * belly) + ')'); hl.addColorStop(1, 'rgba(255,255,255,0)'); bx.fillStyle = hl; bx.fillRect(0, 0, AVW, AVH);
         var dk = bx.createRadialGradient(bxp - 30, byp + 70 + 30 * belly, 4, bxp - 30, byp + 60 + 30 * belly, 80 + 50 * belly); dk.addColorStop(0, 'rgba(0,0,0,' + (0.25 + 0.15 * belly) + ')'); dk.addColorStop(1, 'rgba(0,0,0,0)'); bx.fillStyle = dk; bx.fillRect(0, 0, AVW, AVH); bx.restore();
       }
-      x.clearRect(0, 0, AVW, AVH); x.drawImage(o.im[4], 0, 0, AVW, AVH); x.drawImage(bc, 0, 0);
+      x.fillStyle = '#000'; x.fillRect(0, 0, AVW, AVH); x.drawImage(bc, 0, 0);   // plain black behind the player, no smoke
     }
   }
   function avSave() { try { AV.v = 8; localStorage.setItem(AVKEY, JSON.stringify(AV)); } catch (e) { /* ignore */ } }
