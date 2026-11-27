@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261127033609";
+window.FL_BUILD = "20261127033756";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2720,7 +2720,7 @@ window.FLFeedback = (function () {
   var AV_BD = [['super skinny', 0.8, 0, 0.3, 0], ['slim', 0.9, 0, 0.3, 0], ['athletic', 0.95, 0, 0.3, 0], ['muscular', 1, 0, 0.3, 0], ['chubby', 1.1, 0, 0.3, 0], ['fat', 1.22, 0, 0.3, 0]];   // belly, fat face and the slob body wait on new base art   // name, width, belly, face share, double chin
   var AV_CE = [['black', '#26262b'], ['natural', '#d29a5c'], ['white', '#efede6'], ['red', '#c62828'], ['blue', '#1f4fd6'], ['gold', '#d4a72c'], ['pink', '#e11d74']];
   var AV_HM = [{x:128.1,y:0.0,w:320,h:406,fx:347.0,fy:44.8,fh:85.9,hairL:29},{x:128.1,y:0.0,w:320,h:406,fx:347.5,fy:40.6,fh:90.2,hairL:23},{x:128.1,y:0.0,w:320,h:406,fx:345.9,fy:41.6,fh:88.6,hairL:25},{x:128.1,y:0.0,w:320,h:406,fx:345.9,fy:38.4,fh:91.8,hairL:24},{x:128.1,y:0.0,w:320,h:406,fx:345.9,fy:81.7,fh:88.6,hairL:20},{x:128.1,y:0.0,w:320,h:406,fx:346.4,fy:41.6,fh:88.1,hairL:16},{x:128.1,y:0.0,w:320,h:406,fx:345.4,fy:37.9,fh:92.9,hairL:21},{x:128.1,y:0.0,w:320,h:406,fx:345.4,fy:38.4,fh:91.8,hairL:17}];   // the male hair layers (in builder order): crop box, face reference, hair light level
-  var AV_FH = ['none', 'french moustache', 'moustache', 'full beard'];   // cut from the France, Euskadi and Mexico players until the facial hair pictures come in
+  var AV_FH = ['none', 'moustache', 'full beard'], AV_FHI = [-1, 1, 2];   // cut from the France, Euskadi and Mexico players until the facial hair pictures come in
   var AV_FHM = [{x:359,y:127,w:92,h:46,mx:413.4,my:161.5,nd:49.4,hairL:22},{x:387,y:128,w:57,h:41,mx:421.2,my:157.7,nd:43.7,hairL:16},{x:359,y:135,w:95,h:89,mx:437.1,my:160.9,nd:38.9,hairL:8}];
   var AV_HAT = ['none', 'baseball cap', 'trucker hat'], AV_EAR = ['none', 'diamond', 'cross', 'small hoop', 'big hoops'];
   var AV_GEO = {                                                    // 640 x 700 picture coordinates
@@ -2730,8 +2730,8 @@ window.FLFeedback = (function () {
     mt0: {skinL: 148, hairL: 48, fabL: 63, ceL: 63, btL: 28, lobe: [282, 76], chain: [[257, 122], [312, 118], [288, 160]], wrist: [401, 376, 0.45, 18], hr: 1.0, slL: 214, lgL: 16, fmx: 346.9, fmy: 97.3, fnd: 24.8, fx: 347.0, fy: 33.6, fh: 92.9}, mt1: {skinL: 153, hairL: 52, fabL: 51, ceL: 49, btL: 28, lobe: [282, 76], chain: [[259, 122], [312, 118], [288, 160]], wrist: [400, 389, 0.35, 18], hr: 1.0, slL: 214, lgL: 13, fmx: 348.8, fmy: 97.9, fnd: 24.6, fx: 348.6, fy: 33.6, fh: 92.9}, mt2: {skinL: 158, hairL: 51, fabL: 52, ceL: 48, btL: 49, lobe: [282, 76], chain: [[259, 118], [314, 115], [288, 157]], wrist: [401, 384, 0.38, 19], hr: 1.0, slL: 223, lgL: 11, fmx: 348.2, fmy: 94.8, fnd: 20.3, fx: 347.5, fy: 35.8, fh: 93.9}, mt3: {skinL: 158, hairL: 51, fabL: 54, ceL: 45, btL: 47, lobe: [282, 76], chain: [[257, 113], [316, 111], [288, 155]], wrist: [410, 383, 0.3, 21], hr: 1.0, slL: 231, lgL: 11, fmx: 347.4, fmy: 96.6, fnd: 23.3, fx: 347.5, fy: 34.2, fh: 95.2}, mt5: {skinL: 152, hairL: 52, fabL: 47, ceL: 34, btL: 23, lobe: [282, 80], chain: [[254, 113], [323, 111], [291, 157]], wrist: [438, 383, 0.3, 27], hr: 1.08, slL: 227, lgL: 16, fmx: 348.6, fmy: 97.5, fnd: 23.8, fx: 348.0, fy: 33.6, fh: 97.1}, mt6: {skinL: 156, hairL: 51, fabL: 52, ceL: 26, btL: 14, lobe: [282, 84], chain: [[256, 115], [328, 112], [294, 160]], wrist: [449, 374, 0.25, 30], hr: 1.12, slL: 231, lgL: 13, fmx: 349.1, fmy: 98.4, fnd: 24.8, fx: 349.1, fy: 35.8, fh: 93.4}, mt7: {skinL: 130, hairL: 58, fabL: 50, ceL: 36, btL: 58, lobe: [278, 77], chain: [[251, 141], [342, 133], [302, 179]], wrist: [523, 374, 0.15, 32], hr: 1.16, slL: 226, lgL: 49, fmx: 351.2, fmy: 96.8, fnd: 21.3, fx: 351.8, fy: 35.2, fh: 97.7},
     fk: { fabL: 55, ceL: 168, ceOrig: 1, btL: 16 }, mk: { slL: 224, lgL: 12, fabL: 58, ceL: 45, ceOrig: 0, btL: 40 }
   };
-  var AV = { view: 'kit', g: 'm', bm: 4, bf: 3, skc: '#d09468', hrc: '#4a2f1f', ht: -1, shirt: '#0b0b0b', shorts: '#0b0b0b', shoes: '#0b0b0b', belt: '#0b0b0b', slc: '#f2f2f2', lgc: '#0b0b0b', slv: true, leg: true, bot: 'shorts', fh: 0, top: 'shirt', shoe: 'low', cesta: '#26262b', hat: 0, ear: 0, chain: false, brace: false, watch: false };
-  var AV0 = JSON.stringify(AV); AV.bot = 'shorts'; AV.slv = AV.leg = true;   // pants, and taking off sleeves or leggings, were taken off the builder: color only                                    // the starting look, for Reset
+  var AV = { view: 'kit', g: 'm', bm: 4, bf: 3, skc: '#d09468', hrc: '#4a2f1f', ht: -1, shirt: '#0b0b0b', shorts: '#0b0b0b', shoes: '#0b0b0b', belt: '#0b0b0b', slc: '#f2f2f2', lgc: '#0b0b0b', slv: true, leg: true, bot: 'shorts', fh: 0, fhc: '#4a2f1f', top: 'shirt', shoe: 'low', cesta: '#26262b', hat: 0, ear: 0, chain: false, brace: false, watch: false };
+  var AV0 = JSON.stringify(AV); AV.bot = 'shorts'; AV.slv = AV.leg = true; if (!(AV.fh >= 0 && AV.fh < 3)) AV.fh = 0;   // pants, and taking off sleeves or leggings, were taken off the builder: color only                                    // the starting look, for Reset
   try { var avS = JSON.parse(localStorage.getItem(AVKEY) || 'null'); if (avS && avS.v === 8) for (var avk in avS) if (avk in AV) AV[avk] = avS[avk]; } catch (e) { /* ignore */ }
   AV.view = 'player'; AV.hat = 0; AV.ear = 0; AV.chain = AV.brace = AV.watch = false;   // the player shows from the start; hats, shoes and jewelry are off the builder
   var AVC = {};                                                     // loaded pictures per base
@@ -2900,9 +2900,10 @@ window.FLFeedback = (function () {
     });
   }
   function avFace(fx, G, HR, cb) {                                 // the chosen moustache or beard, tinted to the hair color and lined up on this body's nose
-    var t = AV.fh - 1; if (AV.g !== 'm' || t < 0 || !G.fnd) return cb();
+    var t = AV_FHI[AV.fh] == null ? -1 : AV_FHI[AV.fh]; if (AV.g !== 'm' || t < 0 || !G.fnd) return cb();
+    if (AV.picked && AV.picked.fhc) HR = avHex(AV.fhc);                // its own color once picked, the hair color until then
     avLoad('fh' + t, function (ho) {
-      if (!ho.ok || AV.fh - 1 !== t) return; var M = AV_FHM[t], c = document.createElement('canvas'); c.width = M.w; c.height = M.h; var cx = c.getContext('2d'); cx.drawImage(ho.im[0], 0, 0);
+      if (!ho.ok || AV_FHI[AV.fh] !== t) return; var M = AV_FHM[t], c = document.createElement('canvas'); c.width = M.w; c.height = M.h; var cx = c.getContext('2d'); cx.drawImage(ho.im[0], 0, 0);
       var id = cx.getImageData(0, 0, M.w, M.h), d = id.data, s = new Uint8ClampedArray(d), mk = document.createElement('canvas'); mk.width = M.w; mk.height = M.h; var mx = mk.getContext('2d'); mx.drawImage(ho.im[1], 0, 0); var m = mx.getImageData(0, 0, M.w, M.h).data;
       for (var p = 0; p < d.length; p += 4) { d[p + 3] = m[p]; if (m[p]) avTint(d, s, p, 1, HR, Math.max(14, M.hairL), 0.2, 0.8); }
       cx.putImageData(id, 0, 0); var k = G.fnd / M.nd; fx.drawImage(c, G.fmx + (M.x - M.mx) * k, G.fmy + (M.y - M.my) * k, M.w * k, M.h * k); cb();
@@ -2944,10 +2945,10 @@ window.FLFeedback = (function () {
       '<div class="av-ctl">' +
       '<div class="av-l">Player</div>' + pair('g', [['m', 'male'], ['f', 'female']], 'Player') +
       '<div class="av-l">Uniform Style</div><div class="av-row" role="group" aria-label="Top">' + ['shirt', 'tank'].map(function (v) { return '<button type="button" data-av="top" data-s="' + v + '" aria-pressed="false">' + (v === 'tank' ? 'tank top' : 'shirt') + '</button>'; }).join('') + '</div>' +
-      '<div class="av-l">Uniform Color</div><div class="av-cols"><label><input type="color" id="avShirt" value="' + AV.shirt + '">shirt</label><label><input type="color" id="avShorts" value="' + AV.shorts + '">shorts</label><label><input type="color" id="avBelt" value="' + AV.belt + '">belt</label><label><input type="color" id="avCesta" value="' + AV.cesta + '">cesta</label><label class="av-mo"><input type="color" id="avSlc" value="' + AV.slc + '">sleeves</label><label class="av-mo"><input type="color" id="avLgc" value="' + AV.lgc + '">leggings</label></div>' +
+      '<div class="av-l">Uniform Color</div><div class="av-cols"><label><input type="color" id="avShirt" value="' + AV.shirt + '">shirt/tank</label><label><input type="color" id="avShorts" value="' + AV.shorts + '">shorts</label><label><input type="color" id="avBelt" value="' + AV.belt + '">belt</label><label><input type="color" id="avCesta" value="' + AV.cesta + '">cesta</label><label class="av-mo"><input type="color" id="avSlc" value="' + AV.slc + '">sleeves</label><label class="av-mo"><input type="color" id="avLgc" value="' + AV.lgc + '">leggings</label></div>' +
       '<div class="av-l">Body Style</div><div class="av-bm">' + chips('bm', AV_BDM, 'Body style') + '</div><div class="av-bf">' + chips('bf', AV_BD, 'Body style') + '</div>' +
       '<div class="av-ht"><div class="av-l">Hair Type</div>' + chips('ht', AV_HT, 'Hair type') + '</div>' +
-      '<div class="av-mo"><div class="av-l">Facial Hair</div>' + chips('fh', AV_FH, 'Facial hair') + '</div>' +
+      '<div class="av-mo"><div class="av-l">Facial Hair</div>' + chips('fh', AV_FH, 'Facial hair') + '<div class="av-cols" style="margin-top:6px"><label><input type="color" id="avFhc" value="' + AV.fhc + '">facial hair</label></div></div>' +
       '<div class="av-l">Skin &amp; Hair Color</div><div class="av-cols"><label><input type="color" id="avSkc" value="' + AV.skc + '">skin</label><label><input type="color" id="avHrc" value="' + AV.hrc + '">hair</label></div>' +
       '</div><button type="button" class="av-go" data-av="use">Use This Avatar<small>$0.99 per month</small></button>' +
       '<button type="button" class="av-link" data-av="photos">Or send us two photos and we custom build you</button></div>';
@@ -2957,7 +2958,7 @@ window.FLFeedback = (function () {
       if (v != null) b.setAttribute('aria-pressed', String((k === 'ht' ? avHT() : AV[k]) === +v)); else if (s != null) b.setAttribute('aria-pressed', String(AV[k] === s)); else if (k === 'tog') b.setAttribute('aria-pressed', String(!!AV[b.getAttribute('data-k')])); }); };
     AV.picked = AV.picked || {};                                     // a color wheel stays blank until the player picks a color with it
     var col = function (id, keys) { var inp = $(id); inp.classList.toggle('av-blank', !AV.picked[keys[0]]); inp.addEventListener('input', function () { var v = this.value; this.classList.remove('av-blank'); keys.forEach(function (k) { AV[k] = v; AV.picked[k] = 1; }); avSave(); redraw(); }); };
-    col('avSkc', ['skc']); col('avHrc', ['hrc']); col('avShirt', ['shirt']); col('avShorts', ['shorts']); col('avBelt', ['belt']); col('avCesta', ['cesta']); col('avSlc', ['slc']); col('avLgc', ['lgc']);
+    col('avSkc', ['skc']); col('avFhc', ['fhc']); col('avHrc', ['hrc']); col('avShirt', ['shirt']); col('avShorts', ['shorts']); col('avBelt', ['belt']); col('avCesta', ['cesta']); col('avSlc', ['slc']); col('avLgc', ['lgc']);
     var BODYK = { fh: 1, bm: 1, bf: 1, skin: 1, hair: 1, ht: 1, hat: 1, ear: 1, tog: 1 };
     el.onclick = function (e) {
       var b = e.target.closest('button[data-av]'); if (!b) return; var k = b.getAttribute('data-av');
